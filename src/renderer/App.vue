@@ -1,0 +1,705 @@
+<template>
+  <div id="app">
+    <router-view></router-view>
+    <vue-progress-bar></vue-progress-bar>
+  </div>
+</template>
+
+<script>
+
+import { mapState } from 'vuex'
+import 'basscss/css/basscss.css'
+
+export default {
+  name: 'multistore',
+  mounted () {
+    this.$Progress.finish()
+  },
+  computed: {
+    ...mapState('branch', ['selectedBranch', 'branches', 'branchSuggestions', 'currentBranch']),
+    ...mapState('store', ['store']),
+    ...mapState('users', [
+      'currentUser',
+      'isLoggedIn'
+    ])
+  },
+  created () {
+    this.$Progress.start()
+    this.$router.beforeEach((to, from, next) => {
+      if (to.meta.progress !== undefined) {
+        const meta = to.meta.progress
+        this.$Progress.parseMeta(meta)
+      }
+      this.$Progress.start()
+      next()
+    })
+    this.$router.afterEach((to, from) => {
+      this.$Progress.finish()
+    })
+  }
+}
+</script>
+
+<style lang="sass">
+  @import "~bulma/sass/utilities/_all"
+
+  $primary: #0A44AE
+  $secondary: #05296B
+  $primary-invert: findColorInvert($primary)
+  $twitter: #4099ff
+  $twitter-invert: findColorInvert($twitter)
+  $danger: #ff3860
+  $link: $primary
+  $link-invert: $primary-invert
+  $link-focus-border: $primary
+
+  $--color-primary: red !default;
+
+  @import "~bulma"
+  @import "~buefy/src/scss/buefy"
+  .highest, .lowest
+    font-size: 16px !important
+    font-weight: 700
+    color: #05296b
+  .fa-6x
+    font-size: 80px
+  i
+    color: inherit !important
+  .has-pointer-cursor
+    cursor: pointer
+  .el-tab-pane
+    padding-top: 0px !important
+  .el-tabs__item
+    color: black !important
+  .el-input-number__decrease
+    border-bottom: 1px solid #dcdfe6
+  #textarea
+     width: 600px !important;
+  .checkbox-cell
+    border: 0px !important
+  .has-max-height
+    max-height: 100% !important;
+  .has-full-width
+    width: 100% !important;
+  .is-centered
+    text-align: center
+  .no-border
+    border: none !important
+  .is-rounded
+    border-radius: 100%
+  // .is-danger
+  //   color: #ff3860 !important
+  .m-0
+    margin: 0px !important
+  .font-size-10
+    font-size: 10px !important
+  .font-size-11
+    font-size: 11px !important
+  .font-size-12
+    font-size: 12px !important
+  .font-size-13
+    font-size: 13px !important
+  .font-size-14
+    font-size: 14px !important
+  .font-size-15
+    font-size: 15px !important
+  .font-size-16
+    font-size: 16px !important
+  .font-size-17
+    font-size: 17px !important
+  .font-size-18
+    font-size: 18px !important
+  .mt-25
+    margin-top: 25px !important
+  .mt-10
+    margin-top: 10px !important
+  .mt-30
+    margin-top: 30px !important
+  .mt-35
+    margin-top: 35px !important
+  .mt-50
+    margin-top: 50px !important
+  .mt-56
+    margin-top: 56px !important
+  .mt-70
+    margin-top: 70px !important
+  .mt-100
+    margin-top: 70px !important
+  .mt-17
+    margin-top: 17px !important
+  .mb-10
+    margin-bottom: 10px !important
+  .mb-20
+    margin-bottom: 20px !important
+  .mb-25
+    margin-bottom: 25px !important
+  .mb-45
+    margin-bottom: 45px !important
+  .mb-50
+    margin-bottom: 50px !important
+  .mr-5
+    margin-right: 5px !important
+  .mr-10
+    margin-right: 10px !important
+  .ml-2
+    margin-left: 2px !important
+  .mrp-17
+    margin-left: 17% !important
+  .mr-15
+    margin-right: 15px !important
+  .mr-60
+    margin-right: 60px
+  .ml-15
+    margin-left: 15px
+  .ml-10
+    margin-left: 10px
+  .bw-2
+    border-right-width: 2px !important
+  .is-15
+    font-size: 15px
+  .mrl-60
+    margin: 0px 60px
+  .ml-25
+    margin-left: 25px
+  .p-10
+    padding: 10px
+  .plr-25
+    padding: 0px 25px
+  .p-0
+   padding: 0px !important
+  .p-2
+   padding: 2px !important
+   padding-bottom: 0px !important
+  .h40
+   height: 40px
+  .h60
+   height: 60px
+  .is-size-150
+    font-size: 150px !important
+  .is-bg-white
+    background-color: white !important
+  .has-input
+    padding: 0px !important
+    position: relative
+  .has-truncated-text
+    text-overflow: ellipsis !important
+    white-space: nowrap !important
+    width: 80% !important
+  .borderless
+    width: 100%
+    position: absolute
+    top: 0px
+    bottom: 0px
+    text-align: center
+    border: none
+  .has-width-150
+    width: 150px
+  .has-width-100
+    width: 100px
+  .has-width-300
+    min-width: 300px
+  .is-centered, .is-h-centered
+    display: flex
+    justify-content: flex-start
+    flex-direction: column
+    align-items: center
+  .is-h-centered
+    flex-direction: row
+    justify-content: center
+  .is-v-centered
+    display: flex
+    flex-direction: column
+    justify-content: center
+  .field-label.is-v-centered
+    padding: 0px
+  .is-flex-start
+    justify-content: flex-start
+  .multiselect__tag
+    background: $primary !important
+  .multiselect__tag-icon
+    &:hover, &:focus
+     background: $danger !important
+  .h100
+    height: 100%
+
+  body, html, #app
+    height: 100%
+    margin: 0
+    font-family: "Rubik", Arial, sans-serif
+    font-size: 14px
+    overflow: hidden
+    -webkit-font-smoothing: antialiased
+    -moz-osx-font-smoothing: grayscale
+
+  .material-icons.md-18
+    font-size: 18px
+
+  .button.is-danger[disabled]
+    background-color: red !important
+  .button.is-danger
+    background-color: red !important
+
+  .material-icons.md-24
+    font-size: 24px
+
+  .material-icons.md-36
+    font-size: 36px
+
+  .material-icons.md-48
+    font-size: 48px
+
+  .u-vertical-grid
+    display: flex
+    flex-direction: column
+    height: 100%
+
+  .AppBase
+    // @extend .u-vertical-grid
+    background-color: whitesmoke
+    min-height: 100% !important
+    overflow-y: hidden
+
+  .fs-grid
+    position: absolute
+    left: 0.75rem
+    right: 0.75rem
+    bottom: 0.75rem
+    top: 0.75rem
+
+  .dropdown-menu
+    width: 100%
+  .dropdown-content
+    background-color: $primary
+    a
+      color: white !important
+      font-size: 14px
+      padding: 10px
+      font-size: 14px
+      &:hover
+        color: #ffffff !important
+        background-color: lighten($primary, 10%);
+
+  .nav
+    background: $secondary
+    height: 6.25rem
+    padding: 0 1.5rem
+
+    .nav-item img
+      max-height: 2.9rem
+
+    a.nav-item
+      color: $white
+
+      &:hover
+        color: darken($white, 10%)
+
+    .dropdown-trigger .button
+      background-color: darken($secondary, 20%)
+      border-color: lighten($secondary, 10%)
+      color: rgba(255, 255, 255, 0.9)
+      min-width: 300px
+      justify-content: flex-start
+      padding-left: 0.75em
+      padding-right: 0.75em
+      border-radius: 4px
+
+      .icon:last-child
+        flex-grow: 1
+        justify-content: flex-end
+
+    .button.is-primary:hover, .button.is-primary:focus
+      background: $primary !important
+      color: $white !important
+      border-color: lighten($primary, 10%) !important
+
+    .dropdown .box
+      background: $primary
+
+    .dropdown .box .option
+      color: $white
+
+      &:hover
+        background: lighten($primary, 10%) !important
+
+      a
+        color: inherit
+
+    .dropdown .box.is-bottom-right
+      min-width: 300px
+      top: 3.2em
+      border-radius: 4px
+
+  .button
+    font-family: 'Rubik'
+
+  .button.is-primary
+    background-color: $primary
+
+    &:hover, &:focus, &:active, &.is-active
+      background-color: $secondary
+
+    &[disabled]
+      background: lighten($secondary, 20%)
+
+  .u-flex-fill
+    flex-grow: 1
+    margin-top: 100px
+    // overflow-y: scroll
+    // display: flex
+    // justify-content: center
+    // align-items: center
+    // align-content: center
+
+  section
+    background-color: transparent !important
+  .section
+    padding: 1rem 1rem !important
+
+  .card-header-title
+    color: $secondary
+    padding: 1rem 1.3rem
+    font-size: 1.25rem
+
+  .toolbar
+    height: 60px
+    padding: 0 1.5rem
+    margin-bottom: 0 !important
+    border-bottom: 1px solid #dbdbdb
+
+  .page-title
+    margin-bottom: 0 !important
+    font-size: inherit !important
+
+  .level-center
+     display: flex
+  .card .tabs
+    margin-bottom: 0
+
+  .field-body
+    flex-grow: 2
+
+  .table tbody td, .table thead td, .table thead th
+    padding: 0.5rem 1.5rem
+
+  .table
+    tr
+      cursor: pointer
+    th
+     vertical-align: middle !important
+    td, th
+     border-color: #e6ebf5 !important
+
+  .tabs
+    a
+      padding: 0.75rem 1.5rem
+      font-size: 13px
+
+    li.is-active a
+      font-weight: 500
+      border-bottom-color: #05296b
+      color: #05296b
+
+    &.is-boxed ul
+      padding-left: 1.5em
+
+      a
+        border-radius: 0
+        border-top-width: 1px
+        padding: 0.5rem 1.5rem
+
+      // li.is-active a
+        // border-top-color: $primary
+
+  .el-tabs--card > .el-tabs__header .el-tabs__item.is-active
+    border-radius: 0
+    border-top: 0
+    color: $primary
+
+  // .el-table__fixed-right
+  //   border-left: 1px solid #ebeef5
+  //   box-shadow: none !important
+  // .el-table__fixed
+  //   border-right: 1px solid #ebeef5
+  //   box-shadow: none !important
+  .el-tabs__content
+    min-height: 400px
+
+  .el-tab-pane
+    padding: 2.5rem
+
+  .el-input-group__append
+    background: white !important
+  .BaseAppCard
+    // min-height: 550px
+    min-height: 670px
+
+  .filters-section
+    padding: 1rem 1.5rem
+    border-bottom: 1px solid #EDEDED
+
+  .detail-section
+    padding: 2rem
+
+  .sidebar-detail-section
+    padding: 3rem 3.5rem 2rem 2rem
+
+  aside.menu
+    height: 100%
+    min-height: 700px
+    padding: 2rem 1.5em
+    border-right: solid 1px #DEDEDE
+
+  .el-table
+    // border: none
+
+    // &::after, &::before
+    //   background: transparent
+    .is-hidden
+      display: table-cell !important
+
+  .el-dialog__body
+    padding: 30px 0px
+  .el-dialog__header
+    border-bottom: 1px solid #f5f5f5
+  .el-table__body-wrapper
+    overflow: auto !important
+
+  .form-panel
+    background: #f4f4f4
+    height: 0
+    overflow-y: hidden
+    transition: all .3s
+
+    &.is-active
+      height: auto
+      padding: 1.5rem
+
+  .scroller
+    height: 500px
+    overflow-y: scroll
+
+  .page-forms
+    background: #fff
+    border: solid 1px #dbdbdb
+    border-radius: 4px
+    width: 100%
+
+  .shadow-divider
+    border-top: solid 1px #ccc
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.12) inset
+
+  .dropzone
+    border: 1px solid #eaeaea !important;
+    border-radius: 4px;
+    background: #f7f7f7 !important;
+    width: 100%;
+    min-height: 250px;
+    overflow-y: scroll
+    height: 300px
+    .material-icons
+      font-size: 120px;
+    &:hover
+     border-radius: 5px;
+     .material-icons
+       color: $secondary
+     span
+      color: $secondary;
+      transition: all 1s ease;
+  .doc
+    height: 100%
+    // height: 95%
+    width: 100%
+  .tabs
+    a
+     padding: 7px 15px !important
+  #select-vendors
+    .content-container
+      input
+      text-align: center
+  .b-table
+    margin: 0px !important
+  .invisible
+    background: transparent !important
+    border: none !important
+    outline: none
+  .options
+    display: flex
+    margin-bottom: 10px
+    justify-content: space-between
+    .left
+      display: flex
+    .right
+      display: flex
+    label
+      font-weight: 600
+      margin-right: 5px
+      font-size: 16px
+      letter-spacing: 0.4px
+    select
+      border: 1px solid #dbdbdb
+      margin-right: 10px
+      height: 30px
+      min-width: 100px
+      font-size: medium
+      border-radius: 4px
+  .autocomplete
+    .dropdown-menu
+      box-shadow: 0 2px 12px 0 rgba(0,0,0,.1)
+    .dropdown-content
+      background-color: white !important
+    .dropdown-content
+      a
+        color: #4a4a4a !important
+        &:hover
+         background-color: #f5f5f5
+
+  .MaterialView
+    .el-tabs__header
+      margin-bottom: 0px
+  .el-checkbox__input.is-checked .el-checkbox__inner, .el-checkbox__input.is-indeterminate .el-checkbox__inner
+    background-color: black !important
+    border-color: black !important
+  .swal2-container
+    z-index: 10000
+  .matInfo
+    border-top: 1px solid #ebeef5
+
+
+  .wizard-icon
+    color: ghostwhite !important
+  .wizard-progress-with-circle
+    background-color: ghostwhite !important
+  .vue-form-wizard.md .wizard-icon-circle
+    border-color: ghostwhite
+  .stepTitle
+    margin-top: 20px
+
+  .search
+    .el-input
+      width: 500px
+      input
+       text-align: center
+
+  .sidebar
+    height: 100% !important
+    // background: #00040a
+    background: #051021
+    // border-top-left-radius: 10px !important
+    .columns
+      margin: 0px !important
+      // padding: 2px !important
+      padding: 10px !important
+    .is-6, .is-12
+      margin: 0px 0px !important
+      // padding: 3px !important
+      padding: 1px !important
+    .button
+      height: 100px
+      // font-size: 16px !important
+      font-size: 14px !important
+      background-color: #05296b !important
+      border-radius: 0px !important
+      white-space: normal;
+  .el-table--striped .el-table__body tr.el-table__row--striped td
+    background-color: #f5f7fa !important
+  .el-table--enable-row-hover .el-table__body tr:hover>td
+    background-color: white !important
+  .el-table--striped .el-table__body tr.el-table__row--striped:hover td
+    background-color: #f5f7fa !important
+  .actions
+    display: flex
+    .el-button-group
+      display: flex !important
+    .el-button
+      height: 33px !important
+
+  .el-table__empty-block
+    height: 160px !important
+    overflow: hidden !important
+
+
+
+  .selectAdd
+    padding: 5px 20px;
+
+  .reportFilters
+    .el-form
+      height: 40px !important
+    .el-form--inline
+      display: flex !important
+      flex-wrap: wrap !important
+    .el-form-item .el-select.el-select--mini
+      width: 120px !important
+      input
+        width: 120px !important
+
+
+  .dots
+    margin: 40px auto
+  .dot
+    display: inline-block
+    border-radius: 50%
+    width: 50%
+    background-color: #EEE
+    height: 15px
+    width: 15px
+    margin: 0 2px
+  .dot.dot-success
+    background-color: #4CAF50
+  .dot.dot-warning
+    background-color: #FFC107
+  .dot.dot-danger
+    background-color: #D9534F
+  .dot.dot-sm
+    height: 10px
+    width: 10px
+  .dot.dot-lg
+    margin: 0 4px
+    height: 20px
+    width: 20px
+
+  .el-loading-mask
+    z-index: 6 !important
+
+  .is-error, .is-error .el-input__inner,
+    border-color: #f56c6c !important
+  .is-error, .is-error .el-input__inner::-webkit-input-placeholder
+    color: #f56c6c !important  
+
+  .appView
+    height: 500px;
+    overflow-y: scroll;
+    width: 100%;
+    margin-bottom: 20px !important
+    overflow-x: hidden !important
+  
+</style>
+
+<style>
+@media all and (min-width: 1024px) and (max-width: 1215px) {
+  .sidebar .button {
+    font-size: 10px !important;
+  }
+
+  .cell{
+    font-size: 12px !important;
+  }
+
+  .search .el-input {
+    width: 300px !important;
+  }
+
+  a.button.is-primary{
+    font-size: 12px !important;
+  }
+
+  .cell.el-tooltip {
+    font-size: 11px !important;
+  }
+
+  .level-item.page-title.subtitle.is-5 {
+    font-size: 12px !important;
+  }
+}
+</style>
+

@@ -1,0 +1,111 @@
+<template lang="pug">
+  section.section
+    .container-fluid
+      .columns.is-gapless
+        .column(v-show="$can('admin|super-admin')" :class="$can('admin|super-admin') ? 'is-2' : ''")
+          SideBar
+        .column(:class="$can('admin|super-admin') ? 'is-10' : ''")
+          .BaseAppCard.card(ref='base-card')
+            header.card-header
+              p.card-header-title Sales Management
+              p.level-item.page-title.subtitle.is-5
+                span.tag.is-medium Branch: {{ currentBranch.name }}
+              a.card-header-icon
+                el-dropdown
+                  span(class="el-dropdown-link")
+                    span.icon
+                      i.material-icons keyboard_arrow_down
+                  el-dropdown-menu(slot="dropdown")
+                    el-dropdown-item(:disabled="!filteredSales.length")
+                      JsonExcel(
+                        :data="filteredSales",
+                        :fields="json_fields",
+                        :name="documentName",
+                        type="xlsx",
+                        v-if="filteredSales.length"
+                      ) Export sales list to excel ({{filteredSales.length}})
+                    el-dropdown-item Advanced excel export (Sales)
+                    el-dropdown-item Action 2
+                    el-dropdown-item Action 2
+                    el-dropdown-item Action 2
+            .tabs
+              ul
+                router-link(tag="li", :to="{name: 'sales_list'}", active-class="is-active")
+                  a Sales history
+                router-link(tag="li", :to="{name: 'refunds_list'}", active-class="is-active")
+                  a Refunds history
+                router-link(tag="li", :to="{name: 'product_enquiry_list'}", active-class="is-active")
+                  a Products Enquiries
+            .tab-content
+              router-view(@formPanelClose='resetScroll' ref="child")
+</template>
+
+<script>
+/* eslint-disable */
+const BASE_PATH = '/app/sales';
+import JsonExcel from 'vue-json-excel';
+import { mapState } from 'vuex';
+import SideBar from '@/components/shared/SideBar';
+
+const redirectIfBase = (to, next) => {
+  if (to.path === BASE_PATH) {
+    next({ name: 'sales' });
+  } else {
+    next();
+  }
+};
+
+export default {
+  data() {
+    return {
+      activeTab: 0,
+      json_fields : {
+        Customer: 'customer',
+        Total: 'total',
+        Discount: 'discount',
+        profit:  'profit',
+        Tax: 'tax',
+        'Sales ID': 'salesid',
+        'Sold by': 'user',
+        'Payment method': 'payment',
+        'Sold at': 'salestime',
+      },
+    };
+  },
+  components: {
+    JsonExcel,
+    SideBar,
+  },
+  computed: {
+    ...mapState('sales', [
+      'filteredSales',
+    ]),
+    documentName() {
+      return `Sales history`
+    },
+    ...mapState('branch', [
+      'currentBranch',
+    ]),
+  },
+  beforeRouteEnter(to, from, next) {
+    redirectIfBase(to, next);
+  },
+  beforeRouteUpdate(to, from, next) {
+    redirectIfBase(to, next);
+  },
+  methods: {
+    resetScroll() {
+      this.$scrollTo(this.$el, 1000, {
+        container: '#snap-screen',
+        easing: 'ease',
+        cancelable: false,
+      });
+    },
+  },
+};
+</script>
+
+<style lang="sass">
+.BaseAppCard
+  min-height: 670px
+</style>
