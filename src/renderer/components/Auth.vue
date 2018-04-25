@@ -48,7 +48,6 @@
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
-  mixins: [validationMixin],
   computed: {
     ...mapGetters('users', [
       'isLoggedIn'
