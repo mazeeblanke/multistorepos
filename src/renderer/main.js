@@ -1,5 +1,6 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+/* eslint-disable */
 import Vue from 'vue'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
@@ -7,11 +8,7 @@ import VueProgressBar from 'vue-progressbar'
 import VueScrollTo from 'vue-scrollto'
 import Buefy from 'buefy'
 import VueSweetalert2 from 'vue-sweetalert2'
-// import VueFormWizard from 'vue-form-wizard'
-// import moment from 'moment'
-// import VueMomentJS from 'vue-momentjs'
 import PopoverExt from 'vue-js-popover'
-// import Print from 'vue-print-nb'
 import {
   Table,
   TableColumn,
@@ -45,7 +42,6 @@ import {
 import lang from 'element-ui/lib/locale/lang/en'
 import Acl from 'vue-acl'
 import locale from 'element-ui/lib/locale'
-import 'perfect-scrollbar/dist/css/perfect-scrollbar.css'
 import { isLoggedIn } from '@/utils/helper'
 import { PERMISSIONS } from '@/utils/constants'
 import App from './App'
@@ -137,7 +133,6 @@ window.baseUrl = 'http://104.237.153.63/multistore'
 Vue.config.productionTip = false
 axios.interceptors.request.use(
   (config) => {
-    /* eslint-disable no-param-reassign */
     const baseUrl = window.baseUrl
     // const token = localStorage.getItem('pos_token')
     config.url = `${baseUrl}/${config.url}`
@@ -147,7 +142,7 @@ axios.interceptors.request.use(
 )
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
-/* eslint-disable no-new */
+
 new Vue({
   el: '#app',
   router,
@@ -155,7 +150,6 @@ new Vue({
   template: '<App/>',
   components: { App },
   mounted () {
-    console.log('here here')
     this.$router.beforeEach((to, from, next) => {
       if (to.name === 'home') {
         next('/')

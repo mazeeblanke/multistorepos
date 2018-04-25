@@ -1,7 +1,8 @@
 
 import Vue from 'vue'
-import axios from 'axios'
+// import axios from 'axios'
 import { ObjectToFormData } from '@/utils/helper'
+/* eslint-disable */
 
 export default {
   namespaced: true,
@@ -13,41 +14,41 @@ export default {
       /**
        *  Integration without OAS
        */
-      // return Vue.axios.post(
-      //   'forms/users.php',
-      //   ObjectToFormData(payload),
-      //   { headers: { 'Content-Type': 'multipart/form-data' } })
-      //   .then((response) => {
-      //     localStorage.setItem('pos_token', response.data.user_token)
-      //     commit('SET_CURRENT_USER', response.data.user_details[0])
-      //     return response
-      //   })
-
-      /**
-       * Integration with OAS
-       */
-      const axiosInstance = axios.create()
-      return axiosInstance
-        .post(
-          'https://oxbridge-dev-api.herokuapp.com/api/user/login',
-          {
-            ...payload,
-            email: payload.username
-          }
-        )
-        .then(res => {
-          state.currentUser = {
-            ...state.currentUser,
-            OAS_USER: res
-          }
-          localStorage.setItem('oas_token', res.data.token)
-          return Vue.axios.post('forms/users.php', ObjectToFormData(payload), { headers: { 'Content-Type': 'multipart/form-data' } })
-        })
+      return Vue.axios.post(
+        'forms/users.php',
+        ObjectToFormData(payload),
+        { headers: { 'Content-Type': 'multipart/form-data' } })
         .then((response) => {
           localStorage.setItem('pos_token', response.data.user_token)
           commit('SET_CURRENT_USER', response.data.user_details[0])
           return response
         })
+
+      /**
+       * Integration with OAS
+       */
+      // const axiosInstance = axios.create()
+      // return axiosInstance
+      //   .post(
+      //     'https://oxbridge-dev-api.herokuapp.com/api/user/login',
+      //     {
+      //       ...payload,
+      //       email: payload.username
+      //     }
+      //   )
+      //   .then(res => {
+      //     state.currentUser = {
+      //       ...state.currentUser,
+      //       OAS_USER: res
+      //     }
+      //     localStorage.setItem('oas_token', res.data.token)
+      //     return Vue.axios.post('forms/users.php', ObjectToFormData(payload), { headers: { 'Content-Type': 'multipart/form-data' } })
+      //   })
+      //   .then((response) => {
+      //     localStorage.setItem('pos_token', response.data.user_token)
+      //     commit('SET_CURRENT_USER', response.data.user_details[0])
+      //     return response
+      //   })
     },
     logout ({ commit }) {
       return new Promise((resolve, reject) => {
@@ -67,12 +68,10 @@ export default {
   },
   mutations: {
     SET_CURRENT_USER (state, user) {
-      /* eslint no-param-reassign: ["error", { "props": false }] */
       state.currentUser = {
         ...state.currentUser,
         ...user
       }
-      console.log(state.currentUser)
     }
   }
 }
