@@ -130,6 +130,7 @@
                       v-for="branch in branch_suggestions",
                       :value="branch",
                       :label="branch.name",
+                      :key="branch.id",
                     )
           .column.is-2
             div(class="store-logo")
@@ -205,6 +206,7 @@
                       v-for="tax in taxes",
                       :label="tax.type",
                       :value="tax.type",
+                      :key="tax.type",
                     )
               el-table-column(prop="value", label="Tax value (%)", align="left", show-overflow-tooltip, :sortable="true")
                 template(slot-scope="scope")

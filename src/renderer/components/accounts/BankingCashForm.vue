@@ -116,6 +116,7 @@
                     v-for="branch in branchSuggestions",
                     :value="branch",
                     :label="branch.name",
+                    :key="branch.id"
                   )
 </template>
 

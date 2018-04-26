@@ -24,6 +24,7 @@ div
                   v-for="branch in branchSuggestions",
                   :value="branch.id",
                   :label="branch.name",
+                  :key="branch.id",
                 )
             el-form-item(label="")
               el-select(v-model="filter.type", size="mini", clearable, placeholder="Direction")

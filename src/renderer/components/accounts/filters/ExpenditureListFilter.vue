@@ -53,13 +53,8 @@
                 v-for="branch in branchSuggestions",
                 :value="branch.id",
                 :label="branch.name",
+                :key="branch.id",
               )
-            //- el-input(
-            //-   v-model="filterParams.branchid"
-            //-   size="small"
-            //-   @input="notifyFilterChange()"
-            //-   placeholder="e.g Salary for the month"
-            //- )
       .column
         .field
           label.label Type

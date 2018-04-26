@@ -64,6 +64,7 @@
                 v-for="branch in branchSuggestions",
                 :value="branch.id",
                 :label="branch.name",
+                :key="branch.id",
               )
       .column
         .field

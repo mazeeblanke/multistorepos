@@ -47,17 +47,17 @@
       el-table-column(prop="name", show-overflow-tooltip, label="Name", align="left", :sortable="true")
       el-table-column(prop="quantity", label="Quantity", align="left", show-overflow-tooltip, :sortable="true")
       el-table-column(prop="unitprice", show-overflow-tooltip, :label="unitPriceLabel", align="left", :sortable="true")
-        template(slot-scope="scope", scope="props")
-          span {{ `${currencySymbol} ${props.row.unitprice}` }}
+        template(slot-scope="scope")
+          span {{ `${currencySymbol} ${scope.row.unitprice}` }}
       el-table-column(prop="costprice", show-overflow-tooltip, :label="costPriceLabel", align="left", :sortable="true")
-        template(slot-scope="scope", scope="props")
-          span {{ `${currencySymbol} ${props.row.costprice}` }}
+        template(slot-scope="scope")
+          span {{ `${currencySymbol} ${scope.row.costprice}` }}
       el-table-column(prop="exptime", show-overflow-tooltip, label="Expiry date", align="left", :sortable="true")
         template(slot-scope="scope")
           span {{ dateForHumans(scope.row.exptime) }}
-      el-table-column(label="Actions", :render-header="renderDelete", @click.stop="deleteRow(props.row)", width="70", fixed="right")
-        template(slot-scope="scope", scope="props")
-          button.button(:class="$style.trash" @click.stop="deleteRow(props.row)")
+      el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
+        template(slot-scope="scope")
+          button.button(:class="$style.trash" @click.stop="deleteRow(scope.row)")
             i.material-icons delete
       //- div(slot="append" v-show="showLoading")
       //-  div(ref='loader' style="height: 45px;")

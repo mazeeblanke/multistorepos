@@ -35,11 +35,11 @@
       el-table-column(prop="productid", show-overflow-tooltip, label="ID", align="left", :sortable="true")
       el-table-column(prop="product", show-overflow-tooltip, label="Product Name", align="left", :sortable="true")
       el-table-column(prop="previous_price", :label="PreviousPriceLabel", align="left", show-overflow-tooltip, :sortable="true")
-        template(slot-scope="scope", scope="props")
-          span {{ `${currencySymbol} ${props.row.previous_price}` }}
+        template(slot-scope="scope")
+          span {{ `${currencySymbol} ${scope.row.previous_price}` }}
       el-table-column(prop="next_price", :label="NextPriceLabel", align="left", :sortable="true" )
-        template(slot-scope="scope", scope="props")
-          span {{ `${currencySymbol} ${props.row.next_price}` }}
+        template(slot-scope="scope",)
+          span {{ `${currencySymbol} ${scope.row.next_price}` }}
       el-table-column(prop="change_date", label="Changed at", align="left", :sortable="true" fixed="right")
         template(slot-scope="scope") 
           span {{ dateForHumans(scope.row.change_date) }}

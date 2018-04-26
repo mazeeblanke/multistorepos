@@ -74,12 +74,12 @@
             template(slot-scope="scope" v-if="scope.row")
               span.font-size-12 {{ scope.row.selectedItem.unitprice }}
           el-table-column(align="left", width="150")
-            template(slot-scope="scope", scope="props", v-if="props.row")
+            template(slot-scope="props", v-if="props.row")
               button.button.is-primary.is-small(@click="updateQty(props.row)", :disabled="!props.row.updated")
                 i.material-icons.updateCartBtn.mr-5 done_all
                 span Update Qty
           el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
-            template(slot-scope="scope", scope="props" v-if="props.row")
+            template(slot-scope="props", v-if="props.row")
               button.button(:class="$style.trash" @click="removeItemFromCart(props.row)")
                 i.material-icons delete
       .column.is-3
@@ -103,6 +103,7 @@
                   v-for="branch in branchSuggestions",
                   :value="branch",
                   :label="branch.name",
+                  :key="branch.id"
                 )
           .level-right
         EmptyState.emptyState(empty-text="Select a branch to transfer the products!" v-if="!transaction.selectedBranch")

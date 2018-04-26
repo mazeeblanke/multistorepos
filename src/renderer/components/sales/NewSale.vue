@@ -91,15 +91,15 @@ section.section
                   )
               el-table-column(prop="selectedItem.unitprice", :label="unitPriceLabel", align="left")
               el-table-column(align="left")
-                template(slot-scope="scope", scope="props", v-if="props.row")
+                template(slot-scope="props", v-if="props.row")
                   button.button.is-primary.is-small(@click="updateQty(props.row)", :disabled="!props.row.updated || hasPaid")
                     i.material-icons.updateCartBtn.mr-5 done_all
                     span Update Qty
               el-table-column(:label="totalLabel", align="left")
-                template(slot-scope="scope", scope="props")
+                template(slot-scope="props")
                   span {{ props.row && (props.row.quantity * props.row.selectedItem.unitprice).toFixed(1) }}
               el-table-column(label="Actions", :render-header="renderDelete", width="70")
-                template(slot-scope="scope", scope="props", v-if="props.row")
+                template(slot-scope="props", v-if="props.row")
                   button.button(:class="$style.trash", :disabled="hasPaid || processing" @click="removeItemFromCart(props.row)")
                     i.material-icons delete
               div(slot="append" v-show="showLoading")

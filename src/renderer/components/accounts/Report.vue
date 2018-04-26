@@ -23,6 +23,7 @@ div
                 v-for="branch in branchSuggestions",
                 :value="branch.id",
                 :label="branch.name",
+                :key="branch.id",
               )
         .level-item
           el-form(:inline="true", :model="filter" class="demo-form-inline")

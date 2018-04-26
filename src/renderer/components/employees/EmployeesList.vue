@@ -63,9 +63,9 @@
       el-table-column(prop="created", label="Created at", align="left", show-overflow-tooltip, :sortable="true", fixed="right")
         template(slot-scope="scope") 
             span {{ dateForHumans(scope.row.reg_time) }}
-      el-table-column(label="Actions", :render-header="renderDelete", @click.stop="removeRow(props.row)", width="70", fixed="right")
-        template(slot-scope="scope", scope="props")
-          button.button(:class="$style.trash", @click.stop="removeRow(props.row)")
+      el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
+        template(slot-scope="scope")
+          button.button(:class="$style.trash", @click.stop="removeRow(scope.row)")
             i.material-icons delete
       //- div(slot="append" v-show="showLoading")
       //-  div(ref='loader' style="height: 45px;")
