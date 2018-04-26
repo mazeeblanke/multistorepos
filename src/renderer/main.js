@@ -65,10 +65,7 @@ Vue.use(VueProgressBar, {
   failedColor: 'red',
   height: '2px'
 })
-// Vue.use(VueMomentJS, moment)
-// Vue.use(Print)
 Vue.use(PopoverExt)
-// Vue.use(VueFormWizard)
 Vue.use(VueAxios, axios)
 Vue.use(Buefy)
 Vue.use(Table)
@@ -103,7 +100,6 @@ Vue.use(Loading)
 Vue.use(VueScrollTo)
 Vue.use(VueSweetalert2)
 Vue.use(Acl, { router, init: initPermision || 'clerk' })
-// Vue.use(Acl, { router, init: 'clerk' })
 Vue.use(Popover)
 locale.use(lang)
 
@@ -134,8 +130,8 @@ Vue.config.productionTip = false
 axios.interceptors.request.use(
   (config) => {
     const baseUrl = window.baseUrl
-    // const token = localStorage.getItem('pos_token')
     config.url = `${baseUrl}/${config.url}`
+    config.headers['Content-Type'] = 'multipart/form-data'
     return config
   },
   err => Promise.reject(err)
