@@ -22,6 +22,6 @@ export default {
       state.notificationsPreview = notifications.slice(0, 10)
       state.notifications = notifications
     }
-    
+
   }
 }

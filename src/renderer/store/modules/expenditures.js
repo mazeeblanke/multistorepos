@@ -3,6 +3,7 @@ import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 
 export default {
+  namespaced: true,
   state: {
     expenditures: INIT_STATE,
     selectedExpenditure: null
@@ -78,6 +79,6 @@ export default {
     ADD_EXPENDITURE (state, data) {
       state.expenditures.data.unshift(data)
     }
-    
+
   }
 }

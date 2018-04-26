@@ -3,6 +3,7 @@ import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 
 export default {
+  namespaced: true,
   state: {
     products: INIT_STATE,
     changedProducts: INIT_STATE,

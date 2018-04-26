@@ -1,10 +1,9 @@
-/* eslint-disable */
-import BaseModule from '../utils/BaseModule'
 import { sales } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 
 export default {
+  namespaced: true,
   state: {
     salesid: null,
     transferid: null,

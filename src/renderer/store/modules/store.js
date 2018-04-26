@@ -1,11 +1,12 @@
 import { storeSetup } from '../../service/endpoints'
 
 export default {
+  namespaced: true,
   state: {
     store: null
   },
   actions: {
-    
+
     setStoreDetails ({ commit }, payload) {
       return storeSetup(payload).then(res => {
         // commit("SET_STORE_DETAILS", res.data)

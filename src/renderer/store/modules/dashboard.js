@@ -8,7 +8,7 @@ export default {
     metrics: null,
     productsStats: null
   },
-  
+
   actions: {
 
     loadDashboardMetrics ({ commit }, payload) {

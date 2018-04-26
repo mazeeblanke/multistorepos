@@ -3,6 +3,7 @@ import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 
 export default {
+  namespaced: true,
   state: {
     openingcashs: INIT_STATE,
     selectedOpeningcash: null
@@ -84,6 +85,6 @@ export default {
     ADD_OPENING_CASH (state, data) {
       state.openingcashs.data.unshift(data)
     }
-    
+
   }
 }

@@ -30,7 +30,7 @@ export default {
     }
 
   },
-  
+
   mutations: {
 
     OPEN_AUTH_MODAL (state) {

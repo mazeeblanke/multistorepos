@@ -3,6 +3,7 @@ import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 
 export default {
+  namespaced: true,
   state: {
     bankingcashs: INIT_STATE,
     selectedBankingcash: null
@@ -57,7 +58,7 @@ export default {
 
   },
   mutations: {
-    
+
     SET_SELECTED_BANKING_CASH (state, data) {
       state.selectedBankingcash = { ...{ sales: [] }, ...data }
     },
