@@ -7,12 +7,14 @@ export default {
     notificationsPreview: null
   },
   actions: {
+
     loadNotifications ({ commit }) {
       return Vue.axios.get('api/notifications')
         .then((response) => {
           commit('SET_NOTIFICATIONS', response.data)
         })
     }
+
   },
   mutations: {
     /* eslint no-param-reassign: ["error", { "props": false }] */
@@ -20,5 +22,6 @@ export default {
       state.notificationsPreview = notifications.slice(0, 10)
       state.notifications = notifications
     }
+    
   }
 }

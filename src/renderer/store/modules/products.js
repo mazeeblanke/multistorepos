@@ -1,11 +1,8 @@
-/* eslint-disable */
-import Vue from 'vue'
-import BaseModule from '../utils/BaseModule'
 import { products, search } from '../../service/endpoints'
-import { HTTP_VERBS, INIT_STATE } from '@/utils/constants'
+import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 
-export default new BaseModule('product', {
+export default {
   state: {
     products: INIT_STATE,
     changedProducts: INIT_STATE,
@@ -52,8 +49,8 @@ export default new BaseModule('product', {
 
     loadProducts ({ commit }, payload) {
       return search(payload).then(res => {
-        return res.data;
-      });
+        return res.data
+      })
     },
 
     getProductsStats ({ commit }, payload) {
@@ -70,13 +67,13 @@ export default new BaseModule('product', {
 
     loadProduct ({ commit }, payload) {
       return products(payload).then(res => {
-        commit("SET_SELECTED_PRODUCT", res.data.message[0])
+        commit('SET_SELECTED_PRODUCT', res.data.message[0])
       })
     },
 
     loadProductEnquiry ({ commit }, payload) {
       return products(payload).then(res => {
-        commit("SET_SELECTED_PRODUCT_ENQUIRY", res.data.message[0])
+        commit('SET_SELECTED_PRODUCT_ENQUIRY', res.data.message[0])
       })
     },
 
@@ -95,14 +92,14 @@ export default new BaseModule('product', {
 
     loadProductChangesByPage ({ commit }, payload) {
       return products(payload).then(res => {
-        commit("SET_CHANGED_PRODUCTS", res.data)
+        commit('SET_CHANGED_PRODUCTS', res.data)
         return res.data
       })
     },
 
     loadProductEnquiriesByPage ({ commit }, payload) {
       return products(payload).then(res => {
-        commit("SET_PRODUCTS_ENQUIRIES", res.data)
+        commit('SET_PRODUCTS_ENQUIRIES', res.data)
         return res.data
       })
     },
@@ -127,7 +124,7 @@ export default new BaseModule('product', {
 
     deleteProduct ({ commit }, payload) {
       return products(payload.formData).then(res => {
-        commit("REMOVE_PRODUCT", payload.product)
+        commit('REMOVE_PRODUCT', payload.product)
         return res.data
       })
     },
@@ -140,7 +137,7 @@ export default new BaseModule('product', {
 
     updateProductEnquiry ({ commit }, payload) {
       return products(payload).then(res => {
-         return res.data
+        return res.data
       })
     }
 
@@ -216,4 +213,4 @@ export default new BaseModule('product', {
     }
 
   }
-})
+}

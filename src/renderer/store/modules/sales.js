@@ -1,11 +1,10 @@
 /* eslint-disable */
-import Vue from 'vue'
 import BaseModule from '../utils/BaseModule'
 import { sales } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 
-export default new BaseModule('sale', {
+export default {
   state: {
     salesid: null,
     transferid: null,
@@ -163,4 +162,4 @@ export default new BaseModule('sale', {
     }
 
   }
-})
+}

@@ -1,133 +1,93 @@
-import Vue from 'vue'
-import BaseModule from '../utils/BaseModule'
-// import axios from 'axios';
+import { suppliers, search } from '../../service/endpoints'
+import { INIT_STATE } from '@/utils/constants'
+import { UPDATE_STATE } from '@/utils/helper'
 
-export default new BaseModule('supplier', {
+export default {
   state: {
-    suppliers: {
-      data: [],
-      nextPage: null
-    },
+    suppliers: INIT_STATE,
     selectedSupplier: null
   },
   actions: {
-    loadSuppliers ({ commit }, payload) {
-      return Vue.axios
-        .get(
-          'forms/search.php',
-          { params: payload },
-          { headers: { 'Content-Type': 'multipart/form-data' } }
-        )
-        .then(res => {
-          // commit('SET_SUPPLIERS', res.data);
-          return res.data
-        })
-    },
-    loadSuppliersByPage ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/suppliers.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          // console.log(res.data);
-          commit('SET_SUPPLIERS', res.data)
-          return res.data
-        })
-    },
-    loadSupplier ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/suppliers.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          commit('SET_SELECTED_SUPPLIER', res.data.message[0])
-        })
-    },
-    searchSupplier ({ commit }, payload) {
-      return Vue.axios
-        .get('forms/search.php', { params: payload }, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          return res.data
-          // commit('SET_SELECTED_SUPPLIER', res.data.message[0]);
-        })
-    },
-    createOASSupplier ({ commit }, payload) {
-      console.log(payload)
-      return Vue.OAS.post('api/pos_vendors', payload)
-    },
-    updateOASSupplier ({ commit }, payload) {
-      return Vue.OAS.put(`api/vendors/${payload.pos_vendor_id}`, payload)
-    },
-    createSupplier ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/suppliers.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          // commit('ADD_SUPPLIER', res.data.customer_details[0]);
-          return res.data
-        })
-    },
-    updateSupplier ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/suppliers.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          // commit('ADD_SUPPLIER', payload.customer);
-          return res.data
-        })
-    },
+
     setSelectedSupplierSales ({ commit }, payload) {
       commit('SET_SELECTED_SUPPLIER_SALES', payload)
     },
+
     clearSelectedSupplier ({ commit }, payload) {
       commit('SET_SELECTED_SUPPLIER', null)
     },
+
     clearSuppliers ({ commit }) {
       commit('CLEAR_SUPPLIERS')
     },
+
+    loadSuppliers ({ commit }, payload) {
+      return search(payload).then(res => {
+        return res.data
+      })
+    },
+
+    searchSupplier ({ commit }, payload) {
+      return search(payload).then(res => {
+        return res.data
+      })
+    },
+
+    updateSupplier ({ commit }, payload) {
+      return suppliers(payload).then(res => {
+        return res.data
+      })
+    },
+
     getLoyaltyDiscount ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/suppliers.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          // commit('ADD_SUPPLIER', payload.customer);
-          return res.data
-        })
+      return suppliers(payload).then(res => {
+        return res.data
+      })
+    },
+
+    loadSuppliersByPage ({ commit }, payload) {
+      return suppliers(payload).then(res => {
+        commit('SET_SUPPLIERS', res.data)
+        return res.data
+      })
+    },
+
+    createSupplier ({ commit }, payload) {
+      return suppliers(payload).then(res => {
+        // commit('ADD_SUPPLIER', res.data.customer_details[0]);
+        return res.data
+      })
+    },
+
+    loadSupplier ({ commit }, payload) {
+      return suppliers(payload).then(res => {
+        commit('SET_SELECTED_SUPPLIER', res.data.message[0])
+        return res.data
+      })
     }
+
   },
   mutations: {
+
     SET_SELECTED_SUPPLIER (state, data) {
-      console.log(data)
       state.selectedSupplier = data
     },
+
     SET_SELECTED_SUPPLIER_SALES (state, data) {
       state.selectedeSupplier.sales = data
     },
-    // SET_SUPPLIERS(state, data) {
-    //   state.suppliers = data;
-    // },
+
     SET_SUPPLIERS (state, payload) {
-      if (payload.message instanceof Object) {
-        payload.message = Object.values(payload.message)
-      }
-      state.suppliers = {
-        data: state.suppliers.data.concat(payload.message),
-        nextPage: payload.next_page
-      }
+      UPDATE_STATE(state, payload, 'suppliers')
     },
+
     CLEAR_SUPPLIERS (state) {
-      state.suppliers = {
-        data: [],
-        nextPage: null
-      }
+      state.suppliers = INIT_STATE
     },
+
     ADD_SUPPLIER (state, data) {
       state.suppliers.data.unshift(data)
     }
+
   }
-})
+}

@@ -1,116 +1,82 @@
-import Vue from 'vue'
-import BaseModule from '../utils/BaseModule'
-// import axios from 'axios';
+import { bankingCash, search } from '../../service/endpoints'
+import { INIT_STATE } from '@/utils/constants'
+import { UPDATE_STATE } from '@/utils/helper'
 
-export default new BaseModule('bankingcash', {
+export default {
   state: {
-    bankingcashs: {
-      data: [],
-      nextPage: null
-    },
+    bankingcashs: INIT_STATE,
     selectedBankingcash: null
   },
   actions: {
-    loadBankingcashs ({ commit }, payload) {
-      return Vue.axios
-        .get(
-          'forms/search.php',
-          { params: payload },
-          { headers: { 'Content-Type': 'multipart/form-data' } }
-        )
-        .then(res => {
-          // commit('SET_BANKING_CASHS', res.data);
-          return res.data
-        })
-    },
-    loadBankingcashsByPage ({ commit }, payload) {
-      const data = payload.filter || payload
-      return Vue.axios
-        .post('forms/bankingcash.php', data, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          // console.log(res.data);
-          if (!payload.filter) commit('SET_BANKING_CASHS', res.data)
-          return res.data
-        })
-    },
-    loadBankingcash ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/bankingcash.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          commit('SET_SELECTED_BANKING_CASH', res.data.message[0])
-        })
-    },
-    createBankingcash ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/bankingcash.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          // commit('ADD_BANKING_CASH', res.data.customer_details[0]);
-          return res.data
-        })
-    },
-    updateBankingcash ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/bankingcash.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          // commit('ADD_BANKING_CASH', payload.customer);
-          return res.data
-        })
-    },
+
     setSelectedBankingcashSales ({ commit }, payload) {
       commit('SET_SELECTED_BANKING_CASH_SALES', payload)
     },
+
     clearSelectedBankingcash ({ commit }, payload) {
       commit('SET_SELECTED_BANKING_CASH', null)
     },
+
     clearBankingcashs ({ commit }) {
       commit('CLEAR_BANKING_CASHS')
     },
-    getLoyaltyDiscount ({ commit }, payload) {
-      return Vue.axios
-        .post('forms/bankingcash.php', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(res => {
-          // commit('ADD_BANKING_CASH', payload.customer);
-          return res.data
-        })
+
+    loadBankingcashs ({ commit }, payload) {
+      return search(payload).then(res => {
+        return res.data
+      })
+    },
+
+    loadBankingcash ({ commit }, payload) {
+      return bankingCash(payload).then(res => {
+        commit('SET_SELECTED_BANKING_CASH', res.data.message[0])
+      })
+    },
+
+    createBankingcash ({ commit }, payload) {
+      return bankingCash(payload).then(res => {
+        // commit('ADD_BANKING_CASH', res.data.customer_details[0]);
+        return res.data
+      })
+    },
+
+    updateBankingcash ({ commit }, payload) {
+      return bankingCash(payload).then(res => {
+        // commit('ADD_BANKING_CASH', payload.customer);
+        return res.data
+      })
+    },
+
+    loadBankingcashsByPage ({ commit }, payload) {
+      const data = payload.filter || payload
+      return bankingCash(data).then(res => {
+        if (!payload.filter) commit('SET_BANKING_CASHS', res.data)
+        return res.data
+      })
     }
+
   },
   mutations: {
+    
     SET_SELECTED_BANKING_CASH (state, data) {
       state.selectedBankingcash = { ...{ sales: [] }, ...data }
     },
+
     SET_SELECTED_BANKING_CASH_SALES (state, data) {
       state.selectedBankingcash.sales = data
     },
-    // SET_BANKING_CASHS(state, data) {
-    //   state.bankingcashs = data;
-    // },
+
     SET_BANKING_CASHS (state, payload) {
-      if (payload.message instanceof Object) {
-        payload.message = Object.values(payload.message)
-      }
-      state.bankingcashs = {
-        data: state.bankingcashs.data.concat(payload.message),
-        nextPage: payload.next_page
-      }
+      UPDATE_STATE(state, payload, 'bankingcashs')
     },
+
     CLEAR_BANKING_CASHS (state) {
-      state.bankingcashs = {
-        data: [],
-        nextPage: null
-      }
+      state.bankingcashs = INIT_STATE
     },
+
     ADD_BANKING_CASH (state, data) {
       state.bankingcashs.data.unshift(data)
     }
+
   }
-})
+}
