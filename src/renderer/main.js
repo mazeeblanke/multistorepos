@@ -1,14 +1,6 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 /* eslint-disable */
-import Vue from 'vue'
-import axios from 'axios'
-import VueAxios from 'vue-axios'
-import VueProgressBar from 'vue-progressbar'
-import VueScrollTo from 'vue-scrollto'
-import Buefy from 'buefy'
-import VueSweetalert2 from 'vue-sweetalert2'
-import PopoverExt from 'vue-js-popover'
 import {
   Table,
   TableColumn,
@@ -39,6 +31,16 @@ import {
   Menu,
   MenuItem
 } from 'element-ui'
+import Vue from 'vue'
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+import VueProgressBar from 'vue-progressbar'
+import VueScrollTo from 'vue-scrollto'
+import Buefy from 'buefy'
+import VueSweetalert2 from 'vue-sweetalert2'
+import PopoverExt from 'vue-js-popover'
+import moment from 'moment'
+import VueMomentJS from 'vue-momentjs'
 import lang from 'element-ui/lib/locale/lang/en'
 import Acl from 'vue-acl'
 import locale from 'element-ui/lib/locale'
@@ -99,6 +101,7 @@ Vue.use(MenuItem)
 Vue.use(Loading)
 Vue.use(VueScrollTo)
 Vue.use(VueSweetalert2)
+Vue.use(VueMomentJS, moment)
 Vue.use(Acl, { router, init: initPermision || 'clerk' })
 Vue.use(Popover)
 locale.use(lang)
@@ -118,11 +121,6 @@ Vue.directive('close', {
       }
     })
   }
-})
-
-Vue.OAS = axios.create({
-  baseURL: 'https://oxbridge-dev-api.herokuapp.com/',
-  headers: {'X-Access-Token': localStorage.getItem('oas_token')}
 })
 
 window.baseUrl = 'http://104.237.153.63/multistore'

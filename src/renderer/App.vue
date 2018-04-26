@@ -40,7 +40,19 @@ export default {
 }
 </script>
 
+<style>
+  @font-face {
+    font-family: 'Rubik';
+      src: url('../../static/fonts/Rubik/Rubik-Regular.ttf');
+    font-style: normal;
+    font-weight: normal;
+  }
+</style>
+
+
 <style lang="sass">
+  $material-icons-font-path: "~material-icons/iconfont/"
+  @import "~material-icons/iconfont/material-icons.scss"
   @import "~bulma/sass/utilities/_all"
 
   $primary: #0A44AE
@@ -214,11 +226,11 @@ export default {
     padding: 0px
   .is-flex-start
     justify-content: flex-start
-  .multiselect__tag
-    background: $primary !important
-  .multiselect__tag-icon
-    &:hover, &:focus
-     background: $danger !important
+  // .multiselect__tag
+  //   background: $primary !important
+  // .multiselect__tag-icon
+  //   &:hover, &:focus
+  //    background: $danger !important
   .h100
     height: 100%
 
@@ -488,23 +500,23 @@ export default {
     border-top: solid 1px #ccc
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.12) inset
 
-  .dropzone
-    border: 1px solid #eaeaea !important;
-    border-radius: 4px;
-    background: #f7f7f7 !important;
-    width: 100%;
-    min-height: 250px;
-    overflow-y: scroll
-    height: 300px
-    .material-icons
-      font-size: 120px;
-    &:hover
-     border-radius: 5px;
-     .material-icons
-       color: $secondary
-     span
-      color: $secondary;
-      transition: all 1s ease;
+  // .dropzone
+  //   border: 1px solid #eaeaea !important;
+  //   border-radius: 4px;
+  //   background: #f7f7f7 !important;
+  //   width: 100%;
+  //   min-height: 250px;
+  //   overflow-y: scroll
+  //   height: 300px
+  //   .material-icons
+  //     font-size: 120px;
+  //   &:hover
+  //    border-radius: 5px;
+  //    .material-icons
+  //      color: $secondary
+  //    span
+  //     color: $secondary;
+  //     transition: all 1s ease;
   .doc
     height: 100%
     // height: 95%
@@ -512,46 +524,42 @@ export default {
   .tabs
     a
      padding: 7px 15px !important
-  #select-vendors
-    .content-container
-      input
-      text-align: center
-  .b-table
-    margin: 0px !important
-  .invisible
-    background: transparent !important
-    border: none !important
-    outline: none
-  .options
-    display: flex
-    margin-bottom: 10px
-    justify-content: space-between
-    .left
-      display: flex
-    .right
-      display: flex
-    label
-      font-weight: 600
-      margin-right: 5px
-      font-size: 16px
-      letter-spacing: 0.4px
-    select
-      border: 1px solid #dbdbdb
-      margin-right: 10px
-      height: 30px
-      min-width: 100px
-      font-size: medium
-      border-radius: 4px
-  .autocomplete
-    .dropdown-menu
-      box-shadow: 0 2px 12px 0 rgba(0,0,0,.1)
-    .dropdown-content
-      background-color: white !important
-    .dropdown-content
-      a
-        color: #4a4a4a !important
-        &:hover
-         background-color: #f5f5f5
+  // .b-table
+  //   margin: 0px !important
+  // .invisible
+  //   background: transparent !important
+  //   border: none !important
+  //   outline: none
+  // .options
+  //   display: flex
+  //   margin-bottom: 10px
+  //   justify-content: space-between
+  //   .left
+  //     display: flex
+  //   .right
+  //     display: flex
+  //   label
+  //     font-weight: 600
+  //     margin-right: 5px
+  //     font-size: 16px
+  //     letter-spacing: 0.4px
+  //   select
+  //     border: 1px solid #dbdbdb
+  //     margin-right: 10px
+  //     height: 30px
+  //     min-width: 100px
+  //     font-size: medium
+  //     border-radius: 4px
+  // .autocomplete
+  //   .dropdown-menu
+  //     box-shadow: 0 2px 12px 0 rgba(0,0,0,.1)
+  //   .dropdown-content
+  //     background-color: white !important
+  //   .dropdown-content
+  //     a
+  //       color: #4a4a4a !important
+  //       &:hover
+  //        background-color: #f5f5f5
 
   .MaterialView
     .el-tabs__header
