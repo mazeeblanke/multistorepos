@@ -5,7 +5,7 @@
         .level.toolbar
           .level-left
             .level-item 
-              h5.title.is-5 Add products
+              h5.title.is-5 Add Products
           .level-right
             .level-item
               b-field
@@ -55,7 +55,7 @@
     .level.toolbar
       .level-left
         .level-item
-          .page-title.subtitle.is-5 {{ _product? 'Edit product' : 'New product' }}
+          .page-title.subtitle.is-5 {{ _product? 'Edit Product' : 'New Product' }}
       .level-right
         .level-item
           button.button.is-primary(
@@ -82,6 +82,7 @@
           .field-body
             .field 
               el-input(
+                size="small",
                 v-model="product.name",
                 placeholder="Enter product name",
                 @input="() => $v.product.name.$touch()"
@@ -93,6 +94,8 @@
           .field-body
             .field 
               el-input-number(
+                size="small",
+                controls-position="right",
                 v-model="product.quantity",
                 placeholder="Enter product quantity",
                 :min="1",
@@ -105,6 +108,8 @@
           .field-body
             .field 
               el-input-number(
+                size="small",
+                controls-position="right",
                 v-model="product.unitprice",
                 placeholder="Enter unit price",
                 :min="1",
@@ -118,6 +123,8 @@
           .field-body
             .field 
               el-input-number(
+                size="small",
+                controls-position="right",
                 v-model="product.costprice",
                 placeholder="Enter cost price",
                 :min="1",
@@ -130,9 +137,11 @@
           .field-body
             .field 
               el-input-number(
+                size="small",
+                controls-position="right",
                 v-model="product.reorder",
                 placeholder="Enter reorder",
-                :min="0",
+                :min="1",
                 @input="() => $v.product.reorder.$touch()"
                 :class="{ 'is-error': $v.product.reorder.$error }",
               )
@@ -143,6 +152,7 @@
           .field-body
             .field 
               el-input(
+                size="small",
                 v-model="product.barcode",
                 placeholder="Enter barcode",
                 @input="() => $v.product.barcode.$touch()"
@@ -154,6 +164,7 @@
           .field-body
             .field 
               el-date-picker(
+                size="small",
                 v-model="product.exptime"
                 type="date"
                 placeholder="select expiry date"
@@ -254,6 +265,7 @@ export default {
       if (this.files.length) {
         this.parseCSV()
       }
+      this.$refs.uploadInput.value = []
     },
     resetImport () {
       this.files = []
@@ -265,10 +277,13 @@ export default {
         agg[this.csvHeaders[index]] = curr
         return agg
       }, {})
+      console.log(headerMappings)
       const data = this.csvData.data.map((product, i) => {
         let payload = {}
         Object.keys(product).forEach((key) => {
-          payload[headerMappings[key]] = product[key]
+          if (headerMappings[key]) {
+            payload[headerMappings[key]] = product[key]
+          }
         })
         return payload
       })
@@ -293,6 +308,10 @@ export default {
       })
         .catch(() => {
           this.processing = false
+          this.$snackbar.open({
+            type: 'is-danger',
+            message: 'Server error !!'
+          })
         })
     },
     parseCSV () {
@@ -300,6 +319,18 @@ export default {
       Papa.parse(this.files[0], {
         header: true,
         // dynamicTyping: true,
+        error: (err, file, inputElem, reason) => {
+          // executed if an error occurs while loading the file,
+          // or if before callback aborted for some reason
+          console.log(err)
+          if (err) {
+            this.parsingCSV = false
+            this.$snackbar.open({
+              type: 'is-danger',
+              message: `${reason}`
+            })
+          }
+        },
         complete: (results) => {
           this.csvHeaders = Object.keys(results.data[0])
           this.csvHeaders = this.csvHeaders.reduce((agg, curr, i) => {
@@ -434,55 +465,4 @@ export default {
 
   .productFormMain
     padding: 2rem
-
-  .MaterialsForm
-    border-top: 1px solid #EAEAEA
-
-  .multiselect
-    font-size: 1rem
-    min-height: 2.25em
-
-  .multiselect__tags
-    display: flex
-    align-items: center
-    min-height: 2.25em
-    padding-left: calc(0.375em - 1px)
-    padding-right: calc(0.375em - 1px)
-    padding-top: calc(0.375em - 1px)
-    border-color: #dbdbdb
-
-  .multiselect__input
-    font-size: 1rem
-    width: auto
-    margin-bottom: calc(0.375em - 1px)
-
-  .multiselect__tags
-    border-bottom-left-radius: 3px !important
-    border-bottom-right-radius: 3px !important
-
-  .custom__tag
-    display: inline-block
-    padding: 0px 7px
-    background: #EFEFEF
-    margin-right: 5px
-    border-radius: 3px
-    cursor: pointer
-    margin-bottom: calc(0.375em - 1px)
-
-  .custom__remove
-    padding: 0
-    font-size: 10px
-    margin-left: 8px
-
-  .vendors-select
-    width: 400px
- 
-  .ProductForm
-    .el-date-editor, .el-input-number
-      width: 100% !important 
-    .is-v-centered
-      align-items: flex-start  
-
-  // .el-select, .el-input-number, .el-input__inner
-  //   width: 100% !important 
 </style>
