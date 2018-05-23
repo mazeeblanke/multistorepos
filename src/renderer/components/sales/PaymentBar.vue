@@ -15,25 +15,34 @@
                     label.label Amount
                   .field-body
                     .field 
-                      el-input-number(
-                        v-model="transaction.paid", 
+                      el-input(
+                        :value="cart.amountPaid", 
                         placeholder="Enter Amount",
-                        :min="0",
+                        type="number"
+                        :min=0,
+                        @change="updateCart"
+                        controls-position="right",
                       )
               .column.is-12
                 button.button.is-primary.is-pulled-right(
-                  @click="transaction.payment = 'cash'"
-                  :disabled="transaction.payment === 'cash'"
+                  @click="selectPaymentType('cash')"
+                  :disabled="cart.payment_type === 'cash'"
                   title="Save payment type to cash",
                 ) Save            
                 button.button.is-primary.is-pulled-right.mr-15(
                   @click="removePayment"
-                  :disabled="transaction.payment !== 'cash'"
+                  :disabled="cart.payment_type !== 'cash'"
                   title="Remove payment type (cash)",
                 ) Remove payment            
-            el-button(v-popover="popover1" slot="reference", title="Select payment type as cash", :disabled="hasPaid || processing" :class="{'active': transaction.payment === 'cash'}")
-              i.material-icons(v-if="transaction.payment === 'cash'") done_all
-              span Cash  
+            el-button(
+              v-popover="popover1",
+              size="mini",
+              slot="reference", 
+              title="Select payment type as cash", 
+              :disabled="hasPaid || processing", 
+              :icon="cart.payment_type === 'cash' ? 'el-icon-success' : ''"
+              :class="{'active': cart.payment_type === 'cash'}"
+            ) Cash  
           el-popover(
             ref="popover2"
             placement="top-start"
@@ -47,25 +56,34 @@
                     label.label Amount
                   .field-body
                     .field 
-                      el-input-number(
-                        v-model="transaction.paid", 
+                      el-input(
+                        :value="cart.amountPaid", 
                         placeholder="Enter Amount",
+                        type="number",
                         :min="0",
+                        @change="updateCart"
+                        controls-position="right",
                       )
               .column.is-12
                 button.button.is-primary.is-pulled-right(
-                  @click="transaction.payment = 'card'"
-                  :disabled="transaction.payment === 'card'"
+                  @click="selectPaymentType('card')"
+                  :disabled="cart.payment_type === 'card'"
                   title="Save payment type to card",
                 ) Save
                 button.button.is-primary.is-pulled-right.mr-15(
                   @click="removePayment"
-                  :disabled="transaction.payment !== 'card'"
+                  :disabled="cart.payment_type !== 'card'"
                   title="Remove payment type (card)",
                 ) Remove payment  
-            el-button(v-popover="popover2", slot="reference", title="Select payment type as card", :disabled="hasPaid || processing" :class="{'active': transaction.payment === 'card'}") 
-              i.material-icons(v-if="transaction.payment === 'card'") done_all
-              span Card
+            el-button(
+              v-popover="popover2",
+              size="small",
+              slot="reference", 
+              title="Select payment type as card", 
+              :disabled="hasPaid || processing", 
+              :class="{'active': cart.payment_type === 'card'}"
+              :icon="cart.payment_type === 'card' ? 'el-icon-success' : ''"
+            ) Card
           button.button.is-dark(
             :disabled="validation.$invalid || processing || paymentConditions"
             :class="{'is-loading': processing}",
@@ -90,61 +108,19 @@
             :class="{'is-loading' : refunding}"
             title="Refund cash and cancel sale",
           ) Return     
-        div.sale-stat 
-          .field.is-horizontal
-            .field-label
-              label.label.is-pulled-left Sub Total:
-            .field-body
-              .field 
-                span {{ money(calculateTotal) }} 
-          .field.is-horizontal
-            .field-label
-              label.label.is-pulled-left Sales Discount ({{ transaction.discount }}%):
-            .field-body
-              .field 
-                span {{ money(transaction.discountTotal) }}
-          .field.is-horizontal
-            .field-label
-              label.label.is-pulled-left Tax ({{ transaction.tax }}%)
-            .field-body
-              .field 
-                span {{ money(transaction.taxTotal) }}    
-          .field.is-horizontal
-            .field-label
-              label.label.is-pulled-left Total Amount:
-            .field-body
-              .field 
-                span {{ money(transaction.total) }}         
-          .field.is-horizontal
-            .field-label
-              label.label.is-pulled-left Paid Amount:
-            .field-body
-              .field 
-                span {{ money(transaction.paid) }} 
-          .field.is-horizontal
-            .field-label
-              label.label.is-pulled-left Cash Change:
-            .field-body
-              .field 
-                span {{ money(change) }}
+        SalesStats(:cart="cart")
 </template>
 
 
 <script>
 /* eslint-disable */
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex';
-const parseAmount = (amount) => parseFloat(amount.toPrecision(4));
-import { ObjectToFormData, money } from '@/utils/helper';
-import MoneyMixin from '@/mixins/MoneyMixin';
-// import { formatMoney } from '@/filters/format';
+import SalesStats from '@/components/sales/SalesStats'
 
 export default {
   props: {
     items: {
       type: Array,
-    },
-    transaction: {
-      type: Object,
     },
     validation: {
       type: Object,
@@ -164,32 +140,29 @@ export default {
     processing: {
       type: Boolean,
     },
-    calculateTotal: {
-      required: true,
-    },
-    change: {
-      require: true,
-    },
-    getTotal: {
-      require: true,
-    },
   },
+
+
   data() {
     return {
       refunding: false,
+      amountPaid: 0,
     };
   },
+
+
   methods: {
-    // ...{ formatMoney },
+
     ...mapActions('sales', [
       'refundSale',
+      'setCart'
     ]),
-    // money(amount) {
-    //   return this.formatMoney(amount, this.store.currency.symbol);
-    // },
+
     discountLabel(d) {
       return  `${d}% discount`;
     },
+
+
     refreshCart() {
       this.warnUser().then((res) => {
         if (res.value) {
@@ -197,6 +170,14 @@ export default {
         }
       })
     },
+
+    selectPaymentType (type) {
+      this.setCart({
+        ...this.cart,
+        payment_type: type
+      })
+    },
+
     warnUser(warning) {
       return this.$swal({
         title: 'Are you sure?',
@@ -207,49 +188,57 @@ export default {
         cancelButtonText: 'No',
       });
     },
+
+
     refund() {
-      const MESSAGE = "Do you want to return items and refund ?";
-      this.warnUser(MESSAGE)
-      .then((res) => {
-        if (res.value) {
-          this.refunding = true;
-          this.refundSale(
-            ObjectToFormData({
-              refundsales: 'refundsales',
-              salesid: this.salesid,
-            }),
-          ).then(res => {
-            if (res.status === 'Success') {
-              this.$snackbar.open(`Success !! - ${res.message}`);
-              this.cancelSale();
-            } else if (res.status === 'Failure') {
-              this.$snackbar.open({
-                message: `Failure!! - ${res.message}`,
-                type: 'is-danger',
-              });
-            }
-            this.refunding = false;
-          })
-          .catch(() => {
-            this.refunding = false;
-          });
-        }
+      // const MESSAGE = "Do you want to return items and refund ?";
+      // this.warnUser(MESSAGE)
+      // .then((res) => {
+      //   if (res.value) {
+      //     this.refunding = true;
+      //     this.refundSale(
+      //       ObjectToFormData({
+      //         refundsales: 'refundsales',
+      //         salesid: this.salesid,
+      //       }),
+      //     ).then(res => {
+      //       if (res.status === 'Success') {
+      //         this.$snackbar.open(`Success !! - ${res.message}`);
+      //         this.cancelSale();
+      //       } else if (res.status === 'Failure') {
+      //         this.$snackbar.open({
+      //           message: `Failure!! - ${res.message}`,
+      //           type: 'is-danger',
+      //         });
+      //       }
+      //       this.refunding = false;
+      //     })
+      //     .catch(() => {
+      //       this.refunding = false;
+      //     });
+      //   }
+      // })
+    },
+
+    updateCart (value) {
+      this.setCart({
+        ...this.cart,
+        amountPaid: parseInt(value),
       })
-    },
+    }
+
   },
-  mixins: [
-    MoneyMixin
-  ],
+
+  components: {
+
+    SalesStats,
+
+  },
+
   computed: {
-    availableDiscounts() {
-      return _.sortedUniq([
-        this.transaction.availableDiscount,
-        this.transaction.loyalty && this.transaction.loyalty.discount,
-      ]);
-    },
-    ...mapState('sales', [
-      'salesid',
-    ]),
+
+    ...mapState('sales', ['cart']),
+
     paymentConditions() {
       if (!this.items.length) {
         return true;
@@ -257,10 +246,12 @@ export default {
       if (this.hasPaid) {
         return true;
       }
-      if (!this.hasPaid && (this.change === 0) && this.calculateTotal > 0) {
+      if (!this.hasPaid && (this.change === 0) && this.cart.total > 0) {
         return false;
       }
     },
+
+
   },
 };
 </script>
@@ -300,20 +291,7 @@ export default {
     margin: 0px 5px
     height: 50px;
     border: none; 
-    width: 150px;  
-.sale-stat 
-  font-weight: 900;
-  width: 350px;
-  flex-basis: 350px
-  .field-body
-    flex-grow: 1 !important
-  text-align: right
-  .field 
-    margin-bottom: 0px !important   
-  .field-label
-    flex-grow: 2 !important  
-  .field.is-horizontal 
-    // border-bottom: 1px dashed #e6e6e6 !important  
+    width: 150px;
 .el-popover
   width: 500px;
   transform-origin: center bottom 0px;
@@ -334,7 +312,8 @@ export default {
   //   justify-content: center;
   //   align-items: center 
 .el-button:focus, .el-button:hover, .el-button.active
-  background-color: #2196F3  
+  background-color: #2196F3
+  // background-color: #00040a  
   color: white       
 </style>
 

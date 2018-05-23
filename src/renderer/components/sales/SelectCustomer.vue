@@ -25,7 +25,7 @@
           .field-body
             .field 
               el-select(
-                v-model="transaction.customer"
+                v-model="cart.customer"
                 :filterable="true"
                 :clearable="true"
                 :remote="true"
@@ -51,7 +51,7 @@ import { ObjectToFormData } from '@/utils/helper'
 import _ from 'lodash'
 
 export default {
-  props: ['transaction', 'processing'],
+  props: ['cart', 'processing'],
   data () {
     return {
       loading: false,
@@ -70,7 +70,7 @@ export default {
     }
   },
   watch: {
-    transaction (newValue) {
+    cart (newValue) {
       if (newValue.customer) {
         // this.suggestions = Array(newValue.customerDetails);
         this.suggestions.push(newValue.customerDetails)
@@ -104,10 +104,10 @@ export default {
       // this.suggestions = [];
     },
     updateTransaction () {
-      if (this.transaction.customer) {
+      if (this.cart.customer) {
         this.getLoyaltyDiscount(ObjectToFormData({
           getloyaltydiscount: 'getloyaltydiscount',
-          customerid: this.transaction.customer
+          customerid: this.cart.customer
         })).then((res) => {
           this.updateCustomerDetails(res)
         })
@@ -117,12 +117,12 @@ export default {
     },
     updateCustomerDetails (res) {
       const customerDetails = this.suggestions.find(
-        s => s.id === this.transaction.customer
+        s => s.id === this.cart.customer
       )
       this.$emit(
-        'update:transaction',
+        'update:cart',
         {
-          ...this.transaction,
+          ...this.cart,
           ...{ customerDetails, loyalty: res.message }
         }
       )

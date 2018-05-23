@@ -3,14 +3,14 @@ div
   CheckProduct(
     :check-product-visible="checkProductVisible",
     :handle-check-product-close="handleCheckProductClose",
-    :product="sale.product3",
+    :product="saleForm.product3",
     ref="check-product",
   )
   .RequisitionForm
     .level.toolbar.shadow-divider
       .level-left
         .level-item
-          span.tag.is-medium(title="Sales id") Sale ID: {{ salesid }}
+          span.tag.is-medium(title="Sales id") Sale ID: {{ cart.sales_id }}
       .level-center.columns
         .level-item.column.is-5
           .field.is-horizontal
@@ -26,7 +26,7 @@ div
                   :remote-method="getProductSuggestions"
                   :loading="loading"
                   @change="selectProduct"
-                  :value-key="sale.selectedItem.id"
+                  value-key="name"
                   :disabled="processingTransaction || hasPaid"
                   clearable,
                 )
@@ -35,12 +35,12 @@ div
                     :key="index"
                     :label="item.name"
                     :value="item"
-                    :disabled="item.name === sale.selectedItem.name"
+                    :disabled="item.name === saleForm.selectedItem.name"
                   )
                     el-tooltip(class="item" effect="dark", :open-delay="1000", :content="item.name" placement="top-start")
                       <span class="sale-item" style="float: left">{{ item.name }}</span>
                     <span style="float: right; color: #8492a6; font-size: 13px">
-                      <strong>{{ item.quantity }} QTY LEFT</strong>
+                      <strong>{{ item.branches[0].pivot.quantity }} QTY LEFT</strong>
                     </span>
         .level-item.column.is-5
           .field.is-horizontal
@@ -50,11 +50,12 @@ div
               .field.is-narrow
                 .control
                   el-input-number(
-                    v-model="sale.quantity",
+                    v-model="saleForm.quantity",
                     placeholder="Enter Quantity",
                     @change="handleChange",
+                    controls-position="right",
                     :min="1"
-                    :max="parseInt(sale.quantityInStock)"
+                    :max="parseInt(saleForm.quantityInStock)"
                     :disabled="processingTransaction || hasPaid"
                   )
       .level-right
@@ -66,7 +67,7 @@ div
           button.button.is-primary(
             :class="{'is-loading': processing}",
             :disabled="processing || $v.$invalid",
-            @click="submit()"
+            @click="addToCart()"
             title="Add products to the customer's cart"
           )
             b-icon(icon="save")
@@ -83,7 +84,7 @@ div
 import { mapState, mapActions } from 'vuex';
 import { validationMixin } from 'vuelidate';
 import { required } from 'vuelidate/lib/validators';
-import { ObjectToFormData } from '@/utils/helper';
+import { ObjectToFormData, multiplyCash } from '@/utils/helper';
 import EmptyState from '@/components/EmptyState';
 import CheckProduct from '@/components/sales/CheckProduct';
 import _ from 'lodash';
@@ -96,23 +97,24 @@ export default {
     hasPaid: {
       type: Boolean,
     },
-    cartItems: {
-      type: Array,
-    },
+    // cartItems: {
+    //   type: Array,
+    // },
   },
   mixins: [validationMixin],
   data() {
     return {
-      sale: {
+      saleForm: {
         selectedItem: {
           name: '',
         },
         product3: null,
         quantityInStock: null,
         quantity: null,
-        addtocart: 'addtocart',
-        branchid: null,
-        user: null,
+        subTotal: null
+        // addtocart: 'addtocart',
+        // branchid: null,
+        // user: null,
       },
       suggestions: [],
       loading: false,
@@ -122,7 +124,7 @@ export default {
     };
   },
   validations: {
-    sale: {
+    saleForm: {
       product3: { required },
       quantity: { required },
     },
@@ -145,29 +147,34 @@ export default {
     ]),
     ...mapState('sales', [
       'salesid',
+      'cart',
     ]),
     ...mapState('branch', [
       'currentBranch',
     ]),
+
+
     cartItemNames() {
-      if (this.cartItems.length) {
-        return this.cartItems.map(i => i.selectedItem.name);
+      if (this.cart.products.length) {
+        return this.cart.products.map(i => i && i.name);
       }
       return [];
     },
+
+
     formatedValue() {
-      if (this.sale.selectedItem.name) {
-        return this.sale.selectedItem.name.length > 61
-          ? this.sale.selectedItem.name.substring(0, 61) + '...'
-          : this.sale.selectedItem.name;
+      if (this.saleForm.selectedItem.name) {
+        return this.saleForm.selectedItem.name.length > 61
+          ? this.saleForm.selectedItem.name.substring(0, 61) + '...'
+          : this.saleForm.selectedItem.name;
       }
       return '';
     },
     searchInfo() {
-      if (this.sale.selectedItem.name) {
-        const product_name = this.sale.selectedItem.name.length > 61
-          ? this.sale.selectedItem.name.substring(0, 61) + '...'
-          : this.sale.selectedItem.name;
+      if (this.saleForm.selectedItem.name) {
+        const product_name = this.saleForm.selectedItem.name.length > 61
+          ? this.saleForm.selectedItem.name.substring(0, 61) + '...'
+          : this.saleForm.selectedItem.name;
           return `Search for ${product_name} in other branches`;
       }
       return '';
@@ -175,16 +182,16 @@ export default {
   },
   methods: {
     selectProduct(item) {
-      let { id, quantity: quantityInStock } = item;
-      this.sale = {
-        ...this.sale,
+      let { id, branches } = item;
+      this.saleForm = {
+        ...this.saleForm,
         ...{
           product3: id,
-          quantityInStock,
-          user: this.currentUser.username,
-          salesid: this.salesid,
+          quantityInStock: branches[0].pivot.quantity,
+          // user: this.currentUser.username,
+          // salesid: this.salesid,
           selectedItem: item,
-          branchid: this.currentBranch.id
+          // branchid: this.currentBranch.id
         }};
     },
     addNewItem() {
@@ -200,24 +207,30 @@ export default {
     handleCheckProductClose(done) {
       this.checkProductVisible = false;
     },
+
+
+    filterSuggestions (data) {
+      return data.filter((s) => {
+        if (this.cart.products.length) {
+          return !this.cartItemNames.includes(s.name)
+        }
+        return false
+      });
+    },
+
     getProductSuggestions(query) {
       if (query !== '') {
         this.loading = true;
         let payload = {
-          search: query,
-          type: 'product',
-          branchid: this.currentBranch.id,
+          name: query,
+          // nam: query,
+          branch_id: 1,
+          // branchid: this.currentBranch.id,
         };
         this.loadProducts(payload)
-        .then((suggestions) => {
+        .then(({ data }) => {
           this.loading = false;
-          this.suggestions = _.flatMap(suggestions).filter((s) => {
-            if (this.cartItems.length) {
-              return !this.cartItemNames.includes(s.name);
-            }
-            return true;
-          });
-          // this.suggestions = _.flatMap(suggestions);
+          this.suggestions = this.filterSuggestions(data)
         })
         .catch(() => {
           this.loading = false;
@@ -226,53 +239,53 @@ export default {
         this.suggestions = [];
       }
     },
+
+
     ...mapActions('products', [
       'loadProducts',
     ]),
     ...mapActions('sales', [
       'generateSalesId',
-      'addToCart',
+      // 'addToCart',
+      'setCart',
       'checkForThreshold',
     ]),
     closeForm() {
       this.$emit('close-form');
     },
-    resetSale() {
-      this.sale = {
+    resetSaleForm() {
+      this.saleForm = {
         selectedItem: {
           name: '',
         },
         product3: null,
         quantityInStock: null,
         quantity: null,
-        addtocart: 'addtocart',
-        branchid: null,
-        user: this.currentUser.username,
+        subTotal: null
+        // addtocart: 'addtocart',
+        // branchid: null,
+        // user: this.currentUser.username,
       };
     },
-    submit() {
-      if (!this.$v.$invalid) {
-        this.processing = true;
-        this.addToCart(ObjectToFormData(this.sale)).then((res) => {
-          if (res.status === 'Success') {
-            this.checkForThreshold(ObjectToFormData({
-              checkforthreshold: 'checkforthreshold',
-              salesid: this.salesid,
-            })).then((_res) => {
-              this.$snackbar.open(res.status + '! Added to cart');
-              this.$emit('action-complete', { ...this.sale, ...{ cartid: res.cartid, updated: false }});
-              this.$emit('discount', _res.message.discount);
-              this.processing = false;
-              this.resetSale();
-              this.suggestions = [];
-            })
-          }
-          else {
-            this.$snackbar.open(res.status + 'out of stock');
-            this.processing = false;
-          }
-        })
-      }
+    addToCart() {
+      // if (!this.$v.$invalid) {
+        let { selectedItem: product, quantity } = this.saleForm
+        product = {
+          ...product,
+          subTotal: multiplyCash(quantity, product.unitprice),
+          quantityInStock: product.branches[0].pivot.quantity,
+          quantity,
+        }
+        delete product.branches
+        const products = [
+          product,
+          ...this.cart.products
+        ]
+        this.setCart({ ...this.cart, products })
+        this.suggestions = this.filterSuggestions(this.suggestions)
+        this.resetSaleForm()
+        this.$snackbar.open('Added to cart')
+      // }
     },
   },
   components: {

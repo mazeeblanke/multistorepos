@@ -133,18 +133,17 @@
 </template>
 
 <script>
-/* eslint-disable */
-import EmptyState from '@/components/EmptyState';
-import { formatDate, formatMoney, dateForHumans } from '@/filters/format';
-import { mapActions, mapState, mapMutations } from 'vuex';
-import ProductForm from '@/components/products/ProductForm';
-import ProductSupplyForm from '@/components/products/ProductSupplyForm';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-import Loading from '@/components/shared/Loading';
-import JsonExcel from 'vue-json-excel';
-import { ObjectToFormData } from '@/utils/helper';
+import EmptyState from '@/components/EmptyState'
+import { formatDate, dateForHumans } from '@/filters/format'
+import { mapActions, mapState } from 'vuex'
+import ProductForm from '@/components/products/ProductForm'
+import ProductSupplyForm from '@/components/products/ProductSupplyForm'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import Loading from '@/components/shared/Loading'
+import JsonExcel from 'vue-json-excel'
+import { ObjectToFormData } from '@/utils/helper'
 export default {
-  data() {
+  data () {
     return {
       isEditingProduct: false,
       // editMat: false,
@@ -156,57 +155,57 @@ export default {
       fullScreenActive: false,
       currentTab: 'details',
       isLoadingSales: false,
-      json_fields : {
+      json_fields: {
         'Sales ID': 'salesid',
         Customer: 'customer',
         Total: 'total',
         Discount: 'discount',
-        profit:  'profit',
+        profit: 'profit',
         Costprice: 'costprice',
         Unitprice: 'unitprice',
         'Sold by': 'user',
         'Payment method': 'payment',
-        'Sold at': 'salestime',
-      },
-    };
+        'Sold at': 'salestime'
+      }
+    }
   },
-  mounted() {
-    this.clearSelectedProduct();
-    this.isLoading = true;
+  mounted () {
+    this.clearSelectedProduct()
+    this.isLoading = true
     this.loadProduct(
       ObjectToFormData({
         product: this.$route.params.id,
-        getproduct: 'getproduct',
-      }),
+        getproduct: 'getproduct'
+      })
     )
       .then(() => {
-        this.isLoading = false;
-        this.isLoadingSales = true;
+        this.isLoading = false
+        this.isLoadingSales = true
         return this.loadSales(
           ObjectToFormData({
             productsearch: 'productsearch',
             fromtime2: '0000-00-01 00:00:00',
             totime2: '7019-02-20 00:00:00',
-            product4: this.selectedProduct.id,
-          }),
-        );
+            product4: this.selectedProduct.id
+          })
+        )
       })
       .then(res => {
-        this.isLoadingSales = false;
+        this.isLoadingSales = false
         if (res.status === 'Success') {
-          this.setSelectedProductSales(res.message);
+          this.setSelectedProductSales(res.message)
         }
       })
       .catch(err => {
-        console.log(err);
+        console.log(err)
         this.$snackbar.open({
           message: 'Could not find a product with that ID',
-          type: 'is-danger',
-        });
-        this.isLoading = false;
-        this.isLoadingSales = false;
-        this.$router.push({ name: 'products_list' });
-      });
+          type: 'is-danger'
+        })
+        this.isLoading = false
+        this.isLoadingSales = false
+        this.$router.push({ name: 'products_list' })
+      })
   },
   components: {
     EmptyState,
@@ -214,7 +213,7 @@ export default {
     ProductForm,
     ProductSupplyForm,
     FullscreenDialog,
-    JsonExcel,
+    JsonExcel
   },
   methods: {
     ...{ formatDate, dateForHumans },
@@ -222,51 +221,51 @@ export default {
       'loadProduct',
       'clearSelectedProduct',
       'setSelectedProductSales',
-      'deleteProduct',
+      'deleteProduct'
     ]),
-    updateSelectedProduct(updatedProduct) {
+    updateSelectedProduct (updatedProduct) {
       if (
         this.selectedProduct &&
         this.selectedProduct.id === updatedProduct.product5
       ) {
         this.selectedProduct.quantity =
           parseInt(this.selectedProduct.quantity, 10) +
-          parseInt(updatedProduct.quantity, 10);
+          parseInt(updatedProduct.quantity, 10)
       }
     },
-    editProduct() {
-      this.isEditingProduct = true;
-      this.fullScreenActive = true;
+    editProduct () {
+      this.isEditingProduct = true
+      this.fullScreenActive = true
     },
-    addProductSupply() {
-      this.isAddingProductSupply = true;
-      this.fullScreenActive = true;
+    addProductSupply () {
+      this.isAddingProductSupply = true
+      this.fullScreenActive = true
     },
     ...mapActions('sales', ['loadSales']),
-    closeDialog() {
-      this.fullScreenActive = false;
-      this.isEditingProduct = false;
-      this.isAddingProductSupply = false;
-    },
+    closeDialog () {
+      this.fullScreenActive = false
+      this.isEditingProduct = false
+      this.isAddingProductSupply = false
+    }
   },
   computed: {
     ...mapState('products', ['selectedProduct']),
-    emptyText() {
-      return `${this.selectedProduct.name} has not been purchased yet`;
+    emptyText () {
+      return `${this.selectedProduct.name} has not been purchased yet`
     },
-    documentName() {
+    documentName () {
       if (this.selectedProduct) {
-        return `${this.selectedProduct.name}'s purchase history`;
+        return `${this.selectedProduct.name}'s purchase history`
       }
-      return null;
+      return null
     },
-    formattedProductName() {
+    formattedProductName () {
       return this.selectedProduct.name.length > 15
         ? this.selectedProduct.name.substring(0, 15) + '...'
-        : this.selectedProduct.name;
-    },
-  },
-};
+        : this.selectedProduct.name
+    }
+  }
+}
 </script>
 
 <style lang="sass" scoped>

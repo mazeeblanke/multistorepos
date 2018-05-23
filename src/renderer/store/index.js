@@ -6,7 +6,7 @@ import notifications from '@/store/modules/notifications'
 import users from '@/store/modules/users'
 import products from '@/store/modules/products'
 import sales from '@/store/modules/sales'
-import store from '@/store/modules/store'
+import settings from '@/store/modules/settings'
 import customers from '@/store/modules/customers'
 import employees from '@/store/modules/employees'
 import expenditures from '@/store/modules/expenditures'
@@ -27,7 +27,7 @@ export default new Vuex.Store({
     products,
     sales,
     customers,
-    store,
+    settings,
     employees,
     dashboard,
     suppliers,

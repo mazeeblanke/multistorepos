@@ -1,6 +1,7 @@
-import { products, search } from '../../service/endpoints'
+import { products } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -49,8 +50,9 @@ export default {
     },
 
     loadProducts ({ commit }, payload) {
-      return search(payload).then(res => {
-        return res.data
+      return Vue.axios.get('products', { params: payload }).then((res) => {
+        console.log(res)
+        return res.data.products
       })
     },
 

@@ -57,6 +57,7 @@
                       v-for="branch in branchSuggestions",
                       :value="branch",
                       :label="branch.name",
+                      :key="branch.id"
                     )
           .level-item(v-show="$can('admin')")
             a.button(@click="toggleFilteringState")

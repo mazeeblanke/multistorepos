@@ -34,11 +34,12 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   clearable,
-                  v-model="customer.firstname",
+                  v-model="customer.first_name",
                   placeholder="Enter customer firstname",
-                  @input="() => $v.customer.firstname.$touch()"
-                  :class="{ 'is-error': $v.customer.firstname.$error }",
+                  @input="() => $v.customer.first_name.$touch()"
+                  :class="{ 'is-error': $v.customer.first_name.$error }",
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -46,6 +47,7 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   clearable,
                   v-model="customer.title",
                   placeholder="Enter customer title",
@@ -58,6 +60,7 @@
             .field-body
               .field 
                 el-select(
+                  size="small",
                   :expanded="true"
                   v-model="customer.country",
                   placeholder="Enter customer country",
@@ -69,6 +72,7 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   clearable,
                   v-model="customer.address1",
                   placeholder="Enter customer address",
@@ -81,6 +85,7 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   clearable,
                   v-model="customer.address2",
                   placeholder="Enter customer address",
@@ -91,6 +96,7 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   clearable,
                   v-model="customer.email",
                   placeholder="Enter email address",
@@ -112,6 +118,7 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   disabled
                   v-model="customer.cardnumber",
                   placeholder="Enter card number",
@@ -123,11 +130,12 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   clearable,
-                  v-model="customer.surname",
+                  v-model="customer.last_name",
                   placeholder="Enter customer surname",
-                  @input="() => $v.customer.surname.$touch()"
-                  :class="{ 'is-error': $v.customer.surname.$error }",
+                  @input="() => $v.customer.last_name.$touch()"
+                  :class="{ 'is-error': $v.customer.last_name.$error }",
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -135,16 +143,17 @@
             .field-body
               .field 
                 //- el-input(
-                //-   v-model="customer.dateofbirth",
-                //-   placeholder="Enter customer dateofbirth",
+                //-   v-model="customer.date_of_birth",
+                //-   placeholder="Enter customer date_of_birth",
                 //- )
                 el-date-picker.has-full-width(
-                  v-model="customer.dateofbirth"
+                  size="small",
+                  v-model="customer.date_of_birth"
                   type="date"
                   placeholder="Enter customer dateofbirth"
                   value-format="yyyy-MM-dd HH:mm:ss"
-                  @input="() => $v.customer.dateofbirth.$touch()"
-                  :class="{ 'is-error': $v.customer.dateofbirth.$error }",
+                  @input="() => $v.customer.date_of_birth.$touch()"
+                  :class="{ 'is-error': $v.customer.date_of_birth.$error }",
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -152,6 +161,7 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   clearable,
                   v-model="customer.town",
                   placeholder="Enter customer town",
@@ -164,6 +174,7 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   clearable,
                   v-model="customer.phone",
                   placeholder="Enter phone number",
@@ -176,6 +187,7 @@
             .field-body
               .field 
                 el-select(
+                  size="small",
                   v-model="customer.gender"
                   :filterable="true"
                   placeholder="Enter gender"
@@ -190,6 +202,7 @@
             .field-body
               .field 
                 el-select(
+                  size="small",
                   v-model="customer.marital_status"
                   :filterable="true"
                   placeholder="Enter marital status"
@@ -204,6 +217,7 @@
             .field-body
               .field 
                 el-input(
+                  size="small",
                   disabled
                   v-model="customer.confirmation",
                   placeholder="Enter confirmation number",
@@ -218,12 +232,10 @@
 import { mapState, mapActions } from 'vuex';
 import { validationMixin } from 'vuelidate';
 import { required } from 'vuelidate/lib/validators';
-import { ObjectToFormData } from '@/utils/helper';
+import { ucFirst } from '@/utils/helper';
 import EmptyState from '@/components/EmptyState';
 import FullscreenDialog from '@/components/shared/FullscreenDialog';
 import countries from '@/data/countries.json';
-
-// const ucFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default {
   props: {
@@ -244,14 +256,14 @@ export default {
         address1: null,
         address2: null,
         address3: null,
-        firstname: null,
-        surname: null,
+        first_name: null,
+        last_name: null,
         gender: null,
         email: null,
         phone: null,
         marital_status: null,
         title: null,
-        dateofbirth: '1970-01-01 00:00:01',
+        date_of_birth: '1970-01-01 00:00:01',
         town: null,
         confirmation: null,
         cardnumber: null,
@@ -269,14 +281,14 @@ export default {
   validations: {
     customer: {
       address1: { required },
-      firstname: { required },
-      surname: { required },
+      first_name: { required },
+      last_name: { required },
       gender: { required },
       email: { required },
       title: { required },
       phone: { required },
       town: { required },
-      dateofbirth: { required },
+      date_of_birth: { required },
       marital_status: { required },
     },
   },
@@ -292,6 +304,7 @@ export default {
   },
   computed: {
     ...mapState('users', ['currentUser']),
+    ...mapState('settings', ['settings']),
   },
   methods: {
     ...mapActions('customers', ['loadCustomers', 'getLoyaltyDiscount']),
@@ -350,14 +363,14 @@ export default {
         address1: null,
         address2: null,
         address3: null,
-        firstname: null,
-        surname: null,
+        first_name: null,
+        last_name: null,
         gender: null,
         email: null,
         phone: null,
         marital_status: null,
         title: null,
-        dateofbirth: null,
+        date_of_birth: null,
         town: null,
         confirmation: null,
         cardnumber: null,
@@ -373,28 +386,28 @@ export default {
           : this.createCustomer;
         this.customer = {
           ...this.customer,
-          ...{
-            [this._customer ? 'customerupdate' : 'customerreg']: 'value',
-            customerid2: this._customer ? this._customer.id : null,
-            fullname2: this._customer ? this._customer.fullname : null,
-          },
+          store_id: this.settings.store.id
         };
-        doAction(ObjectToFormData(this.customer)).then(res => {
-          if (res.status === 'Success') {
-            this.$snackbar.open(res.status + ' !' + res.message);
-            // this.$emit('action-complete');
-            if (!this._customer) {
-              this.$emit('action-complete', { ...res.customer_details[0] });
-              this.resetCustomer();
-              this.$v.customer.$reset()
-            } else {
-              this.$emit('action-complete', { ...this.customer });
-            }
+        doAction(this.customer)
+        .then(res => {
+          console.log(res)
+          this.$snackbar.open(res.message);
+          if (!this._customer) {
+            this.$emit('action-complete', { ...res.data });
+            this.resetCustomer();
+            this.$v.customer.$reset()
           } else {
-            this.$snackbar.open(res.status);
+            this.$emit('action-complete', { ...this.customer });
           }
           this.processing = false;
-        });
+        })
+        .catch((err) => {
+          this.processing = false;
+          this.$snackbar.open({
+            type: 'is-danger',
+            message: `Error Occured ${err.message}`
+          })
+        })
       }
     },
   },

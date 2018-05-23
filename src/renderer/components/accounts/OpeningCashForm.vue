@@ -34,6 +34,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="openingcash.fromuser"
                   :filterable="true"
                   :remote="true"
@@ -54,6 +55,7 @@
             .field-body
               .field
                 el-input-number(
+                  size="small",
                   v-model="openingcash.amount",
                   placeholder="Enter openingcash's amount",
                 )
@@ -63,6 +65,7 @@
             .field-body
               .field
                 el-select.has-full-width(
+                  size="small",
                   v-model="openingcash.branch",
                   :filterable="true",
                   placeholder="select branch",
@@ -86,6 +89,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="openingcash.touser"
                   :filterable="true"
                   :remote="true"
@@ -106,6 +110,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="openingcash.details",
                   placeholder="Enter details",
                 )

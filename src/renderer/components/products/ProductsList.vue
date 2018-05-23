@@ -54,7 +54,7 @@
           span {{ `${currencySymbol} ${scope.row.costprice}` }}
       el-table-column(prop="exptime", show-overflow-tooltip, label="Expiry date", align="left", :sortable="true")
         template(slot-scope="scope")
-          span {{ dateForHumans(scope.row.exptime) }}
+          span {{ formatDate(scope.row.exptime) }}
       el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
         template(slot-scope="scope")
           button.button(:class="$style.trash" @click.stop="deleteRow(scope.row)")

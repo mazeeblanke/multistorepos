@@ -12,7 +12,6 @@
               b-icon(:icon="selectedMenuItem.icon")
               span {{ selectedMenuItem.label }}
               b-icon(icon="keyboard_arrow_down")
-            //- b-dropdown-option(v-for="(menuItem, index) in menu", :key="index")
             b-dropdown-item(v-for="(menuItem, index) in computedMenu", :key="index" )
               router-link.media(:to="menuItem.path")
                 b-icon.media-left(:icon="menuItem.icon")
@@ -26,25 +25,26 @@
         .nav-item.is-tab
           b-dropdown(position="is-bottom-left")
             a.button(slot="trigger")
-              span Logged in as {{ currentUser.username }}
+              span Logged in as {{ currentUser && ucFirst(currentUser.username) }}
               span.ml-10
-                strong.is-uppercase ({{ this.access[0] }})
+                strong.is-uppercase ({{ currentUser && currentUser.access_level }})
               b-icon(icon="arrow_drop_down")
             b-dropdown-item Profile
-            //- b-dropdown-item Settings
             router-link.dropdown-item(:to="{name: 'settings'}") Settings
-            //- b-dropdown-item Organization Settings
             b-dropdown-item
-              a(@click="logoutUser()") Log Out
+              a(@click="logoutUser") Log Out
+        .nav-item.is-tab
+          i.material-icons.notifications notifications
         .nav-item.is-tab
           figure(class="image is-48x48")
-            //- img(:src="currentUser.gravatar", class="is-rounded has-max-height")
+            img(:src="currentUser.gravatar", class="is-rounded has-max-height")
 </template>
 
 
 <script>
 import _ from 'lodash'
 import { mapActions, mapState } from 'vuex'
+import { ucFirst } from '@/utils/helper'
 
 export default {
   data () {
@@ -64,16 +64,13 @@ export default {
     }
   },
   methods: {
+    ...{ ucFirst },
     ...mapActions('users', [
       'logout'
     ]),
     logoutUser () {
-      // this.$router.push({
-      //   name: 'home',
-      // });
       this.logout().then(() => {
-        // this.$router.push('/');
-        window.location.href = '/'
+        this.$router.push({ name: 'home' })
       }).catch((e) => {
         console.log(e)
       })
@@ -121,7 +118,7 @@ export default {
           label: 'Accounts'
         }
       ]
-      if (this.$can('admin|super-admin')) {
+      if (this.$can('admin|superadmin')) {
         return [
           ...this.menu,
           ...menu
@@ -141,7 +138,13 @@ export default {
 .dropdown-content a
   padding: 5px !important
 .NavBar
-  position: fixed !important
+  // position: fixed !important
   width: 100% !important
   z-index: 100 !important
+</style>
+
+<style lang="sass" scoped>
+  .notifications
+    font-size: 27px
+    color: white !important
 </style>

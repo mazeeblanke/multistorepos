@@ -40,9 +40,9 @@
       @selection-change="handleSelectionChange",
       :stripe="true"
     )
-      el-table-column(type="selection", fixed="left")
-      el-table-column(label="No", type="index", :index="1", fixed="left")
-      el-table-column(prop="id", show-overflow-tooltip, label="ID", align="left", :sortable="true", fixed="left")
+      el-table-column(type="selection")
+      el-table-column(label="No", type="index", :index="1")
+      el-table-column(prop="id", show-overflow-tooltip, label="ID", align="left", :sortable="true")
          template(slot-scope="scope")
           span {{ parseColData(scope.row.id) }}
       el-table-column(prop="name", label="Name", align="left", show-overflow-tooltip, :sortable="true")
@@ -51,16 +51,16 @@
       el-table-column(prop="address", label="Address", align="left", show-overflow-tooltip, :sortable="true" )
         template(slot-scope="scope")
           span {{ parseColData(scope.row.address) }}
-      el-table-column(prop="created", label="Created at", align="left", show-overflow-tooltip, :sortable="true", fixed="right")
+      el-table-column(prop="created", label="Created at", align="left", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
             span {{ dateForHumans(scope.row.open_time) }}
-      el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
+      el-table-column(label="Actions", :render-header="renderDelete", width="70")
         template(slot-scope="scope")
           button.button(:class="$style.trash", @click.stop="removeRow(scope.row)")
             i.material-icons delete
-      //- div(slot="append" v-show="showLoading")
-      //-  div(ref='loader' style="height: 45px;")
-      //-    infinite-loading(spinner="waveDots" v-if="loading")
+      div(slot="append" v-show="showLoading")
+       div(ref='loader' style="height: 45px;")
+         infinite-loading(spinner="waveDots" v-if="loading")
 </template>
 
 <script>

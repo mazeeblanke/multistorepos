@@ -31,7 +31,9 @@ export default {
     loadExpendituresByPage ({ commit }, payload) {
       const data = payload.filter || payload
       return expenditures(data).then(res => {
-        if (!payload.filter) commit('SET_EXPENDITURES', res.data)
+        if ((payload instanceof FormData && payload.get('persist') === 'true')) {
+          commit('SET_EXPENDITURES', res.data)
+        }
         return res.data
       })
     },
@@ -45,14 +47,12 @@ export default {
 
     createExpenditure ({ commit }, payload) {
       return expenditures(payload).then(res => {
-        // commit('ADD_EXPENDITURE', res.data.customer_details[0]);
         return res.data
       })
     },
 
     updateExpenditure ({ commit }, payload) {
       return expenditures(payload).then(res => {
-        // commit('ADD_EXPENDITURE', payload.customer);
         return res.data
       })
     }

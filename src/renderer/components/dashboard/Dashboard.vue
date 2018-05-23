@@ -7,7 +7,6 @@
       .column.is-three-quarters
         OrganizationSummary(:metrics="metrics")
         Notifications
-
 </template>
 
 <script>
@@ -20,11 +19,6 @@ import CompanyStatistics from '@/components/dashboard/CompanyStatistics';
 import { ObjectToFormData } from '@/utils/helper';
 
 export default {
-  data() {
-    return {
-      // metrics: null,
-    };
-  },
   mounted() {
     // Notifications API needs to be paginated
     // this.loadNotifications();
@@ -34,7 +28,7 @@ export default {
     // .then((res) => {
     //   this.SET_CLOSE_TO_EXPIRED_PRODUCTS(res);
     // });
-    this.access = this.currentUser.access;
+    // this.access = this.currentUser.access;
     this.loadDashboardMetrics({
       type: 'lightanalytics',
       search: 'search',
@@ -56,15 +50,6 @@ export default {
     ]),
   },
   methods: {
-    // ...mapActions('notifications', [
-    //   'loadNotifications',
-    // ]),
-    // ...mapMutations('products', [
-    //   'SET_CLOSE_TO_EXPIRED_PRODUCTS',
-    // ]),
-  //  ...mapActions('products', [
-  //     'getProductsStats',
-  //   ]),
     loadProducts() {
 
     },
@@ -88,6 +73,6 @@ export default {
 </style>
 
 <style lang="sass" scoped>
- .section
-   padding: 3rem 1.5rem !important
+//  .section
+//    padding: 3rem 1.5rem !important
 </style>

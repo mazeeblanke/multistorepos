@@ -1,6 +1,8 @@
+/* eslint-disable */
 import { sales } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
-import { UPDATE_STATE } from '@/utils/helper'
+import { UPDATE_STATE, subtractCash } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -10,9 +12,32 @@ export default {
     sales: INIT_STATE,
     refundedSales: INIT_STATE,
     filteredSales: [],
-    selectedSale: null
+    selectedSale: null,
+    cart: {
+      customer_id: null,
+      sales_id: null,
+      products: Array(12).fill(null),
+      tax: 0,
+      payment_type: null,
+      discount: 0,
+      customer: null,
+      amountPaid: 0,
+      cashChange: 0,
+      loyalty: null,
+      total: 0,
+      subTotal: 0,
+      availableDiscount: null,
+      customerDetails: null,
+      discountTotal: 0,
+      taxTotal: 0,
+      branch_id: 1
+    }
   },
   actions: {
+
+    setCart ({ commit }, data) {
+      commit('SET_CART', data)
+    },
 
     clearSalesId ({ commit }) {
       commit('CLEAR_SALES_ID')
@@ -83,7 +108,7 @@ export default {
     },
 
     completeTransaction ({ commit }, payload) {
-      return sales(payload).then(res => {
+      return Vue.axios.post('sales', payload).then(res => {
         return res.data
       })
     },
@@ -111,6 +136,59 @@ export default {
   },
   mutations: {
 
+    // SET_CART (state, { key, value }) {
+    //   state.cart[key] = value
+    //   const products = state.cart.products
+    //   if (key === 'products' && !products[products.length - 1] && products.length > 12) {
+    //     state.cart.products.splice(products.length - 1, 1)
+    //   }
+    // },
+
+    RESET_CART (state) {
+      state.cart = {
+        customer_id: null,
+        sales_id: Date.now(),
+        products: Array(12).fill(null),
+        tax: 0,
+        payment_type: null,
+        discount: 0,
+        customer: null,
+        amountPaid: 0,
+        cashChange: 0,
+        loyalty: null,
+        total: 0,
+        subTotal: 0,
+        availableDiscount: null,
+        customerDetails: null,
+        discountTotal: 0,
+        taxTotal: 0,
+        branch_id: 1
+      }
+    }, 
+
+    SET_CART (state, payload) {
+
+      state.cart = {
+        ...state.cart,
+        ...payload,
+        cashChange: Math.max((payload.amountPaid - payload.total), 0)
+      }
+
+      const products = state.cart.products
+      if (!products[products.length - 1] && products.length > 12) {
+        state.cart.products.splice(products.length - 1, 1)
+      }
+
+    },
+
+    REMOVE_CART_ITEM (state, product) {
+      const products = state.cart.products.filter(p => {
+        if (p) return product.id !== p.id
+        return true
+      })
+      state.cart.products = products
+    },
+
     SET_SELECTED_SALE (state, data) {
       state.selectedSale = data
     },
@@ -128,7 +206,8 @@ export default {
     },
 
     GENERATE_SALES_ID (state) {
-      state.salesid = Date.now()
+      // state.salesid = Date.now()
+      state.cart.sales_id = Date.now()
     },
 
     SET_SALES_ID (state, payload) {

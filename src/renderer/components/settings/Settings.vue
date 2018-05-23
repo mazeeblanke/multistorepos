@@ -23,10 +23,8 @@ import { mapState } from 'vuex'
 const BASE_PATH = '/app/settings'
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
-    // console.log('in here');
     next({ name: 'SettingsView' })
   } else {
-    // console.log('out here');
     next()
   }
 }

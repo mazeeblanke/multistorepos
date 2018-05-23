@@ -270,59 +270,29 @@ export default {
         //   this.processing = false;
         // });
 
-        const { 
-          suppliername: name, 
-          supplieraddress: address,
-          supplieremail: email,
-          supplierphone: phone,
-          id,
-        } = this.supplier;
-        doAction(ObjectToFormData(this.supplier))
-        .then((res) => {
-          const _doAction = this._supplier
-          ? this.updateOASSupplier
-          : this.createOASSupplier;
-          console.log(this.supplier);
-          _doAction({
-            name,
-            address,
-            contactEmail: email,
-            contactPhone: phone,
-            pos_vendor_id: id || res.supplier_details[0].id,
-          })
-          return res;
-        })
-        .then(res => {
-          if (res.status === 'Success') {
-            this.$snackbar.open(res.status + ' !' + res.message)
-            if (!this._supplier) {
-              // this.$emit('action-complete', { ...res.supplier_details[0] });
-              this.ADD_SUPPLIER(res.supplier_details[0])
-              this.resetSupplier()
-              this.$v.supplier.$reset()
-            } else {
-              this.$emit('action-complete', {
-                name: this.supplier.suppliername,
-                address: this.supplier.supplieraddress,
-                email: this.supplier.supplieremail,
-                phone: this.supplier.supplierphone,
-                id: this.supplier.id
-              })
-            }
-          } else {
-            this.$snackbar.open(res.status)
-          }
-          this.processing = false
-        })
-
-
-
-        /**
-         * 
-         * 
-         *  Without OAS integration => working perfectly
-         */
-        // doAction(ObjectToFormData(this.supplier)).then(res => {
+        // const { 
+        //   suppliername: name, 
+        //   supplieraddress: address,
+        //   supplieremail: email,
+        //   supplierphone: phone,
+        //   id,
+        // } = this.supplier;
+        // doAction(ObjectToFormData(this.supplier))
+        // .then((res) => {
+        //   const _doAction = this._supplier
+        //   ? this.updateOASSupplier
+        //   : this.createOASSupplier;
+        //   console.log(this.supplier);
+        //   _doAction({
+        //     name,
+        //     address,
+        //     contactEmail: email,
+        //     contactPhone: phone,
+        //     pos_vendor_id: id || res.supplier_details[0].id,
+        //   })
+        //   return res;
+        // })
+        // .then(res => {
         //   if (res.status === 'Success') {
         //     this.$snackbar.open(res.status + ' !' + res.message)
         //     if (!this._supplier) {
@@ -344,6 +314,36 @@ export default {
         //   }
         //   this.processing = false
         // })
+
+
+
+        /**
+         * 
+         * 
+         *  Without OAS integration => working perfectly
+         */
+        doAction(ObjectToFormData(this.supplier)).then(res => {
+          if (res.status === 'Success') {
+            this.$snackbar.open(res.status + ' !' + res.message)
+            if (!this._supplier) {
+              // this.$emit('action-complete', { ...res.supplier_details[0] });
+              this.ADD_SUPPLIER(res.supplier_details[0])
+              this.resetSupplier()
+              this.$v.supplier.$reset()
+            } else {
+              this.$emit('action-complete', {
+                name: this.supplier.suppliername,
+                address: this.supplier.supplieraddress,
+                email: this.supplier.supplieremail,
+                phone: this.supplier.supplierphone,
+                id: this.supplier.id
+              })
+            }
+          } else {
+            this.$snackbar.open(res.status)
+          }
+          this.processing = false
+        })
       }
     }
   },

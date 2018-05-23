@@ -10,7 +10,6 @@
 </template>
 
 <script>
-// import WarningIcon from '@/assets/img/warning.svg'
 
 export default {
   props: {
@@ -22,9 +21,6 @@ export default {
       type: String,
       required: false
     }
-  },
-  components: {
-    // WarningIcon
   }
 }
 </script>

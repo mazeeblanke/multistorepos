@@ -11,6 +11,10 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
+// var OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+// const HtmlCriticalPlugin = require('html-critical-webpack-plugin')
+let productionGzipExtensions = ['js', 'css']
 // let whiteListedModules = ["vue", "vue-good-table"]
 
 /**
@@ -155,17 +159,36 @@ let rendererConfig = {
   target: 'electron-renderer'
 }
 
-
-console.log(path.resolve(__dirname, '../src/index.ejs'));
-
 /**
  * Adjust rendererConfig for development settings
  */
 if (process.env.NODE_ENV !== 'production') {
+  const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
   rendererConfig.plugins.push(
     new webpack.DefinePlugin({
       '__static': `"${path.join(__dirname, '../static').replace(/\\/g, '\\\\')}"`
-    })
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor',
+      minChunks: function (module, count) {
+        // any required modules inside node_modules are extracted to vendor
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(
+            path.join(__dirname, '../node_modules')
+          ) === 0
+        )
+      }
+    }),
+    // extract webpack runtime and module manifest to its own file in order to
+    // prevent vendor hash from being updated whenever app bundle is updated
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'manifest',
+      chunks: ['vendor']
+    }),
+
+    new BundleAnalyzerPlugin()
   )
 }
 
@@ -174,6 +197,7 @@ if (process.env.NODE_ENV !== 'production') {
  */
 if (process.env.NODE_ENV === 'production') {
   rendererConfig.devtool = ''
+  const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin')
 
   rendererConfig.plugins.push(
     new BabiliWebpackPlugin(),
@@ -189,7 +213,41 @@ if (process.env.NODE_ENV === 'production') {
     }),
     new webpack.LoaderOptionsPlugin({
       minimize: true
-    })
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor',
+      minChunks: function (module, count) {
+        // any required modules inside node_modules are extracted to vendor
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(
+            path.join(__dirname, '../node_modules')
+          ) === 0
+        )
+      }
+    }),
+    // extract webpack runtime and module manifest to its own file in order to
+    // prevent vendor hash from being updated whenever app bundle is updated
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'manifest',
+      chunks: ['vendor']
+    }),
+
+    new SWPrecacheWebpackPlugin({
+      cacheId: 'POS-multistore-app',
+      filename: 'service-worker.js',
+      // staticFileGlobs: ['dist/**/*.{js,html,css}'],
+      // minify: true,
+      // stripPrefix: 'dist/',
+      runtimeCaching: [
+        {
+          // urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
+          urlPattern: /^http:\/\/104\.237\.153\.63\/multistore/,
+          handler: 'cacheFirst'
+        }
+      ]
+    }),
   )
 }
 

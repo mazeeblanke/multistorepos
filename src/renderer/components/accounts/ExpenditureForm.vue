@@ -34,6 +34,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="expenditure.usersalary"
                   :filterable="true"
                   :remote="true"
@@ -55,6 +56,7 @@
             .field-body
               .field
                 el-input-number(
+                  size="small",
                   v-model="expenditure.amount",
                   placeholder="Enter expenditure's amount",
                 )
@@ -64,6 +66,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="expenditure.title",
                   placeholder="Enter expenditure's title",
                 )
@@ -74,6 +77,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="expenditure.type"
                   filterable
                   placeholder="Enter expenditure type"
@@ -89,6 +93,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="expenditure.details",
                   placeholder="Enter details",
                 )
@@ -98,6 +103,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="expenditure.branch",
                   :filterable="true",
                   placeholder="select branch",

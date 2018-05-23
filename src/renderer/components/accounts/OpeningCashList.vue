@@ -63,29 +63,31 @@
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions, mapGetters } from 'vuex';
-import { formatDate, formatStatus, dateForHumans } from '@/filters/format';
-import Loading from '@/components/shared/Loading';
-import OpeningcashForm from '@/components/accounts/OpeningcashForm';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-import InfiniteLoading from 'vue-infinite-loading';
-import deleteMixin from '@/mixins/DeleteMixin';
-import filterMixin from '@/mixins/FilterMixin';
-import MoneyMixin from '@/mixins/MoneyMixin';
-import OpeningCashListFilter from '@/components/accounts/filters/OpeningCashListFilter';
-import EmptyState from '@/components/EmptyState';
-import { ObjectToFormData, parseColData } from '@/utils/helper';
+import { mapState, mapActions, mapGetters } from 'vuex'
+import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
+import Loading from '@/components/shared/Loading'
+import OpeningcashForm from '@/components/accounts/OpeningcashForm'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import InfiniteLoading from 'vue-infinite-loading'
+import deleteMixin from '@/mixins/DeleteMixin'
+import filterMixin from '@/mixins/FilterMixin'
+import MoneyMixin from '@/mixins/MoneyMixin'
+import OpeningCashListFilter from '@/components/accounts/filters/OpeningCashListFilter'
+import EmptyState from '@/components/EmptyState'
+import { ObjectToFormData, parseColData } from '@/utils/helper'
+import moment from 'moment'
 
 export default {
   mounted() {
-    this.clearSelectedOpeningcash();
-    this.clearOpeningcashs();
-    this.loading = true;
+    this.clearSelectedOpeningcash()
+    this.clearOpeningcashs()
+    this.loading = true
     this.filter = { ...this.filter, branchid: this.currentBranch.id }
-    this.preloadItemsList();
+    this.filterParams = { ...this.filterParams, branchid: this.currentBranch.id }
+    this.preloadItemsList()
     this.handleBottomScroll(
       document.querySelector('.ocl .el-table__body-wrapper')
-    );
+    )
   },
   mixins: [deleteMixin, filterMixin, MoneyMixin],
   data() {
@@ -96,7 +98,7 @@ export default {
         searchopeningcash: 'searchopeningcash',
         page: 1,
         fromtime5: '1970-01-01 00:00:01',
-        totime5: '8000-00-00 00:00:00',
+        totime5: moment().format('YYYY-MM-DD HH:mm:ss'),
         branchid: null,
       },
       displaySearchFilters: false,

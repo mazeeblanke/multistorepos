@@ -9,7 +9,8 @@
       )
     .level.toolbar.shadow-divider(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
-        .level-item.page-title.subtitle.is-5 Listing Banking cash ({{ filteredItemsData.length }})
+        .level-item.page-title.subtitle.is-5 
+          | Listing Banking cash ({{ filteredItemsData.length }})
       .level-right
         .level-item
           a.button.is-primary(@click="createNewBankingcash", :disabled="formPanelOpen")
@@ -21,9 +22,21 @@
             span Toggle search filters
             span.icon
               i.material-icons keyboard_arrow_down
-    BankingCashListFilter(:filter-params.sync="filterParams", @change="filterItems", v-show="displaySearchFilters")
-    EmptyState(empty-text="No Result" v-if="!filteredItemsData.length && !loading", :style="{ height: '400px' }")
-    Loading(loading-text="Loading bankingcashs" v-if="(loading && !filteredItemsData.length) || isSearching", :style="{ height: '400px' }")
+    BankingCashListFilter(
+      :filter-params.sync="filterParams", 
+      @change="filterItems", 
+      v-show="displaySearchFilters"
+    )
+    EmptyState(
+      empty-text="No Result", 
+      v-if="!filteredItemsData.length && !loading", 
+      :style="{ height: '400px' }"
+    )
+    Loading(
+      loading-text="Loading bankingcashs", 
+      v-if="(loading && !filteredItemsData.length) || isSearching", 
+      :style="{ height: '400px' }"
+    )
     el-table.bcl(
       ref="items-table",
       :data="filteredItemsData",
@@ -48,32 +61,26 @@
       el-table-column(prop="details", label="Details", align="left", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
           span {{ parseColData(scope.row.details) }}
-      el-table-column(prop="bankingcashtime", label="Created at", align="left", show-overflow-tooltip, :sortable="true", fixed="right")
+      el-table-column(prop="bankingcashtime", label="Created at", align="left", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
             span {{ dateForHumans(scope.row.bankingcashtime) }}
-      //- el-table-column(label="Actions", :render-header="renderDelete", width="70")
-      //-   template(slot-scope="scope", scope="props")
-      //-     button.button(:class="$style.trash")
-      //-       i.material-icons delete
-      //- div(slot="append" v-show="showLoading")
-      //-  div(ref='loader' style="height: 45px;")
-      //-    infinite-loading(spinner="waveDots" v-if="loading")
 </template>
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions, mapGetters } from 'vuex';
-import { formatDate, formatStatus, dateForHumans } from '@/filters/format';
-import Loading from '@/components/shared/Loading';
-import BankingcashForm from '@/components/accounts/BankingcashForm';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-import InfiniteLoading from 'vue-infinite-loading';
-import deleteMixin from '@/mixins/DeleteMixin';
-import filterMixin from '@/mixins/FilterMixin';
-import MoneyMixin from '@/mixins/MoneyMixin';
-import BankingCashListFilter from '@/components/accounts/filters/BankingCashListFilter';
-import EmptyState from '@/components/EmptyState';
-import { ObjectToFormData, parseColData } from '@/utils/helper';
+import { mapState, mapActions, mapGetters } from 'vuex'
+import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
+import Loading from '@/components/shared/Loading'
+import BankingcashForm from '@/components/accounts/BankingcashForm'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import InfiniteLoading from 'vue-infinite-loading'
+import deleteMixin from '@/mixins/DeleteMixin'
+import filterMixin from '@/mixins/FilterMixin'
+import MoneyMixin from '@/mixins/MoneyMixin'
+import BankingCashListFilter from '@/components/accounts/filters/BankingCashListFilter'
+import EmptyState from '@/components/EmptyState'
+import { ObjectToFormData, parseColData } from '@/utils/helper'
+import moment from 'moment'
 
 export default {
   mounted() {
@@ -81,6 +88,7 @@ export default {
     this.clearBankingcashs();
     this.loading = true;
     this.filter = { ...this.filter, branchid: this.currentBranch.id }
+    this.filterParams = { ...this.filterParams, branchid: this.currentBranch.id }
     this.preloadItemsList();
     this.handleBottomScroll(
       document.querySelector('.bcl .el-table__body-wrapper')
@@ -95,7 +103,7 @@ export default {
         searchbankingcash: 'searchbankingcash',
         page: 1,
         fromtime6: '1970-01-01 00:00:01',
-        totime6: '8000-00-00 00:00:00',
+        totime6: moment().format('YYYY-MM-DD HH:mm:ss'),
         branchid: null,
       },
       displaySearchFilters: false,

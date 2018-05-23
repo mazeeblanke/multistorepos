@@ -1,6 +1,7 @@
 import { customers, search } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -43,8 +44,8 @@ export default {
     },
 
     createCustomer ({ commit }, payload) {
-      return customers(payload).then(res => {
-        commit('ADD_CUSTOMER', res.data.customer_details[0])
+      return Vue.axios.post('customers', payload).then(res => {
+        commit('ADD_CUSTOMER', payload)
         return res.data
       })
     },

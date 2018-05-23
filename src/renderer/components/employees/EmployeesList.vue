@@ -12,7 +12,13 @@
         .level-item.page-title.subtitle.is-5 Listing Employees ({{ filteredItemsData.length }})
       .level-item
           div.search
-            el-input(placeholder="Search employees by name...", clearable v-model="searchQuery" @input="search('user')" class="input-with-select")
+            el-input(
+              placeholder="Search employees by name...", 
+              clearable,
+              v-model="searchQuery", 
+              @input="searchEmployees", 
+              class="input-with-select"
+            )
               el-button(slot="append" icon="el-icon-search")  
       .level-right
         .level-item
@@ -82,8 +88,9 @@ import FullscreenDialog from '@/components/shared/FullscreenDialog';
 import InfiniteLoading from 'vue-infinite-loading';
 import deleteMixin from '@/mixins/DeleteMixin';
 import filterMixin from '@/mixins/FilterMixin';
-// import RequisitionListFilter from '@/components/purchasing/RequisitionListFilter';
 import EmptyState from '@/components/EmptyState';
+import { DEBOUNCE_INTERVAL } from '@/utils/constants'
+import debounce from 'debounce'
 import { ObjectToFormData, parseColData } from '@/utils/helper';
 
 export default {
@@ -95,31 +102,15 @@ export default {
     this.handleBottomScroll();
   },
   mixins: [deleteMixin, filterMixin],
-  // watch: {
-  //   employees(newValue) {
-  //     this.items.data = _.flatMap(newValue);
-  //   },
-  // },
   data() {
     return {
       formPanelOpen: false,
       isCreatingEmployee: false,
-      // isCreatingRFQ: false,
       filter: {
         allusers: 'allusers',
         page: 1,
       },
       displaySearchFilters: false,
-      // searchQuery: null,
-      // filteredRequisitions: [],
-      // filterParams: {
-      //   status: null,
-      //   issuedBefore: null,
-      //   issuedAfter: null,
-      //   buyer: null,
-      //   requisitionType: null,
-      //   requisitionCode: null,
-      // },
       loading: false,
       items: {
         data: []
@@ -136,10 +127,12 @@ export default {
     ...mapActions('employees', [
       'loadEmployees',
       'clearSelectedEmployee',
-      // 'loadEmployeesByPage',
       'clearEmployees',
       'deleteEmployee',
     ]),
+    searchEmployees: debounce(function (){
+      this.search('user')
+    }, DEBOUNCE_INTERVAL), 
     parseColData(data) {
       if (data === 'null') {
         return '-';
@@ -208,7 +201,6 @@ export default {
     EmployeeForm,
     FullscreenDialog,
     InfiniteLoading,
-    // RequisitionListFilter,
     EmptyState,
   },
 };

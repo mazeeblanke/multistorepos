@@ -10,25 +10,30 @@
                 src="../assets/img/logo-inverted.png", 
                 alt="OAS logo"
               )
-              <h4>POS</h4>
+            i.material-icons.security security  
           .card-content
             b-notification(
               type="is-danger",
               :active.sync="displayError"
             ) There was an error while trying to log you in: {{ errorMessage }}
             form(@submit.prevent="loginUser")
-              b-field(label="Username")
+              b-field(label="Email")
                 b-input(
-                  v-model="form.username",
+                  v-model="form.email",
                   required
+                  type="email"
+                  @input="clearErrors()"
                 )
+              p.help.is-danger.mb-10(v-if="") {{ getErrorByField('email').message }} 
               b-field(label="Password")
                 b-input(
                   type="password",
                   v-model="form.password",
                   password-reveal="",
                   required
+                  @input="clearErrors()"
                 )
+              p.help.is-danger.mb-10(v-if="") {{ getErrorByField('password').message }}   
               b-field
                 p.control.is-expanded
                   button.button.is-primary.is-padded.is-fullwidth(
@@ -38,64 +43,92 @@
                   ) Login
           .card-footer
             .card-footer-item
-              | Forgot password?&nbsp;
+              span 
+              router-link(to="/signup/company_information" :style="{ color: '#4a4a4a'}") Sign up | &nbsp;
+              span Forgot password?&nbsp;
               strong
                 a Click here to recover
 </template>
 
 <script>
-
-import { mapActions, mapGetters } from 'vuex'
+/* eslint-disable */
+import { mapActions, mapGetters, mapState } from 'vuex'
+import { validationMixin } from 'vuelidate'
+import { required } from 'vuelidate/lib/validators'
+import { isLoggedIn } from '@/utils/helper'
 
 export default {
+  beforeRouteEnter (to, from, next) {
+    if (isLoggedIn()) {
+      next({ name: 'new_sale' })
+    } else {
+      next()
+    }
+  },
   computed: {
     ...mapGetters('users', [
       'isLoggedIn'
-    ])
+    ]),
+    ...mapState('users', [
+      'currentUser'
+    ]),
+  },
+  mixins: [validationMixin],
+  validations: {
+    form: {
+      email: { required },
+      password: { required },
+      signin: { required }
+    }
   },
   data () {
     return {
       processing: false,
       displayError: false,
       errorMessage: '',
+      errors: [],
       form: {
-        username: '',
+        email: '',
         password: '',
         signin: 'signin'
       }
-    }
-  },
-  mounted () {
-    if (this.isLoggedIn) {
-      this.$router.push({
-        name: 'new_sale'
-      })
     }
   },
   methods: {
     ...mapActions('users', [
       'login'
     ]),
+    getErrorByField(field) {
+      if (this.errors.length) {
+        return this.errors.find(error => error.field === field) || {}
+      }
+      return {}
+    },
+    clearErrors() {
+      this.errors = []
+    },
     loginUser () {
       if (!this.$v.$invalid) {
         this.displayError = false
         this.processing = true
         this.login(this.form)
           .then((res) => {
-            if (res.data.status === 'Failure') {
-              return Promise.reject(new Error(res.data.message))
-            }
-            this.access = res.data.user_details[0].access
+            this.$access(res.user.access_level)
             this.processing = false
             this.$snackbar.open('Successfully logged you in')
-            this.$router.push({
-              name: 'dashboard'
-            })
+            if (this.$can('admin|superadmin')) {
+              this.$router.push({ name: 'dashboard' })
+            } else {
+              this.$router.push({ name: 'new_sale' })
+            }
           })
           .catch((err) => {
+            console.log(err)
+            console.log(err.response)
             this.processing = false
             this.displayError = true
             this.errorMessage = err.message
+            this.errors = err.response.data
           })
       }
     }
@@ -105,10 +138,13 @@ export default {
 
 <style lang="sass">
 .Auth
+  background-image: url('../../../static/img/patterns.png')
+  animation: slow-slide 70s infinite
+  animation-timing-function: linear
   display: flex
   flex-direction: column
   height: 100%
-  background-color: whitesmoke
+  background-color: white
   justify-content: center
   .label
     font-weight: 700

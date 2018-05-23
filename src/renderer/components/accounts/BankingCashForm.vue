@@ -34,6 +34,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="bankingcash.fromuser3"
                   :filterable="true"
                   :remote="true"
@@ -54,6 +55,7 @@
             .field-body
               .field
                 el-input-number(
+                  size="small",
                   v-model="bankingcash.amount",
                   placeholder="Enter bankingcash's amount",
                 )
@@ -63,6 +65,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="bankingcash.bank",
                   placeholder="e.g fidelity bank",
                 )
@@ -73,6 +76,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="bankingcash.touser3"
                   :filterable="true"
                   :remote="true"
@@ -93,6 +97,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="bankingcash.details",
                   placeholder="Enter details",
                 )
@@ -102,6 +107,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="bankingcash.branch",
                   :filterable="true",
                   placeholder="select branch",

@@ -17,7 +17,9 @@ import {
   Input,
   InputNumber,
   Button,
-  Upload,
+  Steps,
+  Step,
+  Alert,
   Dialog,
   Form,
   FormItem,
@@ -42,6 +44,7 @@ import PopoverExt from 'vue-js-popover'
 import moment from 'moment'
 import VueMomentJS from 'vue-momentjs'
 import lang from 'element-ui/lib/locale/lang/en'
+// import VueLodash from 'vue-lodash'
 import Acl from 'vue-acl'
 import locale from 'element-ui/lib/locale'
 import { isLoggedIn } from '@/utils/helper'
@@ -55,18 +58,28 @@ let initPermision = null
 
 if (JSON.parse(localStorage.getItem('vuex'))) {
   const vuexStore = JSON.parse(localStorage.getItem('vuex'))
-  if (typeof vuexStore.users === 'object' && typeof vuexStore.users.currentUser === 'object') {
-    initPermision = PERMISSIONS.includes(vuexStore.users.currentUser.access)
-      ? vuexStore.users.currentUser.access
+  if (typeof vuexStore.users === 'object' && vuexStore.users.currentUser) {
+    initPermision = PERMISSIONS.includes(vuexStore.users.currentUser.access_level)
+      ? vuexStore.users.currentUser.access_level
       : 'clerk'
   }
 }
 
-Vue.use(VueProgressBar, {
-  color: 'rgb(143, 255, 199)',
-  failedColor: 'red',
-  height: '2px'
-})
+const options = {
+  color: "#bffaf3",
+  failedColor: "#874b4b",
+  thickness: "2px",
+  transition: {
+    speed: "0.2s",
+    opacity: "0.6s",
+    termination: 300,
+  },
+  autoRevert: true,
+  location: "left",
+  inverse: false,
+};
+
+Vue.use(VueProgressBar, options)
 Vue.use(PopoverExt)
 Vue.use(VueAxios, axios)
 Vue.use(Buefy)
@@ -82,6 +95,7 @@ Vue.use(Dialog)
 Vue.use(TableColumn)
 Vue.use(Radio)
 Vue.use(Tabs)
+Vue.use(Alert)
 Vue.use(Tooltip)
 Vue.use(TabPane)
 Vue.use(Autocomplete)
@@ -95,7 +109,8 @@ Vue.use(Input)
 Vue.use(InputNumber)
 Vue.use(Button)
 Vue.use(DatePicker)
-Vue.use(Upload)
+Vue.use(Steps)
+Vue.use(Step)
 Vue.use(Menu)
 Vue.use(MenuItem)
 Vue.use(Loading)
@@ -123,13 +138,18 @@ Vue.directive('close', {
   }
 })
 
-window.baseUrl = 'http://104.237.153.63/multistore'
-Vue.config.productionTip = false
+// window.baseUrl = 'http://104.237.153.63/multistore'
+window.baseUrl = 'http://127.0.0.1:9238'
+Vue.config.productionTip = true
 axios.interceptors.request.use(
   (config) => {
     const baseUrl = window.baseUrl
+    let token;
     config.url = `${baseUrl}/${config.url}`
-    config.headers['Content-Type'] = 'multipart/form-data'
+    config.headers['Content-Type'] = 'application/json'
+    if ((token = localStorage.getItem("pos_token"))) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
     return config
   },
   err => Promise.reject(err)
@@ -143,14 +163,33 @@ new Vue({
   store,
   template: '<App/>',
   components: { App },
+  watch: {
+    $route (newValue) {
+      if (!isLoggedIn() && newValue.meta.requiresAuth === true) {
+        this.$snackbar.open({
+          type: 'is-warning',
+          position: 'is-top',
+          duration: 5000,
+          message: 'You are not logged in'
+        })
+        this.$router.push('/')
+      }
+    }
+  },
   mounted () {
     this.$router.beforeEach((to, from, next) => {
-      if (to.name === 'home') {
+      console.log('jsdjsdj')
+      console.log(to)
+      if (!isLoggedIn() && to.meta.requiresAuth === true) {
+        this.$snackbar.open({
+          type: 'is-warning',
+          position: 'is-top',
+          duration: 5000,
+          message: 'You are not logged in'
+        })
         next('/')
-      } else if (isLoggedIn()) {
-        next()
       } else {
-        window.location.href = '/'
+        next()
       }
     })
   }

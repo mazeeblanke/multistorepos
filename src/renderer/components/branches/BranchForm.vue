@@ -32,6 +32,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="branch.branchname",
                   placeholder="Enter branch name",
                   @input="() => $v.branch.branchname.$touch()"
@@ -44,6 +45,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="branch.branchaddress",
                   placeholder="Enter branch address",
                   @input="() => $v.branch.branchaddress.$touch()"
@@ -210,44 +212,19 @@ export default {
          * 
          * 
          */
-        doAction(ObjectToFormData(this.branch))
-        .then((res) => {
-          const _doAction = this._branch
-          ? this.updateOASBranch
-          : this.createOASBranch;
-          console.log(this._branch);
-          _doAction({
-            branch: this.branch.branchname,
-            pos_branch_id: res.branch_details[0].id,
-          })
-          return res;
-        })
-        .then(res => {
-          if (res.status === 'Success') {
-            this.$snackbar.open(res.status + ' !' + res.message);
-            // this.$emit('action-complete');
-            if (!this._branch) {
-              // this.$emit('action-complete', { ...res.branch_details[0] });
-              this.ADD_BRANCH(res.branch_details[0]);
-              this.resetBranch();
-              this.$v.branch.$reset()
-            } else {
-              this.$emit('updated-branch', { ...res.branch_details[0] });
-            }
-          } else {
-            this.$snackbar.open(res.status);
-          }
-          this.processing = false;
-        });
-
-
-
-        /***
-         * without OAS integration ==> working
-         * 
-         * 
-         */
-        // doAction(ObjectToFormData(this.branch)).then(res => {
+        // doAction(ObjectToFormData(this.branch))
+        // .then((res) => {
+        //   const _doAction = this._branch
+        //   ? this.updateOASBranch
+        //   : this.createOASBranch;
+        //   console.log(this._branch);
+        //   _doAction({
+        //     branch: this.branch.branchname,
+        //     pos_branch_id: res.branch_details[0].id,
+        //   })
+        //   return res;
+        // })
+        // .then(res => {
         //   if (res.status === 'Success') {
         //     this.$snackbar.open(res.status + ' !' + res.message);
         //     // this.$emit('action-complete');
@@ -264,6 +241,31 @@ export default {
         //   }
         //   this.processing = false;
         // });
+
+
+
+        /***
+         * without OAS integration ==> working
+         * 
+         * 
+         */
+        doAction(ObjectToFormData(this.branch)).then(res => {
+          if (res.status === 'Success') {
+            this.$snackbar.open(res.status + ' !' + res.message);
+            // this.$emit('action-complete');
+            if (!this._branch) {
+              // this.$emit('action-complete', { ...res.branch_details[0] });
+              this.ADD_BRANCH(res.branch_details[0]);
+              this.resetBranch();
+              this.$v.branch.$reset()
+            } else {
+              this.$emit('updated-branch', { ...res.branch_details[0] });
+            }
+          } else {
+            this.$snackbar.open(res.status);
+          }
+          this.processing = false;
+        });
       }
     },
   },

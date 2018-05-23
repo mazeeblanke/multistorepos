@@ -3,22 +3,22 @@
     <div class="invoice" id="invoice">
       <header>
         <section>
-          <h5>{{store.store}}</h5>
+          <h5>{{ settings.store.name }}</h5>
           <!-- <avatar :fullname="store.store" :image="avatarUrl" :size="60"></avatar> -->
           <br>
-          <span>#{{ salesid || transaction.salesid  }}</span>
+          <span>#{{ cart.sales_id }}</span>
           <br>
-          <span>{{ store.store }}</span>
+          <span>{{ settings.store.name }}</span>
           <br>
-          <span>{{ store.address }}</span>
+          <span>{{ settings.branch.address }}</span>
           <br>
-          <span>{{ store.phone }}</span>
+          <span>{{ settings.branch.phone || '093-4883-3434' }}</span>
           <br>
-          <span>{{ store.email }}</span>
+          <span>{{ settings.branch.email }}</span>
           <br>
           <span>{{ dateForHumans(new Date()) }}</span>
           <br>
-          <span v-if="transaction.customerDetails">Customer: {{ transaction.customerDetails.firstname }}</span>
+          <span v-if="cart.customer">Customer: {{ cart.customer.firstname }}</span>
         </section>
       </header>
 
@@ -31,39 +31,39 @@
 
         <section>
           <figure v-for="item in items" v-if="item">
-            <span><strong>{{ item.selectedItem.name }}</strong></span>
+            <span><strong>{{ item.name }}</strong></span>
             <span>{{ item.quantity }}</span>
-            <span>{{ money(item.selectedItem.unitprice) }}</span>
+            <span>{{ money(item.unitprice) }}</span>
           </figure>
         </section>
 
         <section>
           <span>Sub total</span>
-          <span>{{ money(transaction.subtotalTotal) }}</span>
+          <span>{{ money(cart.subTotal) }}</span>
         </section>
         <section>
          <span>Payment type</span>
-          <span>{{ transaction.payment }}</span>
+          <span>{{ cart.payment_type }}</span>
         </section>
         <section>
          <span>Amount paid</span>
-          <span>{{ money(transaction.paid) }}</span>
+          <span>{{ money(cart.amountPaid) }}</span>
         </section>
         <section>
-         <span>Discount({{ `${transaction.discount}%` }})</span>
-          <span>{{ money(transaction.discountTotal) }}</span>
+         <span>Discount({{ `${cart.discount}%` }})</span>
+          <span>{{ money(cart.discountTotal) }}</span>
         </section>
         <section >
-          <span>Tax({{ `${transaction.tax}%` }})</span>
-          <span>{{ money(transaction.taxTotal) }}</span>
+          <span>Tax({{ `${cart.tax}%` }})</span>
+          <span>{{ money(cart.taxTotal) }}</span>
         </section>
         <section>
           <span>TOTAL</span>
-          <span>{{ money(transaction.total) }}</span>
+          <span>{{ money(cart.total) }}</span>
         </section>
       </main>
       <footer>
-        <p>"{{ store.receiptinfo }}"</p>
+        <p>"{{ settings.branch.receiptinfo }}"</p>
       </footer>
     </div>
   </div>
@@ -75,13 +75,13 @@ import { formatDate, formatStatus, formatMoney, dateForHumans } from '@/filters/
 import MoneyMixin from '@/mixins/MoneyMixin';
 import { mapState } from 'vuex';
 import Avatar from 'vue-avatar-component';
-import jsPDF from 'jspdf';
+// import jsPDF from 'jspdf';
 import $ from 'jquery';
 // import autotable from 'jspdf-autotable';
-import html2canvas from 'html2canvas';
+// import html2canvas from 'html2canvas';
 
 export default {
-  props: ['items', 'total', 'salesid', 'transaction', 'printReceipt'],
+  props: ['items', 'total', 'cart', 'printReceipt'],
   data() {
     return {
       isGeneratingPDF: false,
@@ -120,8 +120,8 @@ export default {
     // },
   },
   computed: {
-    ...mapState('store', [
-      'store',
+    ...mapState('settings', [
+      'settings',
     ]),
     avatarUrl() {
       return `${window.baseUrl}/assets/img/logo.jpg?time=${Date.now()}`;
@@ -135,18 +135,7 @@ export default {
 
 
 <style lang="scss" scoped>
- /* ---------------------------------------------
-    Assets
---------------------------------------------- */
-/* ---------------------------------------------
-    Colors
---------------------------------------------- */
-/* ---------------------------------------------
-    Fonts
---------------------------------------------- */
-/* ---------------------------------------------
-    Stylings
---------------------------------------------- */
+
 html, body {
   height: 100%;
 }

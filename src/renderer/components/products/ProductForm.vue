@@ -465,4 +465,8 @@ export default {
 
   .productFormMain
     padding: 2rem
+
+  .ProductForm
+    .el-select, .el-input-number, .el-input__inner, .el-input
+      width: 100% !important  
 </style>

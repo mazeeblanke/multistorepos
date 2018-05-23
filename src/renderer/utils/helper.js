@@ -1,48 +1,7 @@
 import { AUTOSAVE_INTERVAL } from './constants'
 
 const numeral = require('numeral')
-
-export const documentTypes = {
-  word: 'fa fa-file-word-o fa-3x',
-  image: 'image',
-  spreadsheet: 'fa fa-table fa-3x',
-  pdf: 'fa fa-file-pdf-o fa-3x'
-}
 /* eslint-disable */
-
-export function processMaterials() {
-  const requisition = this.requisition || this.selectedRequisition;
-  const parsedMaterials = [];
-  const materials = this.$lodash.map(requisition.materials, this.$lodash.clone);
-  if (!materials.length) {
-    return Promise.reject(new Error('You need to have at least one material'));
-  }
-
-  for (let i = 0; i < materials.length; i += 1) {
-    if (!materials[i]) {
-      return Promise.reject(
-        new Error('Oops! You need to select a material. (Tip: Check the material section)'),
-      );
-    } else if (!materials[i].quantity || materials[i].quantity === 0) {
-      return Promise.reject(new Error('Your quantities need to have actual values'));
-    } else if (!materials[i].selected_vendors.length) {
-      return Promise.reject(new Error('You must select at least one vendor for each material'));
-    }
-
-    parsedMaterials.push({
-      item_id: materials[i].id,
-      quantity: parseInt(materials[i].quantity, 10),
-      selected_vendors: materials[i].selected_vendors.map(v => v.id),
-    });
-  }
-
-  return Promise.resolve(parsedMaterials);
-}
-
-export const calcExpenseCost = (percentage, total) => percentage * total / 100;
-
-export const getGoogleDocsPreviewLink = fileUrlLink =>
-  `https://docs.google.com/gview?url=${fileUrlLink}&embedded=true`;
 
 export const ObjectToFormData = object => {
   let formData = new FormData();
@@ -53,6 +12,8 @@ export const ObjectToFormData = object => {
   return formData;
 };
 
+
+
 export const parseColData = data => {
   if (data === 'null' || !data) {
     return '-';
@@ -60,24 +21,82 @@ export const parseColData = data => {
   return data;
 };
 
+
+
 export const isLoggedIn = () => localStorage.getItem('pos_token');
+
+export const multiplyCash = (a, b) => {
+	return (a * b).toFixed(2)
+}
+
+export const sumCash = (cashList) => {
+	return cashList.reduce((agg, cash) => {
+		return agg + parseInt(cash)
+	}, 0)
+}
+
+export const calculateDiscount = (subTotal, threshold, discount) => {
+	return threshold && parseAmount((subTotal / threshold) * discount)
+}
+
+export const subtractCash = (cash1, cash2) => {
+	return parseAmount(
+    Math.max((cash1 - cash2), 0)
+  )
+}
+
+// export const parseAmount = (amount) => parseFloat(amount.toPrecision(4))
+export const parseAmount = (amount) => parseFloat(amount.toFixed(2))
+
+export const calculatePercentInCash = (percent, total) => {
+	return parseAmount(Math.max(((percent / 100) * total), 0));
+}
+
+export const ucFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 export const money = (money) => {
   return numeral(money).format();
 };
 
+export const UPDATE_STATE = (state, payload, key) => {
+  if (payload.message instanceof Object) {
+     payload.message = Object.values(payload.message);
+  }
+  state[key] = { data: state[key].data.concat(payload.message), nextPage: payload.next_page };
+}
+
 export const clearAutoSavedForm = (key) => {
-  console.log('deleted key');
+  // console.log('deleted key');
   localStorage.removeItem(key);
 }
 
 export const autoSaveForm = (FORM_OBJECT, key) => {
   clearInterval(window[`POS_${key}`]);
   window[`POS_${key}`] = setInterval(() => {
-    console.log(FORM_OBJECT);
+    // console.log(FORM_OBJECT);
     localStorage.setItem(key, JSON.stringify(FORM_OBJECT));
-    console.log('weyye yuuey uiereruieruierui uiereruiuierrui');
+    // console.log('weyye yuuey uiereruieruierui uiereruiuierrui');
   }, AUTOSAVE_INTERVAL);
+}
+
+
+export const sync = (state, mutuation, t) => {
+	// console.log(this.state)
+	// console.log(mutuation)
+	console.log(this)
+	console.log(t)
+	const SYNC_OBJECTS = {};
+	Object.keys(t[state]).forEach((key, index) => {
+		SYNC_OBJECTS[`_${key}`] = {
+			get: () => {
+				return t[state[key]]
+			},
+			set: (value) => {
+        t[mutuation]({ key, value })
+			}
+		}
+	})
+	return SYNC_OBJECTS;
 }
 
 

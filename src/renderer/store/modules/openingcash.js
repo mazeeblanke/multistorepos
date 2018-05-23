@@ -51,7 +51,10 @@ export default {
     loadOpeningcashsByPage ({ commit }, payload) {
       const data = payload.filter || payload
       return openingCash(data).then(res => {
-        if (!payload.filter) commit('SET_OPENING_CASHS', res.data)
+        // if (!payload.filter) commit('SET_OPENING_CASHS', res.data)
+        if ((payload instanceof FormData && payload.get('persist') === 'true')) {
+          commit('SET_OPENING_CASHS', res.data)
+        }
         return res.data
       })
     },

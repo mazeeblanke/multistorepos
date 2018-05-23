@@ -34,6 +34,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="employee.fullname",
                   placeholder="Enter employee fullname",
                   @input="() => $v.employee.fullname.$touch()"
@@ -45,6 +46,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="employee.username",
                   placeholder="Enter employee's username",
                   :disabled="!!_employee"
@@ -57,6 +59,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="employee.password",
                   placeholder="Enter password",
                   @input="() => $v.employee.password.$touch()"
@@ -69,6 +72,7 @@
             .field-body
               .field
                 el-select(
+                  size="small",
                   v-model="employee.access"
                   filterable
                   placeholder="Enter access level"
@@ -84,6 +88,7 @@
             .field-body
               .field
                 el-input(
+                  size="small",
                   v-model="employee.passwordConfirmation",
                   placeholder="Enter password",
                   @input="() => $v.employee.passwordConfirmation.$touch()"
@@ -95,6 +100,7 @@
             .field-body
               .field
                 el-select.has-full-width(
+                  size="small",
                   v-model="employee.branch",
                   filterable,
                   placeholder="select branch",

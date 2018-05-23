@@ -103,6 +103,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 import { mapState } from 'vuex'
 import { formatDate } from '@/filters/format'
 import MoneyMixin from '@/mixins/MoneyMixin'
@@ -119,6 +120,9 @@ export default {
     return {
       isGeneratingPDF: false
     }
+  },
+  mounted () {
+    this.generateReceiptPdf()
   },
   methods: {
     ...{ formatDate },
@@ -332,12 +336,18 @@ export default {
       if (currentPage === 1) {
         return [
           {
-            image: base64Img.base64Sync(
-              path.resolve(__dirname, '../../../../static/AXXIMUTH2.jpg')
-            ),
+            image: base64Img.base64Sync('./static/AXXIMUTH2.jpg'),
             width: 600
           }
         ]
+        // return [
+        //   {
+        //     image: base64Img.base64Sync(
+        //       path.resolve(__dirname, '../../../../static/AXXIMUTH2.jpg')
+        //     ),
+        //     width: 600
+        //   }
+        // ]
       }
     },
     getReceiptInfo () {

@@ -39,7 +39,6 @@ const BASE_PATH = '/app/settings/v'
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
     next({ name: 'general' })
-    // next()
   } else {
     next()
   }
@@ -53,9 +52,6 @@ export default {
       fullScreenActive: false,
       isLoadingSales: false
     }
-  },
-  mounted () {
-
   },
   components: {
     EmptyState,

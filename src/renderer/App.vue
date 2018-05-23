@@ -1,27 +1,22 @@
 <template>
   <div id="app">
     <router-view></router-view>
-    <vue-progress-bar></vue-progress-bar>
+   <vue-progress-bar></vue-progress-bar>
   </div>
 </template>
 
 <script>
-
+/* eslint-disable */
 import { mapState } from 'vuex'
-import 'basscss/css/basscss.css'
+import { isLoggedIn } from '@/utils/helper'
 
 export default {
   name: 'multistore',
   mounted () {
     this.$Progress.finish()
-  },
-  computed: {
-    ...mapState('branch', ['selectedBranch', 'branches', 'branchSuggestions', 'currentBranch']),
-    ...mapState('store', ['store']),
-    ...mapState('users', [
-      'currentUser',
-      'isLoggedIn'
-    ])
+    this.$electron.ipcRenderer.on('stuff', (event, arg) => {
+      console.log(arg)
+    })
   },
   created () {
     this.$Progress.start()
@@ -99,8 +94,6 @@ export default {
     border: none !important
   .is-rounded
     border-radius: 100%
-  // .is-danger
-  //   color: #ff3860 !important
   .m-0
     margin: 0px !important
   .font-size-10
@@ -226,13 +219,15 @@ export default {
     padding: 0px
   .is-flex-start
     justify-content: flex-start
-  // .multiselect__tag
-  //   background: $primary !important
-  // .multiselect__tag-icon
-  //   &:hover, &:focus
-  //    background: $danger !important
   .h100
     height: 100%
+
+  .security
+    display: flex
+    align-items: center
+    font-size: 100px
+    margin-right: 30px
+    color: #0a44ae !important
 
   body, html, #app
     height: 100%
@@ -355,17 +350,17 @@ export default {
 
   .u-flex-fill
     flex-grow: 1
-    margin-top: 100px
-    // overflow-y: scroll
-    // display: flex
-    // justify-content: center
-    // align-items: center
-    // align-content: center
+    // margin-top: 100px
+    height: 90vh
+    display: flex
+    align-items: center
+    overflow: auto
 
   section
     background-color: transparent !important
   .section
     padding: 1rem 1rem !important
+    width: 100% !important
 
   .card-header-title
     color: $secondary
@@ -419,20 +414,11 @@ export default {
         border-top-width: 1px
         padding: 0.5rem 1.5rem
 
-      // li.is-active a
-        // border-top-color: $primary
-
   .el-tabs--card > .el-tabs__header .el-tabs__item.is-active
     border-radius: 0
     border-top: 0
     color: $primary
 
-  // .el-table__fixed-right
-  //   border-left: 1px solid #ebeef5
-  //   box-shadow: none !important
-  // .el-table__fixed
-  //   border-right: 1px solid #ebeef5
-  //   box-shadow: none !important
   .el-tabs__content
     min-height: 400px
 
@@ -442,7 +428,6 @@ export default {
   .el-input-group__append
     background: white !important
   .BaseAppCard
-    // min-height: 550px
     min-height: 670px
 
   .filters-section
@@ -462,10 +447,6 @@ export default {
     border-right: solid 1px #DEDEDE
 
   .el-table
-    // border: none
-
-    // &::after, &::before
-    //   background: transparent
     .is-hidden
       display: table-cell !important
 
@@ -500,87 +481,15 @@ export default {
     border-top: solid 1px #ccc
     box-shadow: 0 2px 4px 0 rgba(0,0,0,0.12) inset
 
-  // .dropzone
-  //   border: 1px solid #eaeaea !important;
-  //   border-radius: 4px;
-  //   background: #f7f7f7 !important;
-  //   width: 100%;
-  //   min-height: 250px;
-  //   overflow-y: scroll
-  //   height: 300px
-  //   .material-icons
-  //     font-size: 120px;
-  //   &:hover
-  //    border-radius: 5px;
-  //    .material-icons
-  //      color: $secondary
-  //    span
-  //     color: $secondary;
-  //     transition: all 1s ease;
-  .doc
-    height: 100%
-    // height: 95%
-    width: 100%
   .tabs
     a
      padding: 7px 15px !important
-  // .b-table
-  //   margin: 0px !important
-  // .invisible
-  //   background: transparent !important
-  //   border: none !important
-  //   outline: none
-  // .options
-  //   display: flex
-  //   margin-bottom: 10px
-  //   justify-content: space-between
-  //   .left
-  //     display: flex
-  //   .right
-  //     display: flex
-  //   label
-  //     font-weight: 600
-  //     margin-right: 5px
-  //     font-size: 16px
-  //     letter-spacing: 0.4px
-  //   select
-  //     border: 1px solid #dbdbdb
-  //     margin-right: 10px
-  //     height: 30px
-  //     min-width: 100px
-  //     font-size: medium
-  //     border-radius: 4px
-  // .autocomplete
-  //   .dropdown-menu
-  //     box-shadow: 0 2px 12px 0 rgba(0,0,0,.1)
-  //   .dropdown-content
-  //     background-color: white !important
-  //   .dropdown-content
-  //     a
-  //       color: #4a4a4a !important
-  //       &:hover
-  //        background-color: #f5f5f5
 
-  .MaterialView
-    .el-tabs__header
-      margin-bottom: 0px
   .el-checkbox__input.is-checked .el-checkbox__inner, .el-checkbox__input.is-indeterminate .el-checkbox__inner
     background-color: black !important
     border-color: black !important
   .swal2-container
     z-index: 10000
-  .matInfo
-    border-top: 1px solid #ebeef5
-
-
-  .wizard-icon
-    color: ghostwhite !important
-  .wizard-progress-with-circle
-    background-color: ghostwhite !important
-  .vue-form-wizard.md .wizard-icon-circle
-    border-color: ghostwhite
-  .stepTitle
-    margin-top: 20px
 
   .search
     .el-input
@@ -590,20 +499,15 @@ export default {
 
   .sidebar
     height: 100% !important
-    // background: #00040a
     background: #051021
-    // border-top-left-radius: 10px !important
     .columns
       margin: 0px !important
-      // padding: 2px !important
       padding: 10px !important
     .is-6, .is-12
       margin: 0px 0px !important
-      // padding: 3px !important
       padding: 1px !important
     .button
       height: 100px
-      // font-size: 16px !important
       font-size: 14px !important
       background-color: #05296b !important
       border-radius: 0px !important
@@ -684,6 +588,18 @@ export default {
 </style>
 
 <style>
+
+@keyframes slow-slide {
+  0% {
+    background-position-x: -800px;
+  }
+
+  100% {
+    background-position-x: 1500px;
+  }
+} 
+ 
+
 @media all and (min-width: 1024px) and (max-width: 1215px) {
   .sidebar .button {
     font-size: 10px !important;
