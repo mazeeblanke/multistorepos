@@ -341,7 +341,8 @@ export default {
         store: {
           name: null,
           email: null,
-          currency: null
+          currency: null,
+          // tax: null
         }
       },
       form: {
@@ -367,7 +368,7 @@ export default {
           this.processing = false
           this.$access(res.data.user.access_level)
           if (this.$can('admin|superadmin')) {
-            this.$router.push({ name: 'dashboard' })
+            this.$router.push({ name: 'general' })
           } else {
             this.$router.push({ name: 'new_sale' })
           }

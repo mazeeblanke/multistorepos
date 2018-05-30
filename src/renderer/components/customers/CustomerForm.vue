@@ -5,9 +5,6 @@
         .level-left
           .level-item
             .page-title.subtitle.is-5 {{ _customer? 'Edit customer' : 'New Customer' }}
-          .level-item
-            //- span.tag.is-warning.is-medium Sale ID: {{ salesid }}
-            //- customers::addcustomer2($_POST['address1'], $_POST['address2']);
         .level-right
           .level-item
             button.button.is-primary(
@@ -18,28 +15,23 @@
               b-icon(icon="save")
               span {{ _customer? 'Save customer edits' : 'Add Customer' }}
           .level-item
-            //- button.button.is-primary(
-            //-   @click="fullScreenActive = !fullScreenActive"
-            //- ) Select customer 
-          .level-item
-            a.button(@click="closeForm()")
+            a.button.no-border(@click="closeForm()")
               span.icon
-                i.material-icons close
-              span Close              
+                i.material-icons close            
       .columns.is-desktop.CustomerFormMain
         .column.is-6
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Firstname
+              label.label Full Name
             .field-body
               .field 
                 el-input(
                   size="small",
                   clearable,
-                  v-model="customer.first_name",
-                  placeholder="Enter customer firstname",
-                  @input="() => $v.customer.first_name.$touch()"
-                  :class="{ 'is-error': $v.customer.first_name.$error }",
+                  v-model="customer.full_name",
+                  placeholder="Enter customer fullname",
+                  @input="() => $v.customer.full_name.$touch()"
+                  :class="{ 'is-error': $v.customer.full_name.$error }",
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -74,44 +66,24 @@
                 el-input(
                   size="small",
                   clearable,
-                  v-model="customer.address1",
+                  v-model="customer.address",
                   placeholder="Enter customer address",
-                  @input="() => $v.customer.address1.$touch()"
-                  :class="{ 'is-error': $v.customer.address1.$error }",
+                  @input="() => $v.customer.address.$touch()"
+                  :class="{ 'is-error': $v.customer.address.$error }",
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Address2
+              label.label Phone
             .field-body
               .field 
                 el-input(
                   size="small",
                   clearable,
-                  v-model="customer.address2",
-                  placeholder="Enter customer address",
-                )
-          .field.is-horizontal
-            .field-label.has-text-right.is-v-centered
-              label.label Email
-            .field-body
-              .field 
-                el-input(
-                  size="small",
-                  clearable,
-                  v-model="customer.email",
-                  placeholder="Enter email address",
-                  @input="() => $v.customer.email.$touch()"
-                  :class="{ 'is-error': $v.customer.email.$error }",
-                )
-          //- .field.is-horizontal
-          //-   .field-label.has-text-right.is-v-centered
-          //-     label.label Country
-          //-   .field-body
-          //-     .field 
-          //-       el-input(
-          //-         v-model="customer.country",
-          //-         placeholder="Enter country",
-          //-       )      
+                  v-model="customer.phone",
+                  placeholder="Enter phone number",
+                  @input="() => $v.customer.phone.$touch()"
+                  :class="{ 'is-error': $v.customer.phone.$error }",
+                )       
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
               label.label Card number
@@ -123,29 +95,12 @@
                   v-model="customer.cardnumber",
                   placeholder="Enter card number",
                 )
-        .column.is-6 
-          .field.is-horizontal
-            .field-label.has-text-right.is-v-centered
-              label.label Surname
-            .field-body
-              .field 
-                el-input(
-                  size="small",
-                  clearable,
-                  v-model="customer.last_name",
-                  placeholder="Enter customer surname",
-                  @input="() => $v.customer.last_name.$touch()"
-                  :class="{ 'is-error': $v.customer.last_name.$error }",
-                )
+        .column.is-6
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
               label.label Date of birth
             .field-body
               .field 
-                //- el-input(
-                //-   v-model="customer.date_of_birth",
-                //-   placeholder="Enter customer date_of_birth",
-                //- )
                 el-date-picker.has-full-width(
                   size="small",
                   v-model="customer.date_of_birth"
@@ -170,17 +125,17 @@
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Phone
+              label.label Email
             .field-body
               .field 
                 el-input(
                   size="small",
                   clearable,
-                  v-model="customer.phone",
-                  placeholder="Enter phone number",
-                  @input="() => $v.customer.phone.$touch()"
-                  :class="{ 'is-error': $v.customer.phone.$error }",
-                ) 
+                  v-model="customer.email",
+                  placeholder="Enter email address",
+                  @input="() => $v.customer.email.$touch()"
+                  :class="{ 'is-error': $v.customer.email.$error }",
+                )      
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
               label.label Gender
@@ -221,23 +176,23 @@
                   disabled
                   v-model="customer.confirmation",
                   placeholder="Enter confirmation number",
-                ) 
-      //- .columns
-      //-   .column.is-12
-      //-     button.button.is-primary.is-pulled-right.mb-25.mb-45.completeTransactionBtn(@click="handleClick") Skip & Complete transaction                       
+                )                     
 </template>
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions } from 'vuex';
-import { validationMixin } from 'vuelidate';
-import { required } from 'vuelidate/lib/validators';
-import { ucFirst } from '@/utils/helper';
-import EmptyState from '@/components/EmptyState';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-import countries from '@/data/countries.json';
+import { mapState, mapActions } from 'vuex'
+import { validationMixin } from 'vuelidate'
+import { required } from 'vuelidate/lib/validators'
+import { ucFirst } from '@/utils/helper'
+import EmptyState from '@/components/EmptyState'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import countries from '@/data/countries.json'
+
+const chance = require('chance').Chance();
 
 export default {
+
   props: {
     _customer: {
       type: Object,
@@ -249,15 +204,14 @@ export default {
       require: false,
     }
   },
+
   mixins: [validationMixin],
-  data() {
+
+  data () {
     return {
       customer: {
-        address1: null,
-        address2: null,
-        address3: null,
-        first_name: null,
-        last_name: null,
+        address: null,
+        full_name: null,
         gender: null,
         email: null,
         phone: null,
@@ -265,24 +219,21 @@ export default {
         title: null,
         date_of_birth: '1970-01-01 00:00:01',
         town: null,
-        confirmation: null,
-        cardnumber: null,
+        confirmation: chance.hash(),
+        cardnumber: chance.fbid(),
         country: null,
       },
       countries,
       customerId: null,
-      suggestions: [],
-      loading: false,
-      availableMaterials: [],
       processing: false,
       fullScreenActive: false,
-    };
+    }
   },
+
   validations: {
     customer: {
-      address1: { required },
-      first_name: { required },
-      last_name: { required },
+      address: { required },
+      full_name: { required },
       gender: { required },
       email: { required },
       title: { required },
@@ -292,79 +243,44 @@ export default {
       marital_status: { required },
     },
   },
-  mounted() {
+
+  mounted () {
     if (this._customer) {
-      this.customer = this._customer;
+      this.customer = this._customer
     }
   },
+
   watch: {
     _customer() {
        this.customer = this._customer;
     },
   },
+
   computed: {
+
     ...mapState('users', ['currentUser']),
-    ...mapState('settings', ['settings']),
+
+    ...mapState('settings', ['settings'])
+  
   },
+
   methods: {
-    ...mapActions('customers', ['loadCustomers', 'getLoyaltyDiscount']),
-    warnUser() {
-      return this.$swal({
-        title: 'Are you sure?',
-        text: 'Continue without creating customer?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
-      });
-    },
-    handleClick() {
-      this.warnUser().then((res) => {
-        if (res.value) {
-          this.sellItems();
-        }
-      })
-    },
-    getCustomerSuggestions(query) {
-      if (query !== '') {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: 'customer',
-        };
-        this.loadCustomers(payload)
-          .then(suggestions => {
-            this.loading = false;
-            this.suggestions = _.flatMap(suggestions);
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.suggestions = [];
-      }
-    },
-    closeDialog() {
-      this.fullScreenActive = false;
-    },
-    updateCustomerDetails() {
-      this.customer = this.suggestions.find(
-        s => s.id === this.customerId,
-      );
-    },
-    addNewItem() {},
-    handleChange() {},
-    ...mapActions('customers', ['createCustomer', 'updateCustomer', 'clearSelectedCustomer']),
-    closeForm() {
+
+    ...mapActions('customers', [
+      'loadCustomers',
+      'createCustomer',
+      'updateCustomer',
+      'getLoyaltyDiscount'
+    ]),
+
+    closeForm () {
       this.$emit('close-form');
     },
+
     resetCustomer() {
       this.customer = {
-        address1: null,
-        address2: null,
-        address3: null,
-        first_name: null,
-        last_name: null,
+        address: null,
+        full_name: null,
         gender: null,
         email: null,
         phone: null,
@@ -377,6 +293,7 @@ export default {
         country: null,
       };
     },
+
     submit() {
       this.$v.customer.$touch()
       if (!this.$v.$invalid) {
@@ -390,14 +307,13 @@ export default {
         };
         doAction(this.customer)
         .then(res => {
-          console.log(res)
           this.$snackbar.open(res.message);
           if (!this._customer) {
-            this.$emit('action-complete', { ...res.data });
+            this.$emit('action-complete', res.data);
             this.resetCustomer();
             this.$v.customer.$reset()
           } else {
-            this.$emit('action-complete', { ...this.customer });
+            this.$emit('action-complete')
           }
           this.processing = false;
         })
@@ -409,16 +325,20 @@ export default {
           })
         })
       }
-    },
+    }
+
   },
+
   components: {
     FullscreenDialog,
     EmptyState,
-  },
-};
+  }
+
+}
 </script>
 
 <style lang="sass">
+
   .CustomerFormHeader
     padding: 2rem
     padding-bottom: 0
@@ -426,54 +346,11 @@ export default {
   .CustomerFormMain
     padding: 2rem
 
-  .MaterialsForm
-    border-top: 1px solid #EAEAEA
-
-  .multiselect
-    font-size: 1rem
-    min-height: 2.25em
-
-  .multiselect__tags
-    display: flex
-    align-items: center
-    min-height: 2.25em
-    padding-left: calc(0.375em - 1px)
-    padding-right: calc(0.375em - 1px)
-    padding-top: calc(0.375em - 1px)
-    border-color: #dbdbdb
-
-  .multiselect__input
-    font-size: 1rem
-    width: auto
-    margin-bottom: calc(0.375em - 1px)
-
-  .multiselect__tags
-    border-bottom-left-radius: 3px !important
-    border-bottom-right-radius: 3px !important
-
-  .custom__tag
-    display: inline-block
-    padding: 0px 7px
-    background: #EFEFEF
-    margin-right: 5px
-    border-radius: 3px
-    cursor: pointer
-    margin-bottom: calc(0.375em - 1px)
-
-  .custom__remove
-    padding: 0
-    font-size: 10px
-    margin-left: 8px
-
-  .vendors-select
-    width: 400px
   .CustomerForm
     height: 80%;
     .is-v-centered
       align-items: flex-start
     .el-select, .el-input-number, .el-input__inner
       width: 100% !important 
-  .completeTransactionBtn
-    margin-right: 25px !important
-    height: 50px !important  
+
 </style>

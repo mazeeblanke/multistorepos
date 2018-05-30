@@ -29,18 +29,17 @@
         .level-item
             button.button.is-primary(@click="addProductSupply") Add product supply
         .level-item
-            JsonExcel(
-              class="btn btn-default",
-              :data="selectedProduct.sales",
-              :fields="json_fields",
-              :name="documentName",
-              type="xlsx",
-              v-if="selectedProduct"
-            )
-              button.button.is-primary(:disabled="!selectedProduct.sales.length")
-                //- span.icon
-                //-   i.material-icons edit
-                span Download Purchase history
+          JsonExcel(
+            class="btn btn-default",
+            :data="selectedProductSales.data",
+            :fields="json_fields",
+            :name="documentName",
+            type="xlsx",
+            v-if="selectedProduct"
+          )
+            button.button.is-primary(
+              :disabled="!selectedProductSales.data.length"
+            ) Download Purchase history
         .level-item
           .field.has-addons
             p.control
@@ -113,23 +112,25 @@
           h5.title.is-5.has-text-centered Product Purchase history
           el-table(
             v-loading="isLoadingSales"
-            :data="selectedProduct.sales",
+            :data="filteredItemsData",
             :empty-text="emptyText",
             :max-height="200"
             :height="200"
           )
             el-table-column(label="No", type="index", :index="1")
-            //- el-table-column(prop="productid", label="product ID", align="center")
-            el-table-column(prop="customer", show-overflow-tooltip, label="Customer name", align="center")
-            //- el-table-column(prop="salesid", show-overflow-tooltip, label="Sales ID", align="center")
-            el-table-column(prop="total", show-overflow-tooltip, label="Total", align="center")
-            el-table-column(prop="discount", show-overflow-tooltip, label="Discount", align="center")
-            el-table-column(prop="costprice", show-overflow-tooltip, label="Cost price", align="center")
-            el-table-column(prop="unitprice", show-overflow-tooltip, label="Unit price", align="center")
-            //- el-table-column(prop="payment", show-overflow-tooltip, label="Payment method", align="center")
-            el-table-column(prop="profit", show-overflow-tooltip, label="Profit", align="center")     
-            el-table-column(prop="user", show-overflow-tooltip, label="Sold by", align="center")     
-            el-table-column(prop="salestime", show-overflow-tooltip, label="Sold at", align="center")     
+            el-table-column(prop="product_id", label="Product ID")
+            el-table-column(prop="sales_id", show-overflow-tooltip, label="Sales ID")
+            el-table-column(prop="sub_total", show-overflow-tooltip, label="Total")
+            el-table-column(prop="unit_price", show-overflow-tooltip, label="Unit Price")
+            el-table-column(prop="payment_type", show-overflow-tooltip, label="Payment method")
+            el-table-column(prop="quantity", show-overflow-tooltip, label="Qty Bought")         
+            el-table-column(prop="created_at", show-overflow-tooltip, label="Sold At")  
+              template(slot-scope="props")
+                span {{ formatDate(props.row.created_at)}} 
+            div(slot="append" v-show="showLoading")
+              div(ref='loader' style="height: 45px")
+                infinite-loading(spinner="waveDots" v-if="loading")  
+      el-tab-pane(name="analytics", label='Product Analytics')              
 </template>
 
 <script>
@@ -139,62 +140,66 @@ import { mapActions, mapState } from 'vuex'
 import ProductForm from '@/components/products/ProductForm'
 import ProductSupplyForm from '@/components/products/ProductSupplyForm'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import InfiniteLoading from 'vue-infinite-loading'
+import filterMixin from '@/mixins/FilterMixin'
 import Loading from '@/components/shared/Loading'
 import JsonExcel from 'vue-json-excel'
-import { ObjectToFormData } from '@/utils/helper'
 export default {
+
   data () {
     return {
       isEditingProduct: false,
-      // editMat: false,
       isAddingProductSupply: false,
       previewingDoc: false,
-      // selectedMaterials: [],
       isLoading: false,
-      // editRemarks: false,
       fullScreenActive: false,
       currentTab: 'details',
       isLoadingSales: false,
+      filter: {
+        aggregate: 0,
+        limit: 4,
+        persist: false
+      },
+      items: {
+        data: []
+      },
       json_fields: {
-        'Sales ID': 'salesid',
+        'Sales ID': 'sales_id',
         Customer: 'customer',
-        Total: 'total',
+        Total: 'sub_total',
         Discount: 'discount',
         profit: 'profit',
         Costprice: 'costprice',
-        Unitprice: 'unitprice',
-        'Sold by': 'user',
-        'Payment method': 'payment',
-        'Sold at': 'salestime'
+        Unitprice: 'unit_price',
+        'Sold By': 'user',
+        'Payment Method': 'payment_type',
+        'Qty Bought': 'quantity',
+        'Sold At': 'created_At'
       }
     }
   },
+
+  mixins: [filterMixin],
+
   mounted () {
     this.clearSelectedProduct()
     this.isLoading = true
-    this.loadProduct(
-      ObjectToFormData({
-        product: this.$route.params.id,
-        getproduct: 'getproduct'
-      })
-    )
+    this.loadProduct({
+      id: this.$route.params.id
+    })
       .then(() => {
         this.isLoading = false
         this.isLoadingSales = true
-        return this.loadSales(
-          ObjectToFormData({
-            productsearch: 'productsearch',
-            fromtime2: '0000-00-01 00:00:00',
-            totime2: '7019-02-20 00:00:00',
-            product4: this.selectedProduct.id
-          })
-        )
+        this.filter = {
+          ...this.filter,
+          product_id: this.selectedProduct.id
+        }
+        return this.preloadItemsList()
       })
       .then(res => {
         this.isLoadingSales = false
-        if (res.status === 'Success') {
-          this.setSelectedProductSales(res.message)
-        }
+        this.handleBottomScroll()
+        this.setSelectedProductSales(res.body)
       })
       .catch(err => {
         console.log(err)
@@ -213,16 +218,35 @@ export default {
     ProductForm,
     ProductSupplyForm,
     FullscreenDialog,
+    InfiniteLoading,
     JsonExcel
   },
   methods: {
+
     ...{ formatDate, dateForHumans },
+
     ...mapActions('products', [
       'loadProduct',
       'clearSelectedProduct',
       'setSelectedProductSales',
       'deleteProduct'
     ]),
+
+    ...mapActions('sales', {
+      loadItems: 'loadSales'
+    }),
+
+    ...mapActions('sales', ['loadSales']),
+
+    setItems (res) {
+      const { data } = res.body
+      const salesHistory = {
+        ...res.body,
+        data: this.items.data.concat(data)
+      }
+      this.setSelectedProductSales(salesHistory)
+    },
+
     updateSelectedProduct (updatedProduct) {
       if (
         this.selectedProduct &&
@@ -233,38 +257,57 @@ export default {
           parseInt(updatedProduct.quantity, 10)
       }
     },
+
     editProduct () {
       this.isEditingProduct = true
       this.fullScreenActive = true
     },
+
     addProductSupply () {
       this.isAddingProductSupply = true
       this.fullScreenActive = true
     },
-    ...mapActions('sales', ['loadSales']),
+
     closeDialog () {
       this.fullScreenActive = false
       this.isEditingProduct = false
       this.isAddingProductSupply = false
     }
   },
+
   computed: {
+
     ...mapState('products', ['selectedProduct']),
+
     emptyText () {
       return `${this.selectedProduct.name} has not been purchased yet`
     },
+
     documentName () {
       if (this.selectedProduct) {
         return `${this.selectedProduct.name}'s purchase history`
       }
       return null
     },
+
     formattedProductName () {
-      return this.selectedProduct.name.length > 15
+      return this.selectedProduct.name && this.selectedProduct.name.length > 15
         ? this.selectedProduct.name.substring(0, 15) + '...'
         : this.selectedProduct.name
+    },
+
+    selectedProductSales () {
+      return this.selectedProduct ? this.selectedProduct.sales : { data: [] }
+    }
+
+  },
+
+  watch: {
+    selectedProductSales (newValue) {
+      this.items = newValue
     }
   }
+
 }
 </script>
 

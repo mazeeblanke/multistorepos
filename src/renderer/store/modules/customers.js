@@ -1,4 +1,4 @@
-import { customers, search } from '../../service/endpoints'
+// import { customers } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 import Vue from 'vue'
@@ -17,7 +17,7 @@ export default {
     },
 
     clearSelectedCustomer ({ commit }, payload) {
-      commit('SET_SELECTED_CUSTOMER', null)
+      commit('CLEAR_SELECTED_CUSTOMER', null)
     },
 
     clearCustomers ({ commit }) {
@@ -25,34 +25,30 @@ export default {
     },
 
     loadCustomers ({ commit }, payload) {
-      return search(payload).then(res => {
-        return res.data
-      })
-    },
-
-    loadCustomersByPage ({ commit }, payload) {
-      return customers(payload).then(res => {
-        commit('SET_CUSTOMERS', res.data)
-        return res.data
+      return Vue.axios.get('customers', { params: payload }).then(res => {
+        if (payload.persist) {
+          commit('SET_CUSTOMERS', res.data.data)
+        }
+        return res.data.data
       })
     },
 
     loadCustomer ({ commit }, payload) {
-      return customers(payload).then(res => {
-        commit('SET_SELECTED_CUSTOMER', res.data.message[0])
+      return Vue.axios.get(`customers/${payload.id}`, payload).then(res => {
+        commit('SET_SELECTED_CUSTOMER', res.data.data)
       })
     },
 
     createCustomer ({ commit }, payload) {
       return Vue.axios.post('customers', payload).then(res => {
-        commit('ADD_CUSTOMER', payload)
+        commit('ADD_CUSTOMER', res.data.data)
         return res.data
       })
     },
 
     updateCustomer ({ commit }, payload) {
-      return customers(payload).then(res => {
-        // commit('ADD_CUSTOMER', payload.customer);
+      return Vue.axios.patch(`customer/${payload.id}`, payload).then(res => {
+        commit('SET_SELECTED_CUSTOMER', res.data.data)
         return res.data
       })
     }
@@ -61,7 +57,15 @@ export default {
   mutations: {
 
     SET_SELECTED_CUSTOMER (state, data) {
-      state.selectedCustomer = data
+      state.selectedCustomer = {
+        sales: {},
+        ...state.selectedCustomer,
+        ...data
+      }
+    },
+
+    CLEAR_SELECTED_CUSTOMER (state) {
+      state.selectedCustomer = null
     },
 
     SET_SELECTED_CUSTOMER_SALES (state, data) {
@@ -69,9 +73,16 @@ export default {
     },
 
     SET_CUSTOMERS (state, payload) {
-      state.filteredCustomers = payload.message
+      // state.filteredCustomers = payload.message
       UPDATE_STATE(state, payload, 'customers')
     },
+
+    // SET_CUSTOMERS (state, payload) {
+    //   state.customers = {
+    //     ...state.customers,
+    //     ...payload
+    //   }
+    // },
 
     CLEAR_CUSTOMERS (state) {
       state.customers = INIT_STATE

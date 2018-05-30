@@ -1,6 +1,6 @@
 <template lang="pug">
   div
-    .BranchForm(v-loading="processing || processingTransaction")
+    .BranchForm(v-loading="processing")
       .level.toolbar
         .level-left
           .level-item
@@ -16,264 +16,303 @@
               b-icon(icon="save")
               span {{ _branch? 'Save branch edits' : 'Add Branch' }}
           .level-item
-            //- button.button.is-primary(
-            //-   @click="fullScreenActive = !fullScreenActive"
-            //- ) Select branch
-          .level-item
-            a.button(@click="closeForm()")
+            a.button.no-border(@click="closeForm()")
               span.icon
                 i.material-icons close
-              span Close
       .columns.is-desktop.BranchFormMain
-        .column.is-6
+        .column.is-4
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Branch name
+              label.label Branch Name
             .field-body
               .field
                 el-input(
                   size="small",
-                  v-model="branch.branchname",
+                  v-model="branch.name",
                   placeholder="Enter branch name",
-                  @input="() => $v.branch.branchname.$touch()"
-                  :class="{ 'is-error': $v.branch.branchname.$error }",
+                  @input="() => $v.branch.name.$touch()"
+                  :class="{ 'is-error': $v.branch.name.$error }",
                 )
-        .column.is-6
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Branch address
+              label.label Receipt Info
             .field-body
               .field
                 el-input(
                   size="small",
-                  v-model="branch.branchaddress",
-                  placeholder="Enter branch address",
-                  @input="() => $v.branch.branchaddress.$touch()"
-                  :class="{ 'is-error': $v.branch.branchaddress.$error }",
+                  v-model="branch.receiptinfo",
+                  placeholder="Enter Receipt info"
                 )
+          .field.is-horizontal.mb-30
+              .field-label.has-text-left.is-v-centered
+                label.label(title="The loyalty threshold for this branch") 
+                  | {{ `Treshold (${this.currencySymbol})`}}
+              .field-body
+                .field
+                  el-input(
+                    size="small",
+                    type="number",
+                    v-model.number="branch.threshold",
+                    placeholder="Enter loyalty threshold"
+                  )      
+        .column.is-4
+          .field.is-horizontal
+            .field-label.has-text-right.is-v-centered
+              label.label Branch Address
+            .field-body
+              .field
+                el-input(
+                  size="small",
+                  v-model="branch.address",
+                  placeholder="Enter branch address",
+                  @input="() => $v.branch.address.$touch()"
+                  :class="{ 'is-error': $v.branch.address.$error }",
+                )
+          .field.is-horizontal.mb-30
+            .field-label.has-text-left.is-v-centered
+              label.label Currency
+            .field-body
+              .field
+                el-select.has-full-width(
+                  clearable,
+                  size="small",
+                  v-model="branch.currency",
+                  :filterable="true",
+                  placeholder="select currency",
+                  value-key="name",
+                  @change="() => $v.branch.currency.$touch()",
+                  :class="{ 'is-error': $v.branch.currency.$error }",
+                )
+                  el-option(
+                    v-for="(currency, key, index) in currencies",
+                    :label="format(currency)",
+                    :value="currency",
+                    :key="index",
+                  )
+          .field.is-horizontal.mb-30
+            .field-label.has-text-left.is-v-centered
+              label.label(title="The Loyalty discount for this branch") Discount (%)
+            .field-body
+              .field
+                el-input(
+                  type="number"
+                  size="small",
+                  v-model.number="branch.discount",
+                  placeholder="Enter loyalty discount"
+                )              
+        .column.is-4        
+          .field.is-horizontal
+            .field-label.has-text-left.is-v-centered
+              label.label Store
+            .field-body
+              .field 
+                el-input(
+                  clearable,
+                  size="small",
+                  :value="settings.store.name",
+                  disabled
+                ) 
+          .field.is-horizontal
+            .field-label.has-text-left.is-v-centered
+              label.label Printout
+            .field-body
+              .field     
+                el-select(
+                  clearable,      
+                  size="small", 
+                  v-model.number="branch.printout",
+                  placeholder="Enter receipt type",
+                  :filterable="true",
+                  @change="() => $v.branch.printout.$touch()",
+                  :class="{ 'is-error': $v.branch.printout.$error }",
+                )
+                  el-option(label="Receipt", value="receipt")
+                  el-option(label="Invoice", value="invoice")
+          .field.is-horizontal
+            .field-label.has-text-left.is-v-centered
+              label.label Email
+            .field-body
+              .field
+                el-input(
+                  clearable,
+                  size="small",
+                  v-model="branch.email",
+                  placeholder="Enter Branch email",
+                  @change="() => $v.branch.email.$touch()",
+                  :class="{ 'is-error': $v.branch.email.$error }",
+                )                 
 </template>
 
 <script>
-/* eslint-disable */
-import { mapState, mapActions, mapMutations } from 'vuex';
-import { validationMixin } from 'vuelidate';
-import { required } from 'vuelidate/lib/validators';
-import { ObjectToFormData } from '@/utils/helper';
-import EmptyState from '@/components/EmptyState';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
 
-// const ucFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
+import { mapState, mapActions } from 'vuex'
+import { validationMixin } from 'vuelidate'
+import MoneyMixin from '@/mixins/MoneyMixin'
+import { required } from 'vuelidate/lib/validators'
+import EmptyState from '@/components/EmptyState'
+import currencies from '@/data/Common-Currency.json'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
 
 export default {
+
   props: {
     _branch: {
-      type: Object,
+      type: Object
     },
     sellItems: {
-      type: Function,
-    },
-    processingTransaction: {
-      require: false,
+      type: Function
     }
   },
-  mixins: [validationMixin],
-  data() {
+
+  mixins: [validationMixin, MoneyMixin],
+
+  data () {
     return {
       branch: {
-        branchname: null,
-        branchaddress: null,
-        addbranch: 'addbranch',
-        // branchid: null,
+        name: null,
+        address: null,
+        currency: null,
+        printout: null,
+        threshold: null,
+        discount: null,
+        email: null,
+        receiptinfo: null
       },
-      // branchId: null,
       suggestions: [],
       loading: false,
-      // availableMaterials: [],
       processing: false,
       fullScreenActive: false,
-    };
+      currencies
+    }
   },
+
   validations: {
+
     branch: {
-      branchname: { required },
-      branchaddress: { required },
-    },
+      name: { required },
+      address: { required },
+      printout: { required },
+      email: { required },
+      currency: { required }
+    }
+
   },
-  mounted() {
+
+  mounted () {
     if (this._branch) {
       this.branch = {
         ...this._branch,
         branchname: this._branch.name,
-        branchaddress: this._branch.address,
-        // passwordConfirmation: this._branch.password,
-      };
-      console.log(this.branch);
+        branchaddress: this._branch.address
+      }
+      console.log(this.branch)
     }
   },
+
   watch: {
-    _branch() {
-      //  this.branch = this._branch;
+
+    _branch () {
       this.branch = {
         ...this._branch,
         branchname: this._branch.name,
-        branchaddress: this._branch.address,
-        // fullname: this._branch.name,
-        // passwordConfirmation: this._branch.password,
-      };
-    },
+        branchaddress: this._branch.address
+      }
+    }
+
   },
+
   computed: {
+
     ...mapState('users', ['currentUser']),
+
+    ...mapState('settings', ['settings']),
+
     ...mapState('branch', [
-      'selectedBranch',
-    ]),
+      'selectedBranch'
+    ])
+
   },
+
   methods: {
-    ...mapActions('branch', ['loadBranches', 'getLoyaltyDiscount', 'createOASBranch', 'updateOASBranch']),
-    ...mapMutations('branch', ['ADD_BRANCH']),
-    warnUser() {
-      return this.$swal({
-        title: 'Are you sure?',
-        text: 'Continue without creating branch?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
-      });
+
+    ...mapActions('branch', ['loadBranches']),
+
+    ...mapActions('branch', [
+      'createBranch',
+      'updateBranch',
+      'clearSelectedBranch'
+    ]),
+
+    format (currency) {
+      return `${currency.name} - ${currency.symbol}`
     },
-    handleClick() {
-      this.warnUser().then((res) => {
-        if (res.value) {
-           this.sellItems();
-        }
-      })
+
+    closeDialog () {
+      this.fullScreenActive = false
     },
-    getBranchSuggestions(query) {
-      if (query !== '') {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: 'branch',
-        };
-        this.loadBranches(payload)
-          .then(suggestions => {
-            this.loading = false;
-            this.suggestions = _.flatMap(suggestions);
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.suggestions = [];
+
+    closeForm () {
+      this.$emit('close-form')
+    },
+
+    resetBranch () {
+      this.branch = {
+        name: null,
+        address: null,
+        currency: null,
+        printout: null,
+        threshold: null,
+        discount: null,
+        email: null,
+        receiptinfo: null
       }
     },
-    closeDialog() {
-      this.fullScreenActive = false;
-    },
-    updateBranchDetails() {
-      this.branch = this.suggestions.find(
-        s => s.id === this.branchId,
-      );
-    },
-    addNewItem() {},
-    handleChange() {},
-    ...mapActions('branch', ['createBranch', 'updateBranch', 'clearSelectedBranch']),
-    closeForm() {
-      this.$emit('close-form');
-    },
-    resetBranch() {
-      this.branch = {
-        branchname: null,
-        branchaddress: null,
-        addbranch: 'addbranch',
-      };
-    },
-    submit() {
+
+    submit () {
       this.$v.branch.$touch()
       if (!this.$v.$invalid) {
-        this.processing = true;
+        this.processing = true
         const doAction = this._branch
           ? this.updateBranch
-          : this.createBranch;
-        this.branch = {
-          ...this.branch,
-          ...{
-            [this._branch ? 'updatebranch' : 'addbranch']: 'value',
-            // access2: this._branch ? this.branch.access : null,
-            // name: this._branch ? this.branch.fullname : null,
-            // user: this._branch ? this.branch.username : null,
-            branchid: this._branch ? this._branch.id : null,
-          },
-        };
-
-
-        /***
-         * with OAS integration
-         * 
-         * 
-         */
-        // doAction(ObjectToFormData(this.branch))
-        // .then((res) => {
-        //   const _doAction = this._branch
-        //   ? this.updateOASBranch
-        //   : this.createOASBranch;
-        //   console.log(this._branch);
-        //   _doAction({
-        //     branch: this.branch.branchname,
-        //     pos_branch_id: res.branch_details[0].id,
-        //   })
-        //   return res;
-        // })
-        // .then(res => {
-        //   if (res.status === 'Success') {
-        //     this.$snackbar.open(res.status + ' !' + res.message);
-        //     // this.$emit('action-complete');
-        //     if (!this._branch) {
-        //       // this.$emit('action-complete', { ...res.branch_details[0] });
-        //       this.ADD_BRANCH(res.branch_details[0]);
-        //       this.resetBranch();
-        //       this.$v.branch.$reset()
-        //     } else {
-        //       this.$emit('updated-branch', { ...res.branch_details[0] });
-        //     }
-        //   } else {
-        //     this.$snackbar.open(res.status);
+          : this.createBranch
+        // this.branch = {
+        //   ...this.branch,
+        //   ...{
+        //     [this._branch ? 'updatebranch' : 'addbranch']: 'value',
+        //     // access2: this._branch ? this.branch.access : null,
+        //     // name: this._branch ? this.branch.fullname : null,
+        //     // user: this._branch ? this.branch.username : null,
+        //     branchid: this._branch ? this._branch.id : null
         //   }
-        //   this.processing = false;
-        // });
+        // }
 
-
-
-        /***
-         * without OAS integration ==> working
-         * 
-         * 
-         */
-        doAction(ObjectToFormData(this.branch)).then(res => {
-          if (res.status === 'Success') {
-            this.$snackbar.open(res.status + ' !' + res.message);
-            // this.$emit('action-complete');
-            if (!this._branch) {
-              // this.$emit('action-complete', { ...res.branch_details[0] });
-              this.ADD_BRANCH(res.branch_details[0]);
-              this.resetBranch();
-              this.$v.branch.$reset()
-            } else {
-              this.$emit('updated-branch', { ...res.branch_details[0] });
-            }
+        doAction(this.branch).then(res => {
+          this.$snackbar.open(res.message)
+          if (!this._branch) {
+            this.resetBranch()
+            this.$v.branch.$reset()
           } else {
-            this.$snackbar.open(res.status);
+            this.$emit('updated-branch', { ...res.data })
           }
-          this.processing = false;
-        });
+          this.processing = false
+        }).catch((err) => {
+          console.log(err)
+          this.$snackbar.open({
+            type: 'is-danger',
+            message: err.message
+          })
+          this.processing = false
+        })
       }
-    },
+    }
   },
+
   components: {
     FullscreenDialog,
-    EmptyState,
-  },
-};
+    EmptyState
+  }
+
+}
 </script>
 
 <style lang="sass">
@@ -284,54 +323,10 @@ export default {
   .BranchFormMain
     padding: 2rem
 
-  .MaterialsForm
-    border-top: 1px solid #EAEAEA
-
-  .multiselect
-    font-size: 1rem
-    min-height: 2.25em
-
-  .multiselect__tags
-    display: flex
-    align-items: center
-    min-height: 2.25em
-    padding-left: calc(0.375em - 1px)
-    padding-right: calc(0.375em - 1px)
-    padding-top: calc(0.375em - 1px)
-    border-color: #dbdbdb
-
-  .multiselect__input
-    font-size: 1rem
-    width: auto
-    margin-bottom: calc(0.375em - 1px)
-
-  .multiselect__tags
-    border-bottom-left-radius: 3px !important
-    border-bottom-right-radius: 3px !important
-
-  .custom__tag
-    display: inline-block
-    padding: 0px 7px
-    background: #EFEFEF
-    margin-right: 5px
-    border-radius: 3px
-    cursor: pointer
-    margin-bottom: calc(0.375em - 1px)
-
-  .custom__remove
-    padding: 0
-    font-size: 10px
-    margin-left: 8px
-
-  .vendors-select
-    width: 400px
   .BranchForm
     height: 80%;
     .is-v-centered
       align-items: flex-start
     .el-select, .el-input-number, .el-input__inner
       width: 100% !important
-  .completeTransactionBtn
-    margin-right: 25px !important
-    height: 50px !important
 </style>

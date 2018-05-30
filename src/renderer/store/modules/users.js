@@ -8,16 +8,22 @@ export default {
   },
   actions: {
     signUp ({ commit, state }, payload) {
-      return Vue.axios.post('register', payload).then((res) => {
-        console.log(res.data.data.token.token)
-        localStorage.setItem('pos_token', res.data.data.token.token)
-        commit('SET_CURRENT_USER', res.data.data.user)
+      return Vue.axios.post('register', payload).then(res => {
+        const { user, token } = res.data.data
+        const { store, branch } = user
+        localStorage.setItem('pos_token', token.token)
+        commit('SET_CURRENT_USER', user)
+        commit('sales/RESET_CART', null, { root: true })
+        commit(
+          'settings/SET_STORE_SETTINGS',
+          { data: { branch, store } },
+          { root: true }
+        )
         return res.data
       })
     },
     login ({ commit, state }, payload) {
       return Vue.axios.post('login', payload).then(res => {
-        console.log(res.data)
         localStorage.setItem('pos_token', res.data.token.token)
         commit('SET_CURRENT_USER', res.data.user)
         return res.data
@@ -26,10 +32,8 @@ export default {
     logout ({ commit }) {
       return new Promise((resolve, reject) => {
         try {
-          console.log('got here inside user logout')
           localStorage.removeItem('pos_token')
           commit('CLEAR_CURRENT_USER')
-          console.log('done with dat basard')
           return resolve('success')
         } catch (e) {
           return reject(new Error(e))
@@ -41,10 +45,7 @@ export default {
     isLoggedIn: () => localStorage.getItem('pos_token')
   },
   mutations: {
-
     SET_CURRENT_USER (state, user) {
-      console.log('we we wieu iweu weiewu')
-      console.log(user)
       state.currentUser = {
         ...state.currentUser,
         ...user
@@ -54,6 +55,5 @@ export default {
     CLEAR_CURRENT_USER (state) {
       state.currentUser = null
     }
-
   }
 }

@@ -18,7 +18,7 @@
           <br>
           <span>{{ dateForHumans(new Date()) }}</span>
           <br>
-          <span v-if="cart.customer">Customer: {{ cart.customer.firstname }}</span>
+          <span v-if="cart.customer">Customer: {{ cart.customer.full_name }}</span>
         </section>
       </header>
 
@@ -63,7 +63,7 @@
         </section>
       </main>
       <footer>
-        <p>"{{ settings.branch.receiptinfo }}"</p>
+        <p>{{ settings.branch.receiptinfo }}</p>
       </footer>
     </div>
   </div>
@@ -195,9 +195,9 @@ body {
 .invoice {
   background-color: #ffffff;
   // border-radius: 10px;
-  // box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.13);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.13);
   margin: 50px 0;
-  padding: 50px 30px 30px;
+  padding: 50px 14px 30px;
 }
 .invoice header {
   overflow: hidden;

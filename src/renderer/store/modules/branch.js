@@ -1,6 +1,7 @@
 import { branches, search } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -36,13 +37,6 @@ export default {
       })
     },
 
-    loadBranchesByPage ({ commit }, payload) {
-      return branches(payload).then(res => {
-        commit('SET_BRANCHES', res.data)
-        return res.data
-      })
-    },
-
     deleteBranch ({ commit }, payload) {
       return branches(payload).then(res => {
         commit('REMOVE_BRANCH', payload.employee)
@@ -51,8 +45,8 @@ export default {
     },
 
     createBranch ({ commit }, payload) {
-      return branches(payload).then(res => {
-        // commit('ADD_BRANCH', res.data.customer_details[0]);
+      return Vue.axios.post('branches', payload).then(res => {
+        commit('ADD_BRANCH', res.data.data)
         return res.data
       })
     },
@@ -65,9 +59,11 @@ export default {
     },
 
     loadBranches ({ commit }, payload) {
-      return branches(payload).then(res => {
-        commit('SET_BRANCH_SUGGESTIONS', res.data.message)
-        return res.data.message
+      return Vue.axios.get('branches', { params: payload }).then(res => {
+        if (payload.persist) {
+          commit('SET_BRANCHES', res.data.data)
+        }
+        return res.data.data
       })
     }
 

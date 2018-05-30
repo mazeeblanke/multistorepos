@@ -32,6 +32,25 @@ export const INIT_STATE = {
   nextPage: null
 }
 
+export const TAXES = [
+  {
+    type: 'Consumption Tax',
+    value: 10
+  },
+  {
+    type: 'Value Added Tax (VAT)',
+    value: 5
+  },
+  {
+    type: 'Petroleum Tax',
+    value: 15
+  },
+  {
+    type: 'Withholding Tax',
+    value: 20
+  }
+]
+
 export const HTTP_VERBS = {
   GET: 'get',
   POST: 'post',
@@ -44,3 +63,16 @@ export const PERMISSIONS = [
   'superadmin',
   'admin'
 ]
+
+export const PROGRESS = {
+  func: [
+    { call: 'color', modifier: 'temp', argument: '#ffb000' },
+    { call: 'fail', modifier: 'temp', argument: '#6e0000' },
+    { call: 'location', modifier: 'temp', argument: 'top' },
+    {
+      call: 'transition',
+      modifier: 'temp',
+      argument: { speed: '1.5s', opacity: '0.9s', termination: 400 }
+    }
+  ]
+}

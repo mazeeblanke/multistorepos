@@ -4,7 +4,8 @@ export default {
   state: {
     currentPageTitle: '',
     authModalOpen: false,
-    countries: null
+    countries: null,
+    formPanelOpen: false
   },
 
   actions: {
@@ -35,6 +36,10 @@ export default {
 
     OPEN_AUTH_MODAL (state) {
       state.authModalOpen = true
+    },
+
+    SET_FORM_STATE (state, newState) {
+      state.formPanelOpen = newState
     },
 
     CLOSE_AUTH_MODAL (state) {

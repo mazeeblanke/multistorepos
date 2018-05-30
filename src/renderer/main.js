@@ -31,6 +31,7 @@ import {
   Radio,
   Popover,
   Menu,
+  Switch,
   MenuItem
 } from 'element-ui'
 import Vue from 'vue'
@@ -49,6 +50,7 @@ import Acl from 'vue-acl'
 import locale from 'element-ui/lib/locale'
 import { isLoggedIn } from '@/utils/helper'
 import { PERMISSIONS } from '@/utils/constants'
+import { mapMutations } from 'vuex'
 import App from './App'
 import router from './router'
 import store from './store'
@@ -66,18 +68,16 @@ if (JSON.parse(localStorage.getItem('vuex'))) {
 }
 
 const options = {
-  color: "#bffaf3",
+  color: "#84a6e5",
   failedColor: "#874b4b",
-  thickness: "2px",
+  thickness: "3px",
   transition: {
-    speed: "0.2s",
-    opacity: "0.6s",
-    termination: 300,
+    speed: "0.4s",
+    opacity: "0.7s",
+    termination: 400,
   },
   autoRevert: true,
-  location: "left",
-  inverse: false,
-};
+}
 
 Vue.use(VueProgressBar, options)
 Vue.use(PopoverExt)
@@ -112,6 +112,7 @@ Vue.use(DatePicker)
 Vue.use(Steps)
 Vue.use(Step)
 Vue.use(Menu)
+Vue.use(Switch)
 Vue.use(MenuItem)
 Vue.use(Loading)
 Vue.use(VueScrollTo)
@@ -140,7 +141,7 @@ Vue.directive('close', {
 
 // window.baseUrl = 'http://104.237.153.63/multistore'
 window.baseUrl = 'http://127.0.0.1:9238'
-Vue.config.productionTip = true
+
 axios.interceptors.request.use(
   (config) => {
     const baseUrl = window.baseUrl
@@ -158,11 +159,23 @@ axios.interceptors.request.use(
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
 
 new Vue({
+  
   el: '#app',
+
   router,
+
   store,
+
   template: '<App/>',
+
   components: { App },
+
+  methods: {
+    ...mapMutations('app', [
+      'SET_FORM_STATE'
+    ]),
+  },
+
   watch: {
     $route (newValue) {
       if (!isLoggedIn() && newValue.meta.requiresAuth === true) {
@@ -176,10 +189,10 @@ new Vue({
       }
     }
   },
+
   mounted () {
     this.$router.beforeEach((to, from, next) => {
-      console.log('jsdjsdj')
-      console.log(to)
+      this.SET_FORM_STATE(false)
       if (!isLoggedIn() && to.meta.requiresAuth === true) {
         this.$snackbar.open({
           type: 'is-warning',
@@ -193,4 +206,5 @@ new Vue({
       }
     })
   }
+
 })

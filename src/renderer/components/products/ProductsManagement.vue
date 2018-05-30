@@ -2,17 +2,16 @@
   section.section
     .container-fluid
       .columns.is-gapless
-        .column(v-show="$can('admin|super-admin')" :class="$can('admin|super-admin') ? 'is-2' : ''")
+        .column(v-show="$can('admin|superadmin')" :class="$can('admin|superadmin') ? 'is-2' : ''")
           SideBar
-        .column(:class="$can('admin|super-admin') ? 'is-10' : ''")
+        .column(:class="$can('admin|superadmin') ? 'is-10' : ''")
           .BaseAppCard.card(ref='base-card')
             header.card-header
               p.card-header-title Products Management
               p.level-item.page-title.subtitle.is-5
-                span.tag.is-medium Branch: {{ currentBranch.name }}
+                span.tag.is-medium Branch: {{ settings.branch.name }}
               a.card-header-icon
-                span.icon
-                  i.material-icons keyboard_arrow_down
+                span.el-icon-more-outline.font-size-23
             .tabs
               ul
                 router-link(tag="li", :to="{name: 'products_list'}", active-class="is-active")
@@ -35,34 +34,36 @@ const BASE_PATH = '/app/products';
 
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
-    console.log('in here');
-    next({ name: 'products_list' });
+    next({ name: 'products_list' })
   } else {
-    console.log('out here');
-    next();
+    next()
   }
 };
 
 export default {
+
   data() {
     return {
       activeTab: 0,
     };
   },
+
   components: {
     SideBar,
   },
+
   computed: {
-    ...mapState('branch', [
-      'currentBranch',
-    ]),
+    ...mapState('settings', ['settings']),
   },
+
   beforeRouteEnter(to, from, next) {
-    redirectIfBase(to, next);
+    redirectIfBase(to, next)
   },
+
   beforeRouteUpdate(to, from, next) {
-    redirectIfBase(to, next);
+    redirectIfBase(to, next)
   },
+
   methods: {
     resetScroll() {
       this.$scrollTo(this.$el, 1000, {

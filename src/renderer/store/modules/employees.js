@@ -1,6 +1,7 @@
-import { users, search } from '../../service/endpoints'
+import { users } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -9,17 +10,12 @@ export default {
     selectedEmployee: null
   },
   actions: {
-
     loadEmployees ({ commit }, payload) {
-      return search(payload).then(res => {
-        return res.data
-      })
-    },
-
-    loadEmployeesByPage ({ commit }, payload) {
-      return users(payload).then(res => {
-        commit('SET_EMPLOYEES', res.data)
-        return res.data
+      return Vue.axios.get('users', { params: payload }).then(res => {
+        if (payload.persist) {
+          commit('SET_EMPLOYEES', res.data.data)
+        }
+        return res.data.data
       })
     },
 
@@ -30,26 +26,23 @@ export default {
       })
     },
 
-    loadEmployee ({ commit }, payload) {
-      return users(payload).then(res => {
-        commit('SET_SELECTED_EMPLOYEE', {
-          ...res.data.message[0],
-          branch_details: res.data.branch_details[0]
-        })
+    loadEmployee ({ commit }, { id }) {
+      return Vue.axios.get(`user/${id}`).then(res => {
+        commit('SET_SELECTED_EMPLOYEE', res.data.data)
         return res.data
       })
     },
 
     createEmployee ({ commit }, payload) {
-      return users(payload).then(res => {
-        // commit('ADD_EMPLOYEE', res.data.customer_details[0])
+      return Vue.axios.post('users', payload).then(res => {
+        commit('ADD_EMPLOYEE', res.data.data)
         return res.data
       })
     },
 
     updateEmployee ({ commit }, payload) {
-      return users(payload).then(res => {
-        // commit('ADD_EMPLOYEE', payload.customer)
+      return Vue.axios.patch(`user/${payload.id}`, payload).then(res => {
+        commit('SET_SELECTED_EMPLOYEE', res.data.data)
         return res.data
       })
     },
@@ -59,18 +52,24 @@ export default {
     },
 
     clearSelectedEmployee ({ commit }, payload) {
-      commit('SET_SELECTED_EMPLOYEE', null)
+      commit('CLEAR_SELECTED_EMPLOYEE', null)
     },
 
     clearEmployees ({ commit }) {
       commit('CLEAR_EMPLOYEES')
     }
-
   },
   mutations: {
-
     SET_SELECTED_EMPLOYEE (state, data) {
-      state.selectedEmployee = { ...{ sales: [] }, ...data }
+      state.selectedEmployee = {
+        sales: { data: [] },
+        ...state.selectedEmployee,
+        ...data
+      }
+    },
+
+    CLEAR_SELECTED_EMPLOYEE (state) {
+      state.selectedEmployee = null
     },
 
     SET_SELECTED_EMPLOYEE_SALES (state, data) {
@@ -92,6 +91,5 @@ export default {
     ADD_EMPLOYEE (state, data) {
       state.employees.data.unshift(data)
     }
-
   }
 }

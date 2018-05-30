@@ -1,7 +1,7 @@
 <template lang="pug">
   .AppBase
     NavBar
-    #snap-screen.u-flex-fill
+    #snap-screen.u-flex-fill(:class="{ 'is-v-flex-start': formPanelOpen }")
       router-view
 </template>
 
@@ -16,9 +16,9 @@ export default {
   },
 
   mounted () {
-    // if (!this.settings) {
-    this.loadSettings()
-    // }
+    if (!this.settings) {
+      this.loadSettings()
+    }
   },
 
   watch: {
@@ -34,7 +34,8 @@ export default {
   },
 
   computed: {
-    ...mapState('settings', ['settings'])
+    ...mapState('settings', ['settings']),
+    ...mapState('app', ['formPanelOpen'])
   }
 
 }

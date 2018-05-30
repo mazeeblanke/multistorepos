@@ -1,5 +1,5 @@
-import { ObjectToFormData } from '@/utils/helper'
 import _ from 'lodash'
+import { mapState } from 'vuex'
 /* eslint-disable */
 export default {
 
@@ -13,13 +13,24 @@ export default {
         }
       },
       filter: {
-        limit: 7,
+        limit: 10,
         page: 1,
         persist: true
       },
       loading: false,
       isSearching: false,
-      searchQuery: null
+      searchQuery: null,
+      items: {
+        data: []
+      },
+    }
+  },
+
+  mounted () {
+    this.filter = {
+      ...this.filter,
+      branch_id: this.settings.branch.id,
+      store_id: this.settings.store.id
     }
   },
 
@@ -27,10 +38,12 @@ export default {
 
     preloadItemsList () {
       this.loading = true
-      this.loadItems(ObjectToFormData(this.filter))
+      return this.loadItems(this.filter)
         .then((res) => {
           this.loading = false
-          this.setLoadedItems(res)
+          // this.setLoadedItems(res)
+          // console.log(res)
+          return res
         })
         .catch(() => {
           this.loading = false
@@ -43,38 +56,33 @@ export default {
       }
     },
 
-    getSearchPayload (type) {
-      if (type instanceof Object) {
-        return type
-      }
-      return {
-        type,
-        search: this.searchQuery
-      }
-    },
+    // getSearchPayload (type) {
+    //   if (type instanceof Object) {
+    //     return type
+    //   }
+    //   return {
+    //     type,
+    //     search: this.searchQuery
+    //   }
+    // },
 
-    search (type, requestType) {
-      if (this.searchQuery) {
-        let payload = this.getSearchPayload(type)
+    search (key) {
+      if (this.filter[key]) {
         this.isSearching = true
         this.loading = true
-        if (requestType === 'POST') {
-          payload = { filter: ObjectToFormData(payload) }
+        let filter = {
+          ...this.filter,
+          persist: false
         }
-        this.searchItems(payload)
+        this.searchItems(filter)
           .then(res => {
-            if (res instanceof Array) {
-              this.filteredItems.data = res;
-            } else if (res instanceof Object) {
-              this.filteredItems.data = res.message;
-            } else {
-              this.filteredItems.data = [];
-            }
+            console.log(res)
+            this.filteredItems = res
             this.loading = false;
-            this.isSearching = false;
+            // this.isSearching = false;
           })
           .catch(() => {
-            this.isSearching = false;
+            // this.isSearching = false;
             this.loading = false;
           });
       } else {
@@ -86,15 +94,20 @@ export default {
       const containerElement = containerElem || document.querySelector('.el-table__body-wrapper')
       containerElement.addEventListener('scroll', (e) => {
         const atBottom = e.target.clientHeight === e.target.scrollHeight - e.target.scrollTop
-        console.log(atBottom)
+        // console.log(atBottom)
         if (atBottom && !this.loading) {
-          console.log('in here');
-          if (!this.displaySearchFilters && this.items.nextPage) {
-            this.loadMore()
+          // console.log('in here');
+
+          if ((this.displaySearchFilters || this.searchQuery)) {
+            if ((this.filteredItems.lastPage - +this.filteredItems.page) > 0) {
+              this.loadMore()
+            }
+            return
           }
-          if (this.displaySearchFilters && this.filteredItems.meta.nextPage) {
-            console.log('herw 2')
+
+          if (!this.displaySearchFilters && !!(this.items.lastPage - +this.items.page)) {
             this.loadMore()
+            return
           }
         }
       })
@@ -103,16 +116,23 @@ export default {
     loadMore () {
       let filter = this.filter
       this.loading = true
-      if (this.displaySearchFilters) {
-        this.filterParams.page = this.filterParams.page + 1
-        filter = { ...this.filter, ...this.filterParams, persist: false }
+      if (this.displaySearchFilters || this.isSearching) {
+        this.filteredItems.page = +this.filteredItems.page + 1
+        filter = { 
+          ...this.filter, 
+          page: this.filteredItems.page,
+          persist: false 
+        }
       } else {
-        filter = { ...filter, persist: true }
+        filter = { 
+          ...filter, 
+          persist: true,
+          page: +this.items.page + 1
+        }
       }
-      this.loadItems(ObjectToFormData(filter))
+      this.loadItems(filter)
         .then((res) => {
           this.loading = false
-          this.setLoadedItems(res)
           this.appendSearchResults(res)
         })
         .catch(() => {
@@ -120,29 +140,34 @@ export default {
         })
     },
 
-    searchMore () {
-      this.loading = true
-      this.loadItems({
-        filter: ObjectToFormData({
-          ...this.filterParams
-        }),
-        persist: false
-      })
-        .then((res) => {
-          this.loading = false
-          this.appendSearchResults(res)
-        })
-        .catch(() => {
-          this.loading = false
-        })
-    },
+    // searchMore () {
+    //   this.loading = true
+    //   this.loadItems({
+    //     filter: ObjectToFormData({
+    //       ...this.filterParams
+    //     }),
+    //     persist: false
+    //   })
+    //     .then((res) => {
+    //       this.loading = false
+    //       this.appendSearchResults(res)
+    //     })
+    //     .catch(() => {
+    //       this.loading = false
+    //     })
+    // },
 
     appendLoadedFilteredResults (res) {
       this.appendSearchResults(res)
     },
 
     appendSearchResults (res) {
-      this.filteredItems.data = _.uniqBy(this.filteredItems.data.concat(res.message),'id')
+      // console.log(res)
+      if (this.displaySearchFilters || this.isSearching) {
+        this.filteredItems.data = _.uniqBy(this.filteredItems.data.concat(res.data),'id')
+      } else {
+        this.setLoadedItems(res)
+      }
     },
 
     filterItems () {
@@ -150,7 +175,7 @@ export default {
       this.filterParams.page = 1
       this.filteredItems.meta.nextPage = true
       this.filteredItems.data = []
-      this.searchMore()
+      // this.searchMore()
     },
 
     pipeThroughfilter (key) {
@@ -176,17 +201,22 @@ export default {
   },
 
   computed: {
+    ...mapState('settings', ['settings']),
+
     filteredItemsData () {
-      if (this.displaySearchFilters) {
+      if (this.displaySearchFilters || this.isSearching) {
         return this.filteredItems.data
       }
-      if (this.searchQuery) {
-        return this.filteredItems.data
-      }
+      // if (this.searchQuery) {
+      //   return this.filteredItems.data
+      // }
+      // console.log('guce me stuff')
       return this.items.data || []
     },
+
     showLoading () {
       return this.filteredItemsData.length >= this.filter.limit
     }
+
   }
 }

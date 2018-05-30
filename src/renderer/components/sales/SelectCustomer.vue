@@ -18,40 +18,37 @@
       name="selectCustomerPopover"
     )
      .columns.is-multiline
-      .column.is-12.mt-30
+      .column.is-12.mt-25
         .field.is-horizontal
-          .field-label.has-text-right.is-v-centered
-            label.label Select customer:
           .field-body
             .field 
-              el-select(
-                v-model="cart.customer"
+              el-select.has-width-100(
                 :filterable="true"
                 :clearable="true"
                 :remote="true"
                 placeholder="Enter customer name"
-                @change="updateTransaction"
+                @change="applyCustomerToCart"
                 :remote-method="getCustomerSuggestions"
                 :loading="loading"
               )
                 el-option(
                   v-for="(item, index) in suggestions"
                   :key="index"
-                  :label="fullname(item)"
-                  :value="item.id"
+                  :label="item.full_name"
+                  :value="item"
                 )         
 </template>
 
 <script>
 
-import { mapActions } from 'vuex'
 import CustomerForm from '@/components/customers/CustomerForm'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
-import { ObjectToFormData } from '@/utils/helper'
-import _ from 'lodash'
+import { mapState, mapActions } from 'vuex'
 
 export default {
-  props: ['cart', 'processing'],
+
+  props: ['processing'],
+
   data () {
     return {
       loading: false,
@@ -59,24 +56,25 @@ export default {
       fullScreenActive: false
     }
   },
+
   components: {
+
     CustomerForm,
+
     FullscreenDialog
+
   },
+
   computed: {
+
+    ...mapState('sales', ['cart']),
+
     selectCustomerVisible () {
       // return this.$refs.selectCustomerPopover.visible;
       return true
     }
   },
-  watch: {
-    cart (newValue) {
-      if (newValue.customer) {
-        // this.suggestions = Array(newValue.customerDetails);
-        this.suggestions.push(newValue.customerDetails)
-      }
-    }
-  },
+
   mounted () {
     document.addEventListener('click', (e) => {
       if (e.target) {
@@ -87,57 +85,52 @@ export default {
       }
     })
   },
+
   methods: {
-    ...mapActions('customers', ['loadCustomers', 'getLoyaltyDiscount']),
+
+    ...mapActions('customers', ['loadCustomers']),
+
+    ...mapActions('sales', [
+      'removeFromCart',
+      'completeTransaction',
+      'setCart'
+    ]),
+
     closeNewCustomerForm () {
       this.fullScreenActive = false
     },
-    fullname (c) {
-      return `${c.firstname} ${c.surname}`
-    },
+
     closeDialog () {
       this.fullScreenActive = false
     },
+
     showPopover () {
       const popover = this.$refs.selectCustomerPopover
       popover.visible = !popover.visible
       // this.suggestions = [];
     },
-    updateTransaction () {
-      if (this.cart.customer) {
-        this.getLoyaltyDiscount(ObjectToFormData({
-          getloyaltydiscount: 'getloyaltydiscount',
-          customerid: this.cart.customer
-        })).then((res) => {
-          this.updateCustomerDetails(res)
-        })
-      } else {
-        this.updateCustomerDetails({message: null})
-      }
+
+    applyCustomerToCart (customer) {
+      this.setCart({
+        ...this.cart,
+        customer: customer,
+        customer_id: customer.id
+      })
+      this.$snackbar.open('Successfully added customer to cart')
     },
-    updateCustomerDetails (res) {
-      const customerDetails = this.suggestions.find(
-        s => s.id === this.cart.customer
-      )
-      this.$emit(
-        'update:cart',
-        {
-          ...this.cart,
-          ...{ customerDetails, loyalty: res.message }
-        }
-      )
-    },
+
     getCustomerSuggestions (query) {
       if (query !== '') {
         this.loading = true
         let payload = {
-          search: query,
-          type: 'customer'
+          full_name: query,
+          persist: false
         }
         this.loadCustomers(payload)
-          .then(suggestions => {
+          .then(({ data }) => {
+            console.log(data)
             this.loading = false
-            this.suggestions = _.flatMap(suggestions)
+            this.suggestions = data
           })
           .catch(() => {
             this.loading = false
@@ -146,18 +139,18 @@ export default {
         this.suggestions = []
       }
     }
+
   }
 }
 </script>
 
 <style lang="sass">
-.selectCustomerPopover
-  width: 400px !important
-  right: 10px !important
-  left: auto !important
-  top: 160px !important
-  height: 200px !important
-.selectCustomer
-  .el-select
-    width: 90% !important  
+  .selectCustomerPopover
+    padding-left: 15px
+    padding-right: 15px 
+    width: 400px !important
+    right: 2px !important
+    left: auto !important
+    top: 60px !important
+    height: 100px !important  
 </style>

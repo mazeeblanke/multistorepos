@@ -84,8 +84,14 @@
               :class="{'active': cart.payment_type === 'card'}"
               :icon="cart.payment_type === 'card' ? 'el-icon-success' : ''"
             ) Card
+          // button.button.is-dark(
+          //   :disabled="validation.$invalid || processing || paymentConditions"
+          //   :class="{'is-loading': processing}",
+          //   @click="proceedTransaction",
+          //   title="Process the transaction and print sales reciept",
+          // ) Save & Print
           button.button.is-dark(
-            :disabled="validation.$invalid || processing || paymentConditions"
+            :disabled="processing || paymentConditions"
             :class="{'is-loading': processing}",
             @click="proceedTransaction",
             title="Process the transaction and print sales reciept",
@@ -114,7 +120,7 @@
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions, mapGetters, mapMutations } from 'vuex';
+import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import SalesStats from '@/components/sales/SalesStats'
 
 export default {
@@ -122,9 +128,9 @@ export default {
     items: {
       type: Array,
     },
-    validation: {
-      type: Object,
-    },
+    // validation: {
+    //   type: Object,
+    // },
     proceedTransaction: {
       type: Function,
     },
@@ -147,7 +153,7 @@ export default {
     return {
       refunding: false,
       amountPaid: 0,
-    };
+    }
   },
 
 
@@ -159,14 +165,14 @@ export default {
     ]),
 
     discountLabel(d) {
-      return  `${d}% discount`;
+      return  `${d}% discount`
     },
 
 
     refreshCart() {
       this.warnUser().then((res) => {
         if (res.value) {
-          this.cancelSale();
+          this.cancelSale()
         }
       })
     },
@@ -186,16 +192,16 @@ export default {
         showCancelButton: true,
         confirmButtonText: 'Yes',
         cancelButtonText: 'No',
-      });
+      })
     },
 
 
     refund() {
-      // const MESSAGE = "Do you want to return items and refund ?";
+      // const MESSAGE = "Do you want to return items and refund ?"
       // this.warnUser(MESSAGE)
       // .then((res) => {
       //   if (res.value) {
-      //     this.refunding = true;
+      //     this.refunding = true
       //     this.refundSale(
       //       ObjectToFormData({
       //         refundsales: 'refundsales',
@@ -203,19 +209,19 @@ export default {
       //       }),
       //     ).then(res => {
       //       if (res.status === 'Success') {
-      //         this.$snackbar.open(`Success !! - ${res.message}`);
-      //         this.cancelSale();
+      //         this.$snackbar.open(`Success !! - ${res.message}`)
+      //         this.cancelSale()
       //       } else if (res.status === 'Failure') {
       //         this.$snackbar.open({
       //           message: `Failure!! - ${res.message}`,
       //           type: 'is-danger',
-      //         });
+      //         })
       //       }
-      //       this.refunding = false;
+      //       this.refunding = false
       //     })
       //     .catch(() => {
-      //       this.refunding = false;
-      //     });
+      //       this.refunding = false
+      //     })
       //   }
       // })
     },
@@ -240,46 +246,50 @@ export default {
     ...mapState('sales', ['cart']),
 
     paymentConditions() {
+
       if (!this.items.length) {
-        return true;
+        return true
       }
+
       if (this.hasPaid) {
-        return true;
+        return true
       }
+
       if (!this.hasPaid && (this.change === 0) && this.cart.total > 0) {
-        return false;
+        return false
       }
+
     },
 
 
   },
-};
+}
 </script>
 
 <style lang="sass">
 .payment-bar
   // height: 150px
-  box-shadow: inset 0px 1px 3px 0px #eaeaea;
-  // bottom: 3px;
-  // position: absolute;
-  // width: 100%;
-  border-top: 1px solid #e2e2e2;
+  box-shadow: inset 0px 1px 3px 0px #eaeaea
+  // bottom: 3px
+  // position: absolute
+  // width: 100%
+  border-top: 1px solid #e2e2e2
 .action-bar
   padding: 0px 10px 
-  padding: 0px 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;  
+  padding: 0px 10px
+  display: flex
+  justify-content: space-between
+  align-items: center  
   height: 170px
   // padding: 10px 20px 5px 20px
   span, .button 
    margin: 5px 5px    
   button 
-    background-color: #05296b;
-    color: white;
-    height: 50px;
-    border: none; 
-    width: 150px;
+    background-color: #05296b
+    color: white
+    height: 50px
+    border: none 
+    width: 150px
   .el-button.is-disabled, .el-button.is-disabled:focus, .el-button.is-disabled:hover
     color: #ffffff !important
     background-color: rgba(5, 41, 107, 0.2) !important 
@@ -289,27 +299,27 @@ export default {
   justify-content: flex-end 
   button 
     margin: 0px 5px
-    height: 50px;
-    border: none; 
-    width: 150px;
+    height: 50px
+    border: none 
+    width: 150px
 .el-popover
-  width: 500px;
-  transform-origin: center bottom 0px;
-  z-index: 2050;
-  position: absolute;
-  top: 385px;
-  left: 34px;
-  height: 260px; 
+  width: 500px
+  transform-origin: center bottom 0px
+  z-index: 2050
+  position: absolute
+  top: 385px
+  left: 34px
+  height: 260px 
   .el-select, .input, .el-input-number 
     width: 100%   
 .buttons 
-  // justify-content: center;
-  display: flex;
-  flex-wrap: wrap;
+  // justify-content: center
+  display: flex
+  flex-wrap: wrap
 .el-button
   // span 
-  //   display: flex;
-  //   justify-content: center;
+  //   display: flex
+  //   justify-content: center
   //   align-items: center 
 .el-button:focus, .el-button:hover, .el-button.active
   background-color: #2196F3

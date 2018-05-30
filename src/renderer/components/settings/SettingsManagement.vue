@@ -9,10 +9,9 @@
             header.card-header
               p.card-header-title Settings
               p.level-item.page-title.subtitle.is-5
-                span.tag.is-medium Branch: {{ currentBranch.name }}
+                span.tag.is-medium Branch: {{ settings.branch.name }}
               a.card-header-icon
-                span.icon
-                  i.material-icons keyboard_arrow_down
+                span.el-icon-more-outline.font-size-23
             router-view
 </template>
 
@@ -36,8 +35,8 @@ export default {
     }
   },
   computed: {
-    ...mapState('branch', [
-      'currentBranch'
+    ...mapState('settings', [
+      'settings'
     ])
   },
   beforeRouteEnter (to, from, next) {

@@ -188,7 +188,7 @@ if (process.env.NODE_ENV !== 'production') {
       chunks: ['vendor']
     }),
 
-    new BundleAnalyzerPlugin()
+    // new BundleAnalyzerPlugin()
   )
 }
 

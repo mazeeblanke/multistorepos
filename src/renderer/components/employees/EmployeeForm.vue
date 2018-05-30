@@ -5,9 +5,6 @@
         .level-left
           .level-item
             .page-title.subtitle.is-5 {{ _employee? 'Edit employee' : 'New Employee' }}
-          .level-item
-            //- span.tag.is-warning.is-medium Sale ID: {{ salesid }}
-            //- employees::addemployee2($_POST['address1'], $_POST['address2']);
         .level-right
           .level-item
             button.button.is-primary(
@@ -18,14 +15,9 @@
               b-icon(icon="save")
               span {{ _employee? 'Save employee edits' : 'Add Employee' }}
           .level-item
-            //- button.button.is-primary(
-            //-   @click="fullScreenActive = !fullScreenActive"
-            //- ) Select employee
-          .level-item
-            a.button(@click="closeForm()")
+            a.button.no-border(@click="$emit('close-form')")
               span.icon
                 i.material-icons close
-              span Close
       .columns.is-desktop.EmployeeFormMain
         .column.is-6
           .field.is-horizontal
@@ -34,11 +26,12 @@
             .field-body
               .field
                 el-input(
+                  clearable,
                   size="small",
-                  v-model="employee.fullname",
+                  v-model="employee.full_name",
                   placeholder="Enter employee fullname",
-                  @input="() => $v.employee.fullname.$touch()"
-                  :class="{ 'is-error': $v.employee.fullname.$error }",
+                  @input="() => $v.employee.full_name.$touch()"
+                  :class="{ 'is-error': $v.employee.full_name.$error }",
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -46,10 +39,10 @@
             .field-body
               .field
                 el-input(
+                  clearable,
                   size="small",
                   v-model="employee.username",
                   placeholder="Enter employee's username",
-                  :disabled="!!_employee"
                   @input="() => $v.employee.username.$touch()"
                   :class="{ 'is-error': $v.employee.username.$error }",
                 )
@@ -59,11 +52,25 @@
             .field-body
               .field
                 el-input(
+                  clearable,
                   size="small",
                   v-model="employee.password",
                   placeholder="Enter password",
                   @input="() => $v.employee.password.$touch()"
                   :class="{ 'is-error': $v.employee.password.$error }",
+                )
+          .field.is-horizontal
+            .field-label.has-text-right.is-v-centered
+              label.label Email
+            .field-body
+              .field
+                el-input(
+                  clearable,
+                  size="small",
+                  v-model="employee.email",
+                  placeholder="Enter email",
+                  @input="() => $v.employee.email.$touch()"
+                  :class="{ 'is-error': $v.employee.email.$error }",
                 )
         .column.is-6
           .field.is-horizontal
@@ -73,21 +80,37 @@
               .field
                 el-select(
                   size="small",
-                  v-model="employee.access"
+                  v-model="employee.access_level"
                   filterable
                   placeholder="Enter access level"
-                  @input="() => $v.employee.access.$touch()"
-                  :class="{ 'is-error': $v.employee.access.$error }",
+                  @input="() => $v.employee.access_level.$touch()"
+                  :class="{ 'is-error': $v.employee.access_level.$error }",
                 )
                   el-option(label="admin", value="admin")
                   el-option(label="clerk", value="clerk")
-                  el-option(label="super admin", value="super-admin")
+                  el-option(label="super admin", value="superadmin")
+          .field.is-horizontal
+            .field-label.has-text-right.is-v-centered
+              label.label Status
+            .field-body
+              .field
+                el-select(
+                  size="small",
+                  v-model="employee.status"
+                  filterable
+                  placeholder="Enter access level"
+                  @input="() => $v.employee.status.$touch()"
+                  :class="{ 'is-error': $v.employee.status.$error }",
+                )
+                  el-option(label="Inactive", value="inactive")
+                  el-option(label="Active", value="active")
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
               label.label Password Confirmation
             .field-body
               .field
                 el-input(
+                  clearable,
                   size="small",
                   v-model="employee.passwordConfirmation",
                   placeholder="Enter password",
@@ -103,6 +126,7 @@
                   size="small",
                   v-model="employee.branch",
                   filterable,
+                  clearable,
                   placeholder="select branch",
                   remote,
                   :remote-method="_loadBranches",
@@ -110,7 +134,7 @@
                   no-data-text="No results!",
                   value-key="id",
                   @change="notifyFilterChange()"
-                  :disabled="!$can('super-admin')",
+                  :disabled="!$can('superadmin')",
                   @input="() => $v.employee.branch.$touch()"
                   :class="{ 'is-error': $v.employee.branch.$error }",
                 )
@@ -126,36 +150,47 @@
 /* eslint-disable */
 import { mapState, mapActions, mapMutations } from 'vuex';
 import { validationMixin } from 'vuelidate';
-import { required, sameAs } from 'vuelidate/lib/validators';
+import { required, sameAs, email, minLength } from 'vuelidate/lib/validators';
 import { ObjectToFormData } from '@/utils/helper';
 import EmptyState from '@/components/EmptyState';
 import FullscreenDialog from '@/components/shared/FullscreenDialog';
 
 
 export default {
+
   props: {
+
     _employee: {
       type: Object,
     },
+
     sellItems: {
       type: Function,
     },
+
     processingTransaction: {
-      require: false,
+      required: false,
+    },
+
+    closeForm: {
+      required: false
     }
   },
+
   mixins: [validationMixin],
+
   data() {
     return {
       employee: {
-        fullname: null,
+        full_name: null,
         username: null,
         password: null,
         passwordConfirmation: null,
-        access: null,
-        userreg: 'userreg',
-        branchid: null,
+        access_level: null,
+        branch_id: null,
         branch: null,
+        status: null,
+        email: null
       },
       // employeeId: null,
       suggestions: [],
@@ -167,78 +202,86 @@ export default {
       fullScreenActive: false,
     };
   },
-  validations: {
-    employee: {
-      fullname: { required },
-      username: { required },
-      password: { required },
-      passwordConfirmation: { 
-        required,
-        sameAsPassword: sameAs('password')
-      },
-      access: { required },
-      branch: { required },
-    },
-  },
-  mounted() {
 
-    // if (this._employee) {
-    //   this.employee = {
-    //     ...this._employee,
-    //     branch: this._employee.branch_details,
-    //     fullname: this._employee.name,
-    //     passwordConfirmation: this._employee.password,
-    //   };
-    // }
-    // console.log(this.employee);
-    // this.branchSuggestions = [this.employee.branch];
-    // console.log(this.branchSuggestions)
-    // this.employee = {
-    //   ...this.employee,
-    //   branch: this.currentBranch,
-    // }
+  validations: function() {
+    const employee = {
+      full_name: { required },
+      username: { required },
+      access_level: { required },
+      branch: { required },
+      email: { required, email },
+      status: { required }
+    }
+    if (this._employee) {
+      return { employee: {
+        ...employee,
+        password: { minLength: minLength(8) },
+        passwordConfirmation: { sameAsPassword: sameAs('password') },
+      }}
+    } else {
+      return { employee: {
+        ...employee,
+        password: { required },
+        passwordConfirmation: { 
+          required,
+          sameAsPassword: sameAs('password')
+        },
+      }}
+    }
   },
+
+  mounted () {
+    this.branchSuggestions = [this.settings.branch]
+    this.employee = {
+      ...this.employee,
+      ...this._employee,
+      branch: this.settings.branch,
+    }
+  },
+  
   watch: {
-    _employee() {
-      this.employee = {
-        ...this._employee,
-        branch: this._employee.branch_details,
-        fullname: this._employee.name,
-        passwordConfirmation: this._employee.password,
-      };
-      this.branchSuggestions = [this.employee.branch];
+    _employee () {
+      this.employee = { ...this._employee }
+      this.branchSuggestions = [this.employee.branch]
     },
   },
+
   computed: {
     ...mapState('users', ['currentUser']),
+    ...mapState('settings', ['settings']),
     ...mapState('branch', [
       'selectedBranch',
       'currentBranch',
     ]),
   },
+
   methods: {
-    ...mapActions('employees', ['loadEmployees', 'getLoyaltyDiscount']),
+
+    ...mapActions('employees', ['loadEmployees']),
+
     ...mapMutations('employees', ['ADD_EMPLOYEE']),
+
     ...mapActions('branch', [
       'loadBranches',
       'searchBranches',
     ]),
+
     _loadBranches(query) {
-      if (query !== '') {
+      if (query) {
         this.loadingBranches = true;
-        this.searchBranches({
-          search: query,
-          type: 'branch',
-        })
-        .then((res) => {
-          this.branchSuggestions = res;
+        this.loadBranches({
+          name: query,
+          store_id: this.settings.store_id
+        }).then((res) => {
+          console.log(res)
+          this.branchSuggestions = res.branches.data;
           this.loadingBranches = false;
-        })
-        .catch(() => {
+        }).catch(() => {
           this.loadingBranches = false;
         });
       }
     },
+
     warnUser() {
       return this.$swal({
         title: 'Are you sure?',
@@ -249,6 +292,7 @@ export default {
         cancelButtonText: 'No',
       });
     },
+
     handleClick() {
       this.warnUser().then((res) => {
         if (res.value) {
@@ -256,6 +300,7 @@ export default {
         }
       })
     },
+
     getEmployeeSuggestions(query) {
       if (query !== '') {
         this.loading = true;
@@ -275,86 +320,109 @@ export default {
         this.suggestions = [];
       }
     },
+
     closeDialog() {
       this.fullScreenActive = false;
     },
+
     updateEmployeeDetails() {
       this.employee = this.suggestions.find(
         s => s.id === this.employeeId,
       );
     },
+
     addNewItem() {},
+
     handleChange() {},
-    ...mapActions('employees', ['createEmployee', 'updateEmployee', 'clearSelectedEmployee']),
-    closeForm() {
-      this.$emit('close-form');
-    },
+
+    ...mapActions('employees', ['createEmployee', 'updateEmployee']),
+
+    // closeForm() {
+    //   this.$emit('close-form');
+    // },
+
     resetEmployee() {
       this.employee = {
-        ...this.employee,
-        fullname: null,
+        full_name: null,
         username: null,
         password: null,
         passwordConfirmation: null,
-        access: null,
-        userreg: 'userreg',
+        access_level: null,
+        email: null
         // branchid: null,
       };
     },
-    submit() {
+
+    validateForm() {
       this.$v.employee.$touch()
-      if (this.$v.employee.passwordConfirmation.$error) {
+      if (this.$v.$invalid) {
         this.$snackbar.open({
           type: 'is-danger',
-          message: 'Passwords must match!!'
+          message: 'Validation errors exist!!'
         });
       }
+    },
+
+    processEmployeeData () {
+
+      const { 
+        full_name, 
+        username, 
+        password, 
+        passwordConfirmation, 
+        access_level,
+        email,
+        status,
+        branch
+      } = this.employee
+
+      return {
+        full_name,
+        username,
+        email,
+        status,
+        password,
+        passwordConfirmation,
+        branch_id: branch.id,
+        access_level,
+        id: this._employee && this._employee.id
+      }
+    },
+
+    submit() {
+      this.validateForm()
+
       if (!this.$v.$invalid) {
         this.processing = true;
         const doAction = this._employee
           ? this.updateEmployee
-          : this.createEmployee;
-        this.employee = {
-          ...this.employee,
-          ...{
-            [this._employee ? 'updateuser' : 'userreg']: 'value',
-            access2: this._employee ? this.employee.access : null,
-            name: this._employee ? this.employee.fullname : null,
-            user: this._employee ? this.employee.username : null,
-            branchid: this.employee.branch.id || this.currentBranch.id,
-          },
-        };
-        doAction(ObjectToFormData(this.employee)).then(res => {
-          if (res.status === 'Success') {
-            this.$snackbar.open(res.status + ' !' + res.message);
-            // this.$emit('action-complete');
-            if (!this._employee) {
-              // this.$emit('action-complete', { ...res.employee_details[0] });
-              if (this.currentBranch.id === this.employee.branch.id ) {
-                this.ADD_EMPLOYEE(res.user_details[0]);
-              }
-              this.resetEmployee();
-              this.$v.employee.$reset()
-            } else {
-              this.$emit('updated-employee', { 
-                ...res.user_details[0],
-                branch_details: this.employee.branch,
-                branch: this.employee.branch,
-              });
-            }
-          } else {
-            this.$snackbar.open(res.status);
-          }
+          : this.createEmployee
+        const PAYLOAD = this.processEmployeeData()
+        doAction(PAYLOAD).then(res => {
+          this.$snackbar.open(res.message)
+          if (!this._employee) {
+            this.resetEmployee()
+            this.closeForm()
+            this.$v.employee.$reset()
+          } 
+          // else {
+          //   this.$emit('updated-employee', { 
+          //     ...res.user_details[0],
+          //     branch_details: this.employee.branch,
+          //     branch: this.employee.branch,
+          //   });
+          // }
           this.processing = false;
         }).catch((err) => {
           console.log(err.data);
           this.processing = false;
           this.$snackbar.open({
             type: 'is-danger',
-            message: `Internal server error ${err}`,
-          });
-        });
+            message: `Error occurred ${err}`
+          })
+        })
       }
+
     },
   },
   components: {
@@ -372,47 +440,6 @@ export default {
   .EmployeeFormMain
     padding: 2rem
 
-  .MaterialsForm
-    border-top: 1px solid #EAEAEA
-
-  .multiselect
-    font-size: 1rem
-    min-height: 2.25em
-
-  .multiselect__tags
-    display: flex
-    align-items: center
-    min-height: 2.25em
-    padding-left: calc(0.375em - 1px)
-    padding-right: calc(0.375em - 1px)
-    padding-top: calc(0.375em - 1px)
-    border-color: #dbdbdb
-
-  .multiselect__input
-    font-size: 1rem
-    width: auto
-    margin-bottom: calc(0.375em - 1px)
-
-  .multiselect__tags
-    border-bottom-left-radius: 3px !important
-    border-bottom-right-radius: 3px !important
-
-  .custom__tag
-    display: inline-block
-    padding: 0px 7px
-    background: #EFEFEF
-    margin-right: 5px
-    border-radius: 3px
-    cursor: pointer
-    margin-bottom: calc(0.375em - 1px)
-
-  .custom__remove
-    padding: 0
-    font-size: 10px
-    margin-left: 8px
-
-  .vendors-select
-    width: 400px
   .EmployeeForm
     height: 80%;
     .is-v-centered

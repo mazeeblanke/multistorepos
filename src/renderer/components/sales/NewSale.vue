@@ -4,17 +4,21 @@ section.section(:style="{ width: '100%' }")
       .column
         .BaseAppCard.card
           .Sales
-            FullscreenDialog(@closed="closeDialog", :active.sync="fullScreenActive")
+            FullscreenDialog(
+              @closed="closeDialog", 
+              :active.sync="fullScreenActive"
+            )
               CustomerForm.page-forms(
                 ref="customer-form",
                 @close-form="closeDialog",
                 @action-complete="useCreatedCustomer"
-                v-show="addingCustomer",
-                :sell-items="sellItems"
-                :processing-transaction="processing",
-                :has-paid="hasPaid",
+                v-show="addingCustomer"
               )
-            FullscreenDialog(@closed="closeReceiptDialog", :scrollable="true", :active.sync="printReceipt")
+            FullscreenDialog(
+              @closed="closeReceiptDialog", 
+              :scrollable="true", 
+              :active.sync="printReceipt"
+            )
               span.material-icons.print.action(slot="action" @click="print") print
               component.receipt(
                 ref="receipt"
@@ -28,29 +32,37 @@ section.section(:style="{ width: '100%' }")
             .level.toolbar
               .level-left
                 .level-item.page-title.subtitle.is-5
-                  span.tag.is-medium.is-info(title="Making sales for this branch") Branch: {{ currentBranch.name }}
-                .level-item.page-title.subtitle.is-5
-                  span Listing items({{ getCartItemsNumber }})
+                  span.el-icon-news.mr-5.font-size-23
+                  span.mr-10 Listing Items({{ getCartItemsNumber }})
                   template(v-if="cart.customer")
-                    span(:style="{ margin: '0px 5px'}") for
-                    span.tag.is-dark {{ customerFullname }}
+                    span.tag.is-dark.is-medium 
+                      span.material-icons accessibility
+                      span {{ customerFullname }}
               .level-right
                 .level-item(v-if="hasPaid")
                   a.button.is-primary(@click="newSale")
                     span New sale
                 template(v-if="!hasPaid")
                   .level-item
-                    a.button.is-primary(@click="addProducts", :disabled="formPanelOpen || processing", title="Add selected item/product to cart")
+                    a.button.is-primary(
+                      @click="addProducts", 
+                      :disabled="formPanelOpen || processing", 
+                      title="Add selected item/product to cart"
+                    )
                       span.icon
                         i.material-icons add
                       span Add Items/Products
                   .level-item
-                    a.button.is-primary(@click="addCustomer", :disabled="processing", title="Select the customer")
+                    a.button.is-primary(
+                      @click="addCustomer",
+                      :disabled="processing", 
+                      title="Create and add the customer"
+                    )
                       span.icon
                         i.material-icons add
                       span Add Customer
                   .level-item
-                    SelectCustomer(:cart.sync="cart", :processing="processing")
+                    SelectCustomer(:processing="processing")
             .form-panel(:class="{ 'is-active': formPanelOpen }")
               SalesForm.sales-form.page-forms(
                 ref="new-product-form",
@@ -101,13 +113,16 @@ section.section(:style="{ width: '100%' }")
                   )
               el-table-column(label="Actions", :render-header="renderDelete", width="70")
                 template(slot-scope="props", v-if="props.row")
-                  button.button(:class="$style.trash", :disabled="hasPaid || processing" @click="removeItemFromCart(props.row)")
-                    i.material-icons delete
+                  button.button(
+                    :class="$style.trash", 
+                    :disabled="hasPaid || processing", 
+                    @click="removeItemFromCart(props.row)"
+                  )
+                    span.el-icon-delete.font-size-23
             PaymentBar(
               :proceed-transaction="proceedTransaction",
               :has-paid="hasPaid",
               :processing="processing",
-              :validation="$v",
               :calculate-total="subTotal",
               :remove-payment="removePayment",
               :cancel-sale="newSale",
@@ -149,15 +164,7 @@ export default {
     };
   },
 
-  validations: {
-  },
-
-
   watch: {
-    // selectedReciept() {
-    //   // console.log(this.selectedReciept)
-    //   // this.$refs.receipt.generateReceiptPdf();
-    // },
 
     subTotal (newValue) {
       const branch = this.settings.branch
@@ -180,9 +187,7 @@ export default {
 
   },
 
-
   methods: {
-
 
     ...{ multiplyCash },
 
@@ -192,20 +197,17 @@ export default {
       'setCart'
     ]),
 
-
     ...mapMutations('sales', [
       'SET_SALES_ID',
       'REMOVE_CART_ITEM',
       'RESET_CART'
     ]),
 
-
     print() {
       if (this.settings && this.settings.branch.printout === 'receipt') {
         this.$electron.ipcRenderer.send('print')
       }
     },
-
 
     useCreatedCustomer(data) {
       this.setCart({
@@ -216,12 +218,10 @@ export default {
       this.closeDialog();
     },
 
-
     addCustomer() {
       this.fullScreenActive = true;
       this.addingCustomer = true;
     },
-
 
     proceedTransaction() {
       if (this.hasPaid) {
@@ -244,29 +244,29 @@ export default {
       }
     },
 
-
     closeDialog() {
       this.fullScreenActive = false;
       this.addingCustomer = false;
       this.showingReciept = false;
     },
 
-
     closeReceiptDialog() {
       this.printReceipt = false;
     },
-
 
     newSale() {
       this.RESET_CART();
       this.hasPaid = false;
     },
 
-
     sellItems() {
       // if (!this.$v.$invalid) {
         this.processing = true;
-        this.completeTransaction(this.cart)
+        this.completeTransaction({
+          ...this.cart,
+          branch_id: this.settings.branch.id,
+          store_id: this.settings.store.id
+        })
         .then(res => {
           this.handleSale(res);
         })
@@ -280,7 +280,6 @@ export default {
         })
       // }
     },
-
 
     handleSale(res) {
       this.$snackbar.open('Transaction complete !!');
@@ -296,7 +295,6 @@ export default {
       this.processing = false
     },
 
-
     removePayment() {
       this.setCart({
         ...this.cart,
@@ -304,7 +302,6 @@ export default {
         amountPaid: 0
       })
     },
-
 
     warnUser(warning) {
       return this.$swal({
@@ -317,7 +314,6 @@ export default {
       });
     },
 
-
     removeItemFromCart(item) {
       this.warnUser().then((res) => {
         if (res.value) {
@@ -327,9 +323,7 @@ export default {
       });
     },
 
-
     deleteItems() {},
-
 
     addProducts() {
       this.formPanelOpen = true;
@@ -340,12 +334,10 @@ export default {
       });
     },
 
-
     closeNewSalesForm() {
       this.formPanelOpen = false;
       this.$emit('formPanelClose');
     },
-
 
     updateSubtotal (item, newQty) {
       let products = this.cart.products.slice()
@@ -363,18 +355,13 @@ export default {
     }
   },
 
-
   computed: {
-
 
     ...mapState('sales', ['salesid', 'cart']),
 
-
     ...mapState('settings', ['settings']),
 
-
     ...mapState('users', ['currentUser']),
-
 
     ...mapState('branch', [
       'currentBranch',
@@ -390,47 +377,37 @@ export default {
       return `Unit Price (${this.currencySymbol})`
     },
 
-
     totalLabel() {
       return `Total (${this.currencySymbol})`
     },
-
 
     filteredCartItems() {
       return this.cart.products.filter(i => i);
     },
 
-
     customerFullname() {
-      const { first_name, last_name } = this.cart.customer || {};
-      return `${ucFirst(first_name)} ${ucFirst(last_name)}`
+      return this.cart.customer && this.cart.customer.full_name
     },
-
 
     subTotal () {
       const subTotals = _.map(this.filteredCartItems, 'subTotal')
       return sumCash(subTotals)
     },
 
-
     tax() {
       const taxes = this.settings && _.map(this.settings.store.tax, 'value')
       return sumCash(taxes) || 0
     },
 
-
     shouldProceedWithTransaction() {
       return this.cart.cashChange >= 0;
     },
-
 
     getCartItemsNumber() {
       return this.filteredCartItems.length
     },
 
-
   },
-
 
   components: {
 
@@ -449,7 +426,6 @@ export default {
     Invoice: () => import('@/components/shared/Invoice')
 
   },
-
 
 };
 </script>
@@ -482,13 +458,6 @@ i.material-icons.updateCartBtn
 
 
 <style lang="sass">
-// .action
-//   position: fixed
-//   right: 55px
-//   top: 20px
-//   font-size: 30px
-//   color: white
-//   cursor: pointer
 .Sales  
   .sales-table
     .el-input-number, .el-input.qty

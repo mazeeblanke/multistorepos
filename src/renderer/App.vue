@@ -114,6 +114,8 @@ export default {
     font-size: 17px !important
   .font-size-18
     font-size: 18px !important
+  .font-size-23
+    font-size: 23px !important
   .mt-25
     margin-top: 25px !important
   .mt-10
@@ -158,10 +160,12 @@ export default {
     margin-left: 15px
   .ml-10
     margin-left: 10px
+  .ml-64
+    margin-left: 64px
   .bw-2
     border-right-width: 2px !important
   .is-15
-    font-size: 15px
+    font-size: 15px !important
   .mrl-60
     margin: 0px 60px
   .ml-25
@@ -189,7 +193,7 @@ export default {
   .has-truncated-text
     text-overflow: ellipsis !important
     white-space: nowrap !important
-    width: 80% !important
+    width: 80% !important 
   .borderless
     width: 100%
     position: absolute
@@ -219,6 +223,8 @@ export default {
     padding: 0px
   .is-flex-start
     justify-content: flex-start
+  .is-v-flex-start 
+    align-items: flex-start !important
   .h100
     height: 100%
 
@@ -493,7 +499,7 @@ export default {
 
   .search
     .el-input
-      width: 500px
+      width: 430px
       input
        text-align: center
 
@@ -578,12 +584,24 @@ export default {
   .is-error, .is-error .el-input__inner::-webkit-input-placeholder
     color: #f56c6c !important  
 
+  .el-input-number .el-input__inner
+    text-align: start !important
+
+  .el-switch__label.is-active
+    color: #000000 !important
+
   .appView
-    height: 500px;
+    height: 560px;
     overflow-y: scroll;
     width: 100%;
-    margin-bottom: 20px !important
+    margin-bottom: 25px !important
     overflow-x: hidden !important
+
+  // .error.is-danger 
+  //   color: #ff3860
+  //   background-color: #f5f7fa
+  //   padding: 3px
+  //   font-size: 12px 
   
 </style>
 

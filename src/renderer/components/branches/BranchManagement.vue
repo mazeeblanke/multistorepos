@@ -11,16 +11,14 @@
               p.level-item.page-title.subtitle.is-5
                 span.tag.is-medium Branch: {{ currentBranch.name }}
               a.card-header-icon
-                //- div
-                //-   el-input(placeholder="Search..." class="input-with-select")
-                //-     el-button(slot="append" icon="el-icon-search")
-              //- a.card-header-icon
-              //-   span.icon
-              //-     i.material-icons keyboard_arrow_down
+                span.el-icon-more-outline.font-size-23
             .tabs
               ul
-                //- template(v-if="$route.path === '/app/purchasing/requisitions' || $route.path === '/app/purchasing/purchaseorders'")
-                router-link(tag="li", :to="{name: 'purchase_orders_list'}", active-class="is-active")
+                router-link(
+                  tag="li", 
+                  :to="{name: 'branches_list'}", 
+                  active-class="is-active"
+                )
                   a Branches
             .tab-content
               router-view(@formPanelClose='resetScroll')

@@ -51,8 +51,31 @@ export default {
 
     loadProducts ({ commit }, payload) {
       return Vue.axios.get('products', { params: payload }).then((res) => {
-        console.log(res)
-        return res.data.products
+        let products = res.data.products
+        let data = products.data.map((p) => {
+          let branch = {}
+          if (p.branches && p.branches.length) {
+            branch = {
+              ...p.branches[0],
+              ...p.branches[0].pivot
+            }
+            delete branch.pivot
+            delete p.branches
+          }
+
+          return {
+            ...p,
+            branch
+          }
+        })
+
+        products = { ...products, data }
+
+        if (payload.persist) {
+          commit('SET_PRODUCTS', products)
+        }
+
+        return products
       })
     },
 
@@ -68,9 +91,9 @@ export default {
       })
     },
 
-    loadProduct ({ commit }, payload) {
-      return products(payload).then(res => {
-        commit('SET_SELECTED_PRODUCT', res.data.message[0])
+    loadProduct ({ commit }, { id }) {
+      return Vue.axios.get(`product/${id}`).then(res => {
+        commit('SET_SELECTED_PRODUCT', res.data.product)
       })
     },
 
@@ -108,7 +131,15 @@ export default {
     },
 
     createProduct ({ commit }, payload) {
-      return products(payload.productFormData).then(res => {
+      return Vue.axios.post('products', payload).then(res => {
+        // const _payload = {
+        //   ...res.data.data,
+        //   branch: {
+        //     quantity: res.data.quantity
+        //   }
+        // }
+        // commit('SET_PRODUCTS', { data: _payload })
+        commit('SET_PRODUCTS', res.data)
         return res.data
       })
     },
@@ -172,7 +203,7 @@ export default {
     },
 
     SET_SELECTED_PRODUCT (state, data) {
-      state.selectedProduct = { ...data, sales: [] }
+      state.selectedProduct = { ...data, sales: { data: [] } }
     },
 
     SET_SELECTED_PRODUCT_ENQUIRY (state, data) {
@@ -193,6 +224,10 @@ export default {
 
     SET_PRODUCTS (state, payload) {
       UPDATE_STATE(state, payload, 'products')
+    },
+
+    SET_PRODUCT (state, payload) {
+      state.products.data = state.products.data.concat(payload.data)
     },
 
     SET_PRODUCTS_ENQUIRIES (state, payload) {

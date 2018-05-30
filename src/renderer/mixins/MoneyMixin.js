@@ -5,10 +5,10 @@ const DEFAULT_CURRENCY = '₦'
 
 export default {
   computed: {
-    ...mapState('store', ['store']),
+    ...mapState('settings', ['settings']),
     currencySymbol () {
-      if (this.store && this.store.currency) {
-        return this.store.currency.symbol
+      if (this.settings && this.settings.branch.currency) {
+        return this.settings.branch.currency.symbol
       }
       return DEFAULT_CURRENCY
     }
@@ -18,7 +18,7 @@ export default {
     money (amount) {
       return this.formatMoney(
         amount,
-        (this.store && this.store.currency.symbol) || DEFAULT_CURRENCY)
+        (this.settings && this.settings.branch.currency.symbol) || DEFAULT_CURRENCY)
     }
   }
 }

@@ -12,7 +12,7 @@ export default {
   methods: {
     renderDelete (h) {
       return h(
-        'button',
+        'i',
         {
           attrs: {
             disabled: !this.hasSelectedItems
@@ -21,9 +21,9 @@ export default {
             click: this.deleteItems
           },
           class: 'button',
-          style: 'background: transparent; border: none'
+          style: 'background: transparent; border: none; font-size: 23px; margin-left: -7px'
         },
-        [h('i', { class: 'material-icons' }, 'delete')]
+        [h('i', { class: 'el-icon-delete' })]
       )
     },
     handleSelectionChange (val) {

@@ -1,7 +1,12 @@
 <template lang="pug">
   .MaterialView.shadow-divider
-    FullscreenDialog( v-close="closeDialog", @closed="closeDialog", :active.sync="fullScreenActive")
+    FullscreenDialog(
+      v-close="closeDialog", 
+      @closed="closeDialog", 
+      :active.sync="fullScreenActive"
+    )
       EmployeeForm.page-forms(
+        v-if="fullScreenActive"
         ref="employee-form",
         :class="$style.pageForms",
         @close-form="closeDialog",
@@ -17,21 +22,22 @@
         .level-item(v-if="selectedEmployee")
           .page-title.subtitle.is-6
             span.mr-5 Viewing Employee
-            span.tag.is-medium.is-warning {{ selectedEmployee.name }}
+            span.tag.is-medium.is-warning 
+              | {{ selectedEmployee.full_name }}
       .level-right
         .level-item
           .field.has-addons
             p.control
               JsonExcel(
                 class="btn btn-default",
-                :data="selectedEmployee.sales",
+                :data="selectedEmployeeSales.data",
                 :fields="json_fields",
                 :name="documentName",
                 type="xlsx",
                 v-if="selectedEmployee"
               )
                 button.button.is-primary(
-                  :disabled="!selectedEmployee.sales.length"
+                  :disabled="!selectedEmployeeSales.data.length"
                 ) Download Purchase history
         .level-item
           .field.has-addons
@@ -40,7 +46,11 @@
                 span.icon
                   i.material-icons edit
                 span Edit Information
-    Loading(loading-text="Loading employee information" v-if="isLoading", :style="{ height: '400px' }")
+    Loading(
+      loading-text="Loading employee information", 
+      v-if="isLoading", 
+      :style="{ height: '400px' }"
+    )
     el-tabs(v-model="currentTab", value='summary', type="card", v-if="!isLoading")
       el-tab-pane(name="details", label='Employee Details')
         .columns(:class="$style.columns" v-if="selectedEmployee")
@@ -50,74 +60,96 @@
                 label.label
                   strong  Name:
               .field-label.is-normal
-                label.label.is-pulled-left  {{ selectedEmployee.name }} 
+                label.label.is-pulled-left.is-capitalized  
+                  | {{ selectedEmployee.full_name }} 
             .field.is-horizontal
               .field-label.is-normal
                 label.label
                   strong  Username: 
               .field-label.is-normal
-                label.label.is-pulled-left  {{ parseColData(selectedEmployee.username) }}
+                label.label.is-pulled-left.is-capitalized  
+                  | {{ parseColData(selectedEmployee.username) }}
             .field.is-horizontal
               .field-label.is-normal
                 label.label
                   strong  Registration date: 
               .field-label.is-normal
-                label.label.is-pulled-left {{ parseColData(selectedEmployee.reg_time) }}
+                label.label.is-pulled-left.is-capitalized 
+                  | {{ parseColData(selectedEmployee.created_at) }}
             .field.is-horizontal
               .field-label.is-normal
                 label.label
                   strong Branch name:
               .field-label.is-normal          
-                label.label.is-pulled-left {{ employeeBranch.name }}     
+                label.label.is-pulled-left.is-capitalized 
+                  | {{ employeeBranch.name }}     
           .column.is-6
             .field.is-horizontal
               .field-label.is-normal
                 label.label
                   strong ID:
               .field-label.is-normal
-                label.label.is-pulled-left {{ parseColData(selectedEmployee.id) }} 
+                label.label.is-pulled-left.is-capitalized 
+                  | {{ parseColData(selectedEmployee.id) }} 
             .field.is-horizontal
               .field-label.is-normal
                 label.label
                   strong Access:
               .field-label.is-normal
-                label.label.is-pulled-left  {{ parseColData(selectedEmployee.access) }}
+                label.label.is-pulled-left.is-capitalized  
+                  | {{ parseColData(selectedEmployee.access_level) }}
             .field.is-horizontal
               .field-label.is-normal
                 label.label
                   strong Branch address: 
               .field-label.is-normal
-                label.label.is-pulled-left {{ employeeBranch.address }}     
+                label.label.is-pulled-left.is-capitalized 
+                  | {{ employeeBranch.address }}     
+            .field.is-horizontal
+              .field-label.is-normal
+                label.label
+                  strong Email: 
+              .field-label.is-normal
+                label.label.is-pulled-left 
+                  | {{ parseColData(selectedEmployee.email) }}     
         .mt-30
           h5.title.is-5.has-text-centered Sales history
           el-table(
             v-loading="isLoadingSales"
-            :data="selectedEmployee.sales",
+            :data="filteredItemsData",
             :empty-text="emptyText",
             :max-height="200",
             :height="200",
           )
             el-table-column(label="No", type="index", :index="1")
-            el-table-column(prop="customer", show-overflow-tooltip, label="Customer name", align="center" sortable)
-            el-table-column(prop="salesid", show-overflow-tooltip, label="Sales ID", align="center" sortable)
-            el-table-column(prop="total", show-overflow-tooltip, label="Total", align="center" sortable)
-            el-table-column(prop="discount", show-overflow-tooltip, label="Discount", align="center" sortable)
-            el-table-column(prop="paid", show-overflow-tooltip, label="Paid", align="center" sortable)   
-            el-table-column(prop="user", show-overflow-tooltip, label="Sold by", align="center" sortable)     
-            el-table-column(prop="salestime", show-overflow-tooltip, label="Sold at", align="center" sortable)     
+            el-table-column(prop="sales_id", show-overflow-tooltip, label="Sales ID", sortable)
+            el-table-column(prop="sub_total", show-overflow-tooltip, label="Total", sortable)
+            el-table-column(prop="payment_type", show-overflow-tooltip, label="Payment Method")
+            el-table-column(prop="quantity", show-overflow-tooltip, label="Qty Bought")
+            el-table-column(prop="unit_price", show-overflow-tooltip, label="Sold By", sortable)     
+            el-table-column(prop="created_at", show-overflow-tooltip, label="Sold At", sortable)  
+              template(slot-scope="props")
+                span {{ formatDate(props.row.created_at)}}
+            div(slot="append" v-show="showLoading")
+              div(ref='loader' style="height: 45px")
+                infinite-loading(spinner="waveDots" v-if="loading")    
 </template>
 
 <script>
 /* eslint-disable */
-import EmptyState from '@/components/EmptyState';
-import { formatDate, formatMoney, dateForHumans } from '@/filters/format';
-import { mapActions, mapState, mapMutations } from 'vuex';
-import EmployeeForm from '@/components/employees/EmployeeForm';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-import Loading from '@/components/shared/Loading';
-import JsonExcel from 'vue-json-excel';
-import { ObjectToFormData, parseColData } from '@/utils/helper';
+import EmptyState from '@/components/EmptyState'
+import { formatDate, formatMoney, dateForHumans } from '@/filters/format'
+import { mapActions, mapState, mapMutations } from 'vuex'
+import EmployeeForm from '@/components/employees/EmployeeForm'
+import InfiniteLoading from 'vue-infinite-loading'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import filterMixin from '@/mixins/FilterMixin'
+import Loading from '@/components/shared/Loading'
+import JsonExcel from 'vue-json-excel'
+import { parseColData } from '@/utils/helper'
+
 export default {
+
   data() {
     return {
       isEditing: false,
@@ -130,6 +162,9 @@ export default {
       fullScreenActive: false,
       currentTab: 'details',
       isLoadingSales: false,
+      filter: {
+        aggregate: 0
+      },
       json_fields : {
         Customer: 'customer',
         Total: 'total',
@@ -143,32 +178,29 @@ export default {
       },
     }
   },
+
+  mixins: [filterMixin],
+
   mounted() {
     this.clearSelectedEmployee();
     this.isLoading = true;
-    this.loadEmployee(
-      ObjectToFormData({
-        user: this.$route.params.id,
-        getuser: 'getuser',
-      })
-    )
-    .then(() => {
-      this.isLoading = false;
-      this.isLoadingSales = true;
-      return this.loadSales(
-        ObjectToFormData({
-          salessearch: 'salessearch',
-          fromtime: '0000-00-01 00:00:00',
-          totime: '7018-02-07 00:00:00',
-          usersearch: this.selectedEmployee.username,
-        })
-      )
+    this.loadEmployee({
+      id: parseInt(this.$route.params.id, 10),
     })
     .then((res) => {
-      this.isLoadingSales = false;
-      if (res.status === 'Success') {
-        this.setSelectedEmployeeSales(res.message);
+      this.isLoading = false;
+      this.isLoadingSales = true;
+      this.filter = {
+          ...this.filter,
+        user_id: this.selectedEmployee.id
       }
+      return this.preloadItemsList()
+    })
+    .then((res) => {
+      console.log(res)
+      this.isLoadingSales = false
+      this.handleBottomScroll()
+      this.setSelectedEmployeeSales(res.body)
     })
     .catch((err) => {
       console.log(err);
@@ -181,63 +213,106 @@ export default {
       this.$router.push({ name: 'employees_list'});
     });
   },
+
   components:{
     EmptyState,
     Loading,
     EmployeeForm,
+    InfiniteLoading,
     FullscreenDialog,
     JsonExcel,
   },
+
   methods: {
+
     ...{ formatDate, dateForHumans },
+
+    setItems (res) {
+      const { data } = res.body
+      const salesHistory = {
+        ...res.body,
+        data: this.items.data.concat(data)
+      }
+      this.setSelectedEmployeeSales(salesHistory)
+    },
+
     ...mapActions('employees', [
       'loadEmployee',
       'clearSelectedEmployee',
-      'setSelectedEmployeeSales',
+      'setSelectedEmployeeSales'
     ]),
-    ...mapActions('sales', [
-      'loadSales',
-    ]),
+
+    ...mapActions('sales', {
+      loadItems: 'loadSales'
+    }),
+
     ...mapMutations('employees', [
-      'SET_SELECTED_EMPLOYEE',
+      'SET_SELECTED_EMPLOYEE'
     ]),
+
     updatedEmployeeDetails(employee) {
       this.SET_SELECTED_EMPLOYEE({
         ...this.selectedEmployee,
-        ...employee,
+        ...employee
       });
     },
+
     closeDialog() {
       this.fullScreenActive = false;
     },
-    ...{ parseColData },
+
+    ...{ parseColData }
+
   },
+
   computed: {
+
     ...mapState('employees', [
       'selectedEmployee',
     ]),
-    employeeBranch() {
-      if (this.selectedEmployee.branch_details) {
-        return this.selectedEmployee.branch_details;
-      }
-      return {};
+
+    disablePurchaseHistory () {
+      return !this.selectedEmployeeSales || 
+      !(this.selectedEmployeeSales.data && 
+      this.selectedEmployeeSales.data.length)
     },
+
+    employeeBranch() {
+      return this.selectedEmployee.branch || {};
+    },
+
+    selectedEmployeeSales () {
+      return this.selectedEmployee ? this.selectedEmployee.sales : { data: [] }
+    },
+
     fullname() {
       if (this.selectedEmployee.firstname && this.selectedEmployee.surname) {
         return `${this.selectedEmployee.firstname} ${this.selectedEmployee.surname}`;
       }
       return '-';
     },
+
     documentName() {
       if (this.selectedEmployee) {
-        return `${this.selectedEmployee.name}'s purchase history`;
+        return `${this.selectedEmployee.full_name}'s purchase history`;
       }
       return null;
     },
+
     emptyText() {
-      return `${this.selectedEmployee.name} has not sold anything yet`;
+      return `${this.selectedEmployee.full_name} has not sold anything yet`;
     }
+
   },
+
+  watch: {
+
+    selectedEmployeeSales (newValue) {
+      this.items = newValue
+    },
+
+  }
+
 };
 </script>
 

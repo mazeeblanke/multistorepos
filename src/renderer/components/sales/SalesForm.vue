@@ -10,7 +10,8 @@ div
     .level.toolbar.shadow-divider
       .level-left
         .level-item
-          span.tag.is-medium(title="Sales id") Sale ID: {{ cart.sales_id }}
+          span.tag.is-medium(title="Sales id") 
+            | Sale ID {{ cart.sales_id }}
       .level-center.columns
         .level-item.column.is-5
           .field.is-horizontal
@@ -37,10 +38,16 @@ div
                     :value="item"
                     :disabled="item.name === saleForm.selectedItem.name"
                   )
-                    el-tooltip(class="item" effect="dark", :open-delay="1000", :content="item.name" placement="top-start")
+                    el-tooltip(
+                      class="item", 
+                      effect="dark", 
+                      :open-delay="1000", 
+                      :content="item.name", 
+                      placement="top-start"
+                    )
                       <span class="sale-item" style="float: left">{{ item.name }}</span>
                     <span style="float: right; color: #8492a6; font-size: 13px">
-                      <strong>{{ item.branches[0].pivot.quantity }} QTY LEFT</strong>
+                      <strong>{{ item.branch.quantity }} QTY LEFT</strong>
                     </span>
         .level-item.column.is-5
           .field.is-horizontal
@@ -60,7 +67,11 @@ div
                   )
       .level-right
         .level-item
-          button.button(@click="handleCheckProductOpen", :disabled="!formatedValue", title="search for product in other branches")
+          button.button(
+            @click="handleCheckProductOpen",
+            :disabled="!formatedValue",
+            title="search for product in other branches"
+          )
             span.icon
               i.material-icons find_replace
         .level-item
@@ -73,10 +84,12 @@ div
             b-icon(icon="save")
             span Add product
         .level-item
-          a.button(@click="closeForm()", title="Close product cart form")
+          a.button.no-border(
+            @click="closeForm()", 
+            title="Close product cart form"
+          )
             span.icon
               i.material-icons close
-            span Close
 </template>
 
 <script>
@@ -97,9 +110,6 @@ export default {
     hasPaid: {
       type: Boolean,
     },
-    // cartItems: {
-    //   type: Array,
-    // },
   },
   mixins: [validationMixin],
   data() {
@@ -112,9 +122,6 @@ export default {
         quantityInStock: null,
         quantity: null,
         subTotal: null
-        // addtocart: 'addtocart',
-        // branchid: null,
-        // user: null,
       },
       suggestions: [],
       loading: false,
@@ -152,6 +159,9 @@ export default {
     ...mapState('branch', [
       'currentBranch',
     ]),
+    ...mapState('settings', [
+      'settings',
+    ]),
 
 
     cartItemNames() {
@@ -182,16 +192,13 @@ export default {
   },
   methods: {
     selectProduct(item) {
-      let { id, branches } = item;
+      let { id, branch } = item;
       this.saleForm = {
         ...this.saleForm,
         ...{
           product3: id,
-          quantityInStock: branches[0].pivot.quantity,
-          // user: this.currentUser.username,
-          // salesid: this.salesid,
-          selectedItem: item,
-          // branchid: this.currentBranch.id
+          quantityInStock: branch.quantity,
+          selectedItem: item
         }};
     },
     addNewItem() {
@@ -224,8 +231,8 @@ export default {
         let payload = {
           name: query,
           // nam: query,
-          branch_id: 1,
-          // branchid: this.currentBranch.id,
+          // branch_id: 1,
+          branch_id: this.settings.branch.id,
         };
         this.loadProducts(payload)
         .then(({ data }) => {
@@ -262,9 +269,6 @@ export default {
         quantityInStock: null,
         quantity: null,
         subTotal: null
-        // addtocart: 'addtocart',
-        // branchid: null,
-        // user: this.currentUser.username,
       };
     },
     addToCart() {
@@ -273,7 +277,7 @@ export default {
         product = {
           ...product,
           subTotal: multiplyCash(quantity, product.unitprice),
-          quantityInStock: product.branches[0].pivot.quantity,
+          quantityInStock: product.branch.quantity,
           quantity,
         }
         delete product.branches

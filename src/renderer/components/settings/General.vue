@@ -1,87 +1,53 @@
 <template lang="pug">
   div(v-loading="loading", :style="{'min-height': '600px'}")
-    //- h5.title.is-5.has-text-centered.mt-30.mb-50 General settings
-    div.appView(v-if="!loading" :style="{'height': '600px'}")
-      div(v-show="$can('superadmin')")
+    div.appView(v-if="!loading")
+      div
         h4.title.is-4.mt-30.mb-25 General settings
         .columns
-          //- .column.is-4.is-offset-2
           .column.is-5
             .field.is-horizontal.mb-30
               .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Store Name
+                label.label.has-text-weight-normal.font-size-13 Store Name
               .field-body
                 .field
                   el-input(
+                    clearable,
+                    :disabled="!$can('superadmin')"
                     size="small",
                     v-model="storeSettings.store.name",
                     placeholder="Enter Store name",
+                    @change="() => $v.storeSettings.store.name.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.store.name.$error }",
                   )
-                  // el-input(
-                  //   size="small",
-                  //   :value="settings.store.name",
-                  //   @input="updateSettings('store.name', $event)"
-                  //   placeholder="Enter Store name",
-                  // )
             .field.is-horizontal.mb-30
               .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Email
+                label.label.has-text-weight-normal.font-size-13 Email
               .field-body
                 .field
                   el-input(
+                    clearable,
+                    :disabled="!$can('superadmin')"
                     size="small",
                     v-model="storeSettings.store.email",
                     placeholder="Enter Store email",
+                    @change="() => $v.storeSettings.store.email.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.store.email.$error }",
                   )
-                  // el-input(
-                  //   size="small",
-                  //   :value="settings.store.email",
-                  //   @input="updateSettings('store.email', $event)"
-                  //   placeholder="Enter Store email",
-                  // )
             .field.is-horizontal.mb-30
               .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Address
-              .field-body
-                .field
-                  el-input(
-                    size="small",
-                    v-model="storeSettings.branch.address",
-                    placeholder="Enter Branch address",
-                  )
-                  // el-input(
-                  //   size="small",
-                  //   :value="settings.branch.address",
-                  //   @input="updateSettings('branch.email', $event)"
-                  //   placeholder="Enter Branch address",
-                  // )
-            .field.is-horizontal.mb-30
-              .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Loyalty Discount(%)
-              .field-body
-                .field
-                  el-input(
-                    size="small",
-                    v-model.number="storeSettings.branch.discount",
-                    placeholder="Enter loyalty discount",
-                  )
-                  // el-input(
-                  //   size="small",
-                  //   :value="settings.branch.discount",
-                  //   @input="updateSettings('branch.discount', $event)"
-                  //   placeholder="Enter loyalty discount",
-                  // )
-            .field.is-horizontal.mb-30
-              .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Currency
+                label.label.has-text-weight-normal.font-size-13 Currency
               .field-body
                 .field
                   el-select.has-full-width(
+                    :disabled="!$can('superadmin')"
+                    clearable,
                     size="small",
-                    v-model="storeSettings.branch.currency.name",
+                    v-model="storeSettings.store.currency",
                     :filterable="true",
                     placeholder="select currency",
-                    value-key="name"
+                    value-key="name",
+                    @change="() => $v.storeSettings.store.currency.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.store.currency.$error }",
                   )
                     el-option(
                       v-for="(currency, key, index) in currencies",
@@ -89,153 +55,177 @@
                       :value="currency",
                       :key="index",
                     )
-                  // el-select.has-full-width(
-                  //   size="small",
-                  //   :value="settings.branch.currency.name",
-                  //   :filterable="true",
-                  //   placeholder="select currency",
-                  //   @change="updateSettings('branch.currency', $event)",
-                  //   value-key="name"
-                  // )
-                  //   el-option(
-                  //     v-for="(currency, key, index) in currencies",
-                  //     :label="format(currency)",
-                  //     :value="currency",
-                  //     :key="index",
-                  //   )
           .column.is-5
             .field.is-horizontal.mb-30
               .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Phone Number
+                label.label.has-text-weight-normal.font-size-13 Phone Number
               .field-body
                 .field
                   el-input(
+                    :disabled="!$can('superadmin')"
+                    clearable,
                     size="small",
                     v-model="storeSettings.store.phone",
                     placeholder="Enter Store phone no.",
                   )
-                  // el-input(
-                  //   size="small",
-                  //   :value="settings.store.phone",
-                  //   @input="updateSettings('store.phone', $event)",
-                  //   placeholder="Enter Store phone no.",
-                  // )
+
             .field.is-horizontal.mb-30
               .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Receipt Info
+                label.label.has-text-weight-normal.font-size-13 Branch
+              .field-body
+                .field
+                  el-select.has-full-width(
+                    :disabled="!$can('superadmin')"
+                    size="small",
+                    v-model="storeSettings.branch",
+                    :filterable="true",
+                    placeholder="select branch",
+                    remote,
+                    :remote-method="_loadBranches",
+                    :loading="loadingBranches",
+                    no-data-text="No results!",
+                    value-key="id",
+                    clearable,
+                  )
+                    el-option(
+                      v-for="branch in branchSuggestions",
+                      :value="branch",
+                      :label="branch.name",
+                      :key="branch.id",
+                    )
+          .column.is-2
+            div(class="store-logo")
+              // avatar(:fullname="storeSettings.store.name", :size="120", :image='avatarUrl', v-loading="uploadingAvatar")
+              avatar(:fullname="storeSettings.store.name", :size="120", v-loading="uploadingAvatar")
+              //- figure(class="image is-128x128")
+              //-   img(class="is-rounded animated fadeIn", src="https://bulma.io/images/placeholders/96x96.png")
+              // vue-core-image-upload.mt-10(
+              //   class="button is-primary"
+              //   :crop="false"
+              //   :max-file-size="5242880"
+              //   :data="data"
+              //   :url="uploadUrl"
+              //   @imagechanged="imagechanged"
+              //   @imageuploading="uploadingAvatar = true"
+              //   @imageuploaded="imageUploaded"
+              // )
+        h4.title.is-4.mt-30.mb-25 Branch settings
+        .columns
+          .column.is-5
+            .field.is-horizontal.mb-30
+              .field-label.has-text-left.is-v-centered
+                label.label.has-text-weight-normal.font-size-13 Branch Name
               .field-body
                 .field
                   el-input(
+                    :disabled="!$can('superadmin|admin')"
+                    clearable,
+                    size="small",
+                    v-model="storeSettings.branch.name",
+                    placeholder="Enter branch name",
+                    @change="() => $v.storeSettings.branch.name.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.branch.name.$error }",
+                  )
+            .field.is-horizontal.mb-30
+                .field-label.has-text-left.is-v-centered
+                  label.label.has-text-weight-normal.font-size-13 Loyalty Discount(%)
+                .field-body
+                  .field
+                    el-input(
+                      :disabled="!$can('superadmin|admin')"
+                      size="small",
+                      type="number",
+                      v-model.number="storeSettings.branch.discount",
+                      placeholder="Enter loyalty discount"
+                    )
+            .field.is-horizontal.mb-30
+              .field-label.has-text-left.is-v-centered
+                label.label.has-text-weight-normal.font-size-13 Currency
+              .field-body
+                .field
+                  el-select.has-full-width(
+                    clearable,
+                    :disabled="!$can('superadmin|admin')"
+                    size="small",
+                    v-model="storeSettings.branch.currency",
+                    :filterable="true",
+                    placeholder="select currency",
+                    value-key="name",
+                    @change="() => $v.storeSettings.branch.currency.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.branch.currency.$error }",
+                  )
+                    el-option(
+                      v-for="(currency, key, index) in currencies",
+                      :label="format(currency)",
+                      :value="currency",
+                      :key="index",
+                    )  
+            .field.is-horizontal.mb-30
+              .field-label.has-text-left.is-v-centered
+                label.label.has-text-weight-normal.font-size-13 Invoice Type
+              .field-body
+                .field
+                  el-select.has-full-width(
+                    clearable,
+                    :disabled="!$can('superadmin|admin')"
+                    size="small",
+                    :value="storeSettings.branch.printout",
+                    :filterable="true",
+                    placeholder="select invoice type",
+                    @change="() => $v.storeSettings.branch.printout.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.branch.printout.$error }",
+                  )
+                    el-option(label="Receipt (Small)", value="reciept")
+                    el-option(label="Invoice (Big)", value="invoice")                      
+          .column.is-5
+            .field.is-horizontal.mb-30
+              .field-label.has-text-left.is-v-centered
+                label.label.has-text-weight-normal.font-size-13 Branch Address
+              .field-body
+                .field
+                  el-input(
+                    clearable,
+                    :disabled="!$can('superadmin|admin')"
+                    size="small",
+                    v-model="storeSettings.branch.address",
+                    placeholder="Enter branch address",
+                    @change="() => $v.storeSettings.branch.address.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.branch.address.$error }",
+                  )   
+            .field.is-horizontal.mb-30
+              .field-label.has-text-left.is-v-centered
+                label.label.has-text-weight-normal.font-size-13 Receipt Info
+              .field-body
+                .field
+                  el-input(
+                    clearable,
+                    :disabled="!$can('superadmin|admin')"
                     size="small",
                     v-model="storeSettings.branch.receiptinfo",
                     placeholder="Enter receipt info",
                   )
-                  // el-input(
-                  //   size="small",
-                  //   :value="settings.branch.receiptinfo",
-                  //   @input="updateSettings('branch.receiptinfo', $event)",
-                  //   placeholder="Enter receipt info",
-                  // )
             .field.is-horizontal.mb-30
               .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal {{ `Loyalty treshold(${this.currencySymbol})`}}
+                label.label.has-text-weight-normal.font-size-13 {{ `Loyalty treshold(${this.currencySymbol})`}}
               .field-body
                 .field
                   el-input(
+                    :disabled="!$can('superadmin|admin')"
                     size="small",
+                    type="number",
                     v-model.number="storeSettings.branch.threshold",
                     placeholder="Enter loyalty threshold",
-                  )
-                  // el-input(
-                  //   size="small",
-                  //   :value="settings.branch.threshold",
-                  //   @input="updateSettings('branch.threshold', $event)",
-                  //   placeholder="Enter loyalty threshold",
-                  // )
-            .field.is-horizontal.mb-30
-              .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Invoice Type
-              .field-body
-                .field
-                  el-select.has-full-width(
-                    size="small",
-                    :value="settings.branch.printout",
-                    :filterable="true",
-                    @change="updateSettings('branch.printout', $event)",
-                    placeholder="select invoice type",
-                  )
-                    el-option(label="Receipt (Small)", value="reciept")
-                    el-option(label="Invoice (Big)", value="invoice")
-            .field.is-horizontal.mb-30
-              .field-label.has-text-left.is-v-centered
-                label.label.has-text-weight-normal Branch
-              .field-body
-                .field
-                  // el-select.has-full-width(
-                  //   size="small",
-                  //   v-model="branchSetting",
-                  //   :filterable="true",
-                  //   placeholder="select branch",
-                  //   remote,
-                  //   :remote-method="_loadBranches",
-                  //   :loading="loadingBranches",
-                  //   no-data-text="No results!",
-                  //   value-key="id",
-                  //   @change="selectBranch",
-                  // )
-                  //   el-option(
-                  //     v-for="branch in branch_suggestions",
-                  //     :value="branch",
-                  //     :label="branch.name",
-                  //     :key="branch.id",
-                  //   )
-      //-     .column.is-2
-      //-       div(class="store-logo")
-      //-         avatar(:fullname="store.store", :size="120", :image='avatarUrl', v-loading="uploadingAvatar")
-      //-         //- figure(class="image is-128x128")
-      //-         //-   img(class="is-rounded animated fadeIn", src="https://bulma.io/images/placeholders/96x96.png")
-      //-         vue-core-image-upload.mt-10(
-      //-           class="button is-primary"
-      //-           :crop="false"
-      //-           :max-file-size="5242880"
-      //-           :data="data"
-      //-           :url="uploadUrl"
-      //-           @imagechanged="imagechanged"
-      //-           @imageuploading="uploadingAvatar = true"
-      //-           @imageuploaded="imageUploaded"
-      //-         )
-      //- h4.title.is-4.mt-30.mb-25 Branch settings
-      //- .columns
-      //-   .column.is-5
-      //-     .field.is-horizontal.mb-30
-      //-       .field-label.has-text-left.is-v-centered
-      //-         label.label.has-text-weight-normal Branch Name
-      //-       .field-body
-      //-         .field
-      //-           el-input(
-      //-             size="small",
-      //-             v-model="branchSetting.name",
-      //-             placeholder="Enter branch name",
-      //-             disabled,
-      //-           )
-      //-   .column.is-5
-      //-     .field.is-horizontal.mb-30
-      //-       .field-label.has-text-left.is-v-centered
-      //-         label.label.has-text-weight-normal Branch Address
-      //-       .field-body
-      //-         .field
-      //-           el-input(
-      //-             size="small",
-      //-             v-model="branchSetting.address",
-      //-             placeholder="Enter branch address",
-      //-             disabled,
-      //-           )
+                  )                 
       div.mt-30.taxes
         div.header
           h4.title.is-4 Tax
-          button.button.ml-15(@click="addTax")
+          button.button.ml-15(
+            @click="addTax",
+            :disabled="!$can('superadmin|admin')"
+          )
             span.icon
               i.material-icons add
+            span Add Tax  
         .columns
           .column.is-10
             el-table(
@@ -248,31 +238,40 @@
             )
               div(slot="empty")
                 EmptyState(empty-text="Add Taxes!", style="{height: '400px'}")
-              el-table-column(type="selection")
+              el-table-column(type="selection", :selectable="() => $can('superadmin|admin')")
               el-table-column(label="No", type="index", :index="1", width="50")
-              el-table-column(prop="type", label="Tax Type", align="left", show-overflow-tooltip, :sortable="true")
+              el-table-column(prop="type", label="Tax type", align="left", show-overflow-tooltip, :sortable="true")
                 template(slot-scope="scope")
                   el-select(
-                    size="small",      
+                    clearable,      
+                    size="small",
+                    :disabled="!$can('superadmin|admin')"     
                     v-model="scope.row.type",
                     :filterable="true",
                     placeholder="Enter tax type",
-                    @change="stringifyTaxes",
+                    @change="() => $v.storeSettings.store.tax.$each[scope.$index].type.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.store.tax.$each[scope.$index].type.$error }",
+                    allow-create
                   )
                     el-option(
                       v-for="tax in taxes",
                       :label="tax.type",
                       :value="tax.type",
                       :key="tax.type",
+                      :disabled="selectedTaxTypes.includes(tax.type)"
                     )
               el-table-column(prop="value", label="Tax value (%)", align="left", show-overflow-tooltip, :sortable="true")
                 template(slot-scope="scope")
                   el-select(
-                    size="small",      
+                    clearable,      
+                    size="small",
+                    :disabled="!$can('superadmin|admin')"     
                     v-model.number="scope.row.value",
                     placeholder="Enter tax value",
+                    :filterable="true",
+                    @change="() => $v.storeSettings.store.tax.$each[scope.$index].value.$touch()",
+                    :class="{ 'is-error': $v.storeSettings.store.tax.$each[scope.$index].value.$error }",
                     allow-create
-                    @change="stringifyTaxes"
                   )
                     el-option(label="5(%)", value="5")
                     el-option(label="10(%)", value="10")
@@ -280,52 +279,41 @@
                     el-option(label="50(%)", value="50")
               el-table-column(label="Actions", :render-header="renderDelete", width="70")
                 template(slot-scope="scope")
-                  button.button(:class="$style.trash" @click="removeTax(scope.row)")
-                    i.material-icons delete
-        button.button.is-primary.is-medium(
-          :class="{'is-loading': processing}",
-          @click="submit()"
-        )
-          span Save changes
+                  button.button(
+                    :class="$style.trash", 
+                    @click="removeTax(scope.$index)",
+                    :disabled="!$can('superadmin|admin')"
+                  )
+                    span.el-icon-delete.font-size-23
+    button.button.is-primary(
+      v-if="!this.loading"
+      :class="{'is-loading': processing}",
+      @click="submit()",
+      :disabled="!shouldSaveChanges"
+    )
+      span Save changes
 </template>
 
 <script>
 /* eslint-disable */
 import { mapActions, mapState, mapMutations } from 'vuex'
 import { validationMixin } from 'vuelidate'
-import { required } from 'vuelidate/lib/validators'
-import { ObjectToFormData } from '@/utils/helper'
+import { required, email } from 'vuelidate/lib/validators'
+import { TAXES } from '@/utils/constants'
 import deleteMixin from '@/mixins/DeleteMixin'
 import MoneyMixin from '@/mixins/MoneyMixin'
 import currencies from '@/data/Common-Currency.json'
 import EmptyState from '@/components/EmptyState'
 import VueCoreImageUpload from 'vue-core-image-upload/src/vue-core-image-upload.vue'
 import Avatar from 'vue-avatar-component'
+import _ from 'lodash'
 
 const numeral = require('numeral')
-let f;
 
-// let sync = (state, mutuation, t) => {
-// 	// console.log(this.state)
-// 	// console.log(mutuation)
-// 	console.log(this)
-// 	console.log(state)
-// 	console.log(t[state])
-// 	// const SYNC_OBJECTS = {};
-// 	// Object.keys(t[state]).forEach((key, index) => {
-// 	// 	SYNC_OBJECTS[`_${key}`] = {
-// 	// 		get: () => {
-// 	// 			return t[state[key]]
-// 	// 		},
-// 	// 		set: (value) => {
-//   //       t[mutuation]({ key, value })
-// 	// 		}
-// 	// 	}
-// 	// })
-// 	// return SYNC_OBJECTS;
-// }
+/* eslint-disable */
 
 export default {
+
   data () {
     return {
       uploadUrl: `${window.baseUrl}/forms/setup.php`,
@@ -336,7 +324,7 @@ export default {
         logopicture: null
       },
       loadingBranches: false,
-      branch_suggestions: [],
+      branchSuggestions: [],
       storeSettings: {
         store: {},
         branch: {
@@ -344,344 +332,239 @@ export default {
         },
         loggedInUser: {}
       },
-      // branchSetting: {
-      //   branchid: null,
-      //   branchname: null,
-      //   branchaddress: null,
-      // },
-      // s: {
-      //   store: null,
-      //   email: null,
-      //   address: null,
-      //   phone: null,
-      //   receiptinfo: null,
-      //   threshold: null,
-      //   currency: null,
-      //   branchid: null,
-      //   discount: null,
-      //   selectedBranch: null,
-      //   taxes: [
-      //     {
-      //       type: 'Consumption Tax',
-      //       value: 10
-      //     },
-      //     {
-      //       type: 'Value Added Tax (VAT)',
-      //       value: 5
-      //     }
-      //   ],
-      //   setuployaltysetting: 'setuployaltysetting'
-      // },
       currencies,
-      fo: {},
-      taxes: [
-        {
-          type: 'Consumption Tax',
-          value: 10
-        },
-        {
-          type: 'Value Added Tax (VAT)',
-          value: 5
-        },
-        {
-          type: 'Petroleum Tax',
-          value: 15
-        },
-        {
-          type: 'Withholding Tax',
-          value: 20
-        }
-      ],
+      taxes: TAXES,
       processing: false,
       loading: false
     }
   },
-  mixins: [validationMixin, deleteMixin, MoneyMixin],
+
+  mixins: [
+    validationMixin, 
+    deleteMixin, 
+    MoneyMixin
+  ],
+
   validations: {
-    // s: {
-    //   store: { required },
-    //   email: { required },
-    //   address: { required },
-    //   phone: { required },
-    //   receiptinfo: { required }
-    // }
+    storeSettings: {
+      store: {
+        name: { required },
+        email: { required, email },
+        currency: { required },
+        tax: {
+          required,
+          $each: {
+            type: { required },
+            value: { required }
+          }
+        }
+      },
+      branch: {
+        required,
+        name: { required },
+        currency: { required },
+        printout: { required },
+        address: { required }
+      }
+    }
   },
+
   mounted () {
-    // fetch from api
-    let storeDetails = null
-    this.loading = true
-    this.loadSettings()
-    .then(({ payload }) => {
-      console.log(payload)
-      this.storeSettings = payload
-      this.loading = false
-    })
-    .catch(() => {
-      this.loading = false
-    })
-    // console.log(sync(this.go, this.SET_G, this))
-    // this.getStoreDetails(
-    //   ObjectToFormData({
-    //     getloyaltysetting: 'getloyaltysetting'
-    //   }
-    //   ))
-    //   .then((res) => {
-    //     storeDetails = res.message[0]
-    //     return this.getStoreDetails(
-    //       ObjectToFormData({
-    //         getsetup: 'getsetup'
-    //       }
-    //       ))
-    //   })
-    //   .then((_res) => {
-    //     storeDetails = {
-    //       ...storeDetails,
-    //       ..._res.message[0]
-    //     }
-    //     console.log(storeDetails)
-    //     this.SET_STORE_DETAILS(storeDetails)
-    //     this.loading = false
-    //   })
-    //   .catch((err) => {
-    //     this.loading = false
-    //     this.$snackbar.open({
-    //       type: 'is-danger',
-    //       message: `An Error occurred ! ${err}`
-    //     })
-    //   })
-    // this.branch_suggestions = this.branchSuggestions
-    // console.log(this.branchSuggestions)
+    if (
+      !this._settings || 
+      this.currentUser.store_id !== this._settings.store.id
+    ) {
+      this.loading = true
+      this.preloadSettings()
+    } else {
+      this.storeSettings = JSON.parse(JSON.stringify(this._settings))
+      this.init_branch_suggestions()
+    }
   },
-  watch: {
-    // store (newVal) {
-    //   this.s = {
-    //     ...newVal,
-    //     setuployaltysetting: 'setuployaltysetting'
-    //   }
-    // },
-    // branchSuggestions (newValue) {
-    //   this.branch_suggestions = newValue
-    // }
-    // go() {
-    //   sync(this.go, this.SET_G)
-    // }
-  },
+
   components: {
     EmptyState,
     VueCoreImageUpload,
     Avatar
   },
+
   methods: {
-    updateSettings (key, value) {
-      console.log(value)
-      // console.log(e.target)
-      this.UPDATE_SETTINGS({ key, value })
-    },
+
     imagechanged (img) {
       this.data.logopicture = img
     },
-    // pp(state, mutuation) {
-    //   // console.log(this.state)
-    //   // console.log(mutuation)
-    //   console.log(this)
-    //   console.log(state)
-    //   console.log(this[state])
-    //   // const SYNC_OBJECTS = {};
-    //   // Object.keys(t[state]).forEach((key, index) => {
-    //   // 	SYNC_OBJECTS[`_${key}`] = {
-    //   // 		get: () => {
-    //   // 			return t[state[key]]
-    //   // 		},
-    //   // 		set: (value) => {
-    //   //       t[mutuation]({ key, value })
-    //   // 		}
-    //   // 	}
-    //   // })
-    //   // return SYNC_OBJECTS;
-    // },
-    // sync(this.go, this.SET_G),
+
+    init_branch_suggestions () {
+      this.branchSuggestions = [this._settings.branch]
+    },
+
+    preloadSettings () {
+      this.loadSettings()
+      .then(({ payload }) => {
+        this.storeSettings = JSON.parse(JSON.stringify(payload))
+        this.SET_STORE_SETTINGS({ 
+          data: this.storeSettings
+        })
+        this.loading = false
+        this.init_branch_suggestions()
+      })
+      .catch((err) => {
+        this.loading = false
+      })
+    },
+
     imageUploaded () {
       // this.avatarUrl = `${window.baseUrl}/assets/img/logo.jpg?time=${Date.now()}`
       this.avatarUrl = ''
       this.uploadingAvatar = false
       this.$snackbar.open('Company logo updated')
     },
-    ...mapMutations('branch', [
-      'SET_CURRENT_BRANCH'
-    ]),
-    ...mapMutations('settings', [
-      'SET_STORE_SETTINGS',
-      'UPDATE_SETTINGS',
-      'SET_G'
-    ]),
+    
+    ...mapMutations('settings', ['SET_STORE_SETTINGS']),
+
+    ...mapActions('branch', ['loadBranches']),
+
+    ...mapMutations('sales', ['SET_CART']),
+
     ...mapActions('settings', [
       'loadSettings',
+      'updateSettings'
     ]),
-    // ...mapActions('store', [
-    //   'setStoreDetails',
-    //   'getStoreDetails'
-    // ]),
-    ...mapActions('branch', [
-      'loadBranches',
-      'searchBranches'
-      // 'getStoreDetails',
-    ]),
+
     format (currency) {
       return `${currency.name} - ${currency.symbol}`
     },
-    selectBranch (branch) {
-      // console.log(branch);
-      // this.branchSetting = branch;
-      this.SET_CURRENT_BRANCH(branch)
-    },
-    _loadBranches (query) {
-      if (query !== '') {
-        this.loadingBranches = true
-        this.searchBranches({
-          search: query,
-          type: 'branch'
-        })
-          .then((res) => {
-            this.branch_suggestions = res
-            this.loadingBranches = false
-          })
-          .catch(() => {
-            this.loadingBranches = false
-          })
+
+    _loadBranches(query) {
+      if (query) {
+        this.loadingBranches = true;
+        this.loadBranches({
+          name: query,
+          store_id: this._settings.store_id
+        }).then((res) => {
+          this.branchSuggestions = res.branches.data;
+          this.loadingBranches = false;
+        }).catch(() => {
+          this.loadingBranches = false;
+        });
       }
     },
-    // updateTaxes(newVal) {
-    //   let taxes;
-    //   // taxes = newVal.tax ? JSON.parse(newVal.tax) : [];
-    //   if (newVal.tax) {
-    //     taxes = JSON.parse(newVal.tax);
-    //   }
-    // },
+
     addTax () {
       this.storeSettings.store.tax.push({})
     },
-    stringifyTaxes () {
-      this.s = {
-        ...this.s,
-        tax: JSON.stringify(this.s.taxes)
-      }
-    },
-    selectCurrency (item) {
-      this.s = {
-        ...this.s,
-        currency: item
-      }
-    },
-    stringifyCurrency () {
-      this.s = {
-        ...this.s,
-        currency: JSON.stringify(this.s.currency)
-      }
-    },
-    warnUser () {
+
+    warnUser (msg) {
       return this.$swal({
         title: 'Are you sure?',
-        text: 'Do you want to delete this Tax(es) ?',
+        text: msg || 'Do you want to delete this Tax(es) ?',
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes',
         cancelButtonText: 'No'
       })
     },
-    ...mapMutations('store', [
-      'SET_STORE_DETAILS'
-    ]),
+
     deleteItems () {
       this.warnUser()
-        .then((res) => {
-          if (res.value) {
-            this.s.taxes = this.s.taxes.filter((i) => {
-              return this.selectedItems.indexOf(i) === -1
-            })
-            this.$snackbar.open('Tax(es) removed!')
-          }
-        })
-        .catch(() => {
-
-        })
+      .then((res) => {
+        if (res.value) {
+          this.s.taxes = this.s.taxes.filter((i) => {
+            return this.selectedItems.indexOf(i) === -1
+          })
+          this.$snackbar.open('Tax(es) removed!')
+        }
+      })
     },
-    removeTax (tax) {
+
+    removeTax (taxIndex) {
       this.warnUser()
         .then((res) => {
           if (res.value) {
-            this.s.taxes.splice(tax, 1)
+            this.storeSettings.store.tax.splice(taxIndex, 1)
             this.$snackbar.open('Tax removed!')
           }
         })
-        .catch(() => {
-
-        })
     },
+    
     submit () {
-      // if (!this.$v.$invalid) {
+      if (!this.$v.$invalid) {
         const payload = {
-          ...this.s,
-          tax: JSON.stringify(this.s.taxes),
-          currency: JSON.stringify(this.s.currency)
+          ...this.storeSettings,
         }
         this.processing = true
-        this.setStoreDetails(
-          ObjectToFormData(payload)
-        ).then((res) => {
-          if (res.status === 'Success') {
-            this.$snackbar.open(res.status + ' !' + res.message)
-            this.SET_STORE_DETAILS(payload)
-            numeral.defaultFormat(`${this.s.currency && this.s.currency.symbol}0,0.00`)
-            this.$emit('action-complete')
-            // if (!this._product) {
-            //   this.resetproduct();
-            // }
-          } else {
-            this.$snackbar.open(res.status)
-          }
+        this.updateSettings(payload)
+        .then((res) => {
+          this.$snackbar.open(res.message)
+          this.storeSettings = JSON.parse(JSON.stringify(this._settings))
+          this.SET_CART({
+            ...this.cart,
+            tax: this._settings.store.tax.reduce((agg, tax) => {
+              return agg + parseInt(tax.value)
+            }, 0)
+          })
           this.processing = false
         })
-      // }
+        .catch((err) => {
+          console.log(err)
+          this.processing = false
+          this.$snackbar.open({
+            type: 'is-danger',
+            message: err.message
+          })
+        })
+      } else {
+        this.$snackbar.open({
+          type: 'is-danger',
+          message: 'validation errors exist!!'
+        })
+      }
     }
   },
+
   computed: {
-    ...mapState('settings', ['settings', 'go']),
+
+    ...mapState('settings', {
+      _settings: 'settings'
+    }),
+
+    ...mapState('sales', ['cart']),
+
     ...mapState('users', ['currentUser']),
-    ...mapState('branch', ['selectedBranch', 'branches', 'branchSuggestions', 'currentBranch']),
-    // ...sync(this.go, this.SET_G),
-    // ...this.pp('go', 'SET_G'),
-    // storeSettings: {
-    //   get () {
-    //     return this.settings
-    //   },
-    //   set (val) {
-    //     this.$store.commit('SET_STORE_SETTINGS', val)
-    //     // this.SET_STORE_SETTINGS(val)
-    //   }
-    // },
-    // ...f,
-    // ...this.fo,
-    // gg: {
-    //   get () {
-    //     return this.go.k
-    //   },
-    //   set (val) {
-    //     console.log('setting gg')
-    //     this.SET_G(val)
-    //   }
-    // },
-    // branchSetting: {
-    //   get () {
-    //     return this.currentBranch
-    //   },
-    //   set (value) {}
-    // },
-    selectedTaxes () {
-      return this.taxes.filter(t => {
-        return this.s.taxes.find(v => t.type === v.type)
-      })
+
+    ...mapState('branch', ['branches']),
+
+    selectedTaxTypes () {
+      const TAX = this.storeSettings.store.tax
+      if (TAX && TAX instanceof Array) {
+        return _.map(TAX, t => t.type)
+      }
+      return []
+    },
+
+    shouldSaveChanges () {
+      return !_.isEqual(
+        _.pick(this.storeSettings, ['branch', 'store']),
+        _.pick(this._settings, ['branch', 'store'])
+      )
     }
   },
+
+  beforeRouteLeave(to, from, next) {
+    if (this.shouldSaveChanges) {
+      this.warnUser('You have unsaved changes!')
+      .then((res) => {
+        if (res.value) {
+          next()
+        } else {
+          next(false)
+        }
+      })
+    } else {
+      next()
+    }
+  }
+
 }
 </script>
 

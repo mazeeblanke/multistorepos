@@ -30,7 +30,6 @@ export default {
       customerDetails: null,
       discountTotal: 0,
       taxTotal: 0,
-      branch_id: 1
     }
   },
   actions: {
@@ -114,7 +113,7 @@ export default {
     },
 
     loadSales ({ commit }, payload) {
-      return sales(payload).then(res => {
+      return Vue.axios.get('sales-history', { params: payload }).then(res => {
         return res.data
       })
     },
@@ -162,11 +161,14 @@ export default {
         customerDetails: null,
         discountTotal: 0,
         taxTotal: 0,
-        branch_id: 1
+        // branch_id: 1
       }
     }, 
 
     SET_CART (state, payload) {
+
+      console.log('payload')
+      console.log(payload)
 
       state.cart = {
         ...state.cart,

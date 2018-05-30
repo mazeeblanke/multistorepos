@@ -9,14 +9,16 @@
       )
     .level.toolbar(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
-        .level-item.page-title.subtitle.is-5 Listing Products ({{ filteredItemsData.length }})
+        .level-item.page-title.subtitle.is-5 
+          span.el-icon-news.mr-5.font-size-23
+          span Listing Products ({{ filteredItemsData.length }})
       .level-item
         div.search
           el-input(
             placeholder="Search products by name...",
             clearable,
-            v-model="searchQuery",
-            @input="search('product')",
+            v-model="filter.name",
+            @input="search('name')",
             class="input-with-select"
           )
             el-button(slot="append" icon="el-icon-search")
@@ -26,100 +28,126 @@
             span.icon
               i.material-icons add
             span Create product
-    EmptyState(empty-message="Nothing here yet" v-if="!filteredItemsData.length && !loading", :style="{ height: '400px' }")
-    Loading(loading-text="Loading Products" v-if="loading && !filteredItemsData.length", :style="{ height: '400px' }")
+    EmptyState(
+      empty-message="Nothing here yet",
+      v-if="!filteredItemsData.length && !loading", 
+      :style="{ height: '400px' }"
+    )
+    Loading(
+      loading-text="Loading Products", 
+      v-if="loading && !filteredItemsData.length", 
+      :style="{ height: '400px' }"
+    )
     el-table(
       ref="items-table",
       :data="filteredItemsData",
-      :max-height="400",
-      height="400"
+      :max-height="500",
+      height="500"
       :border="false"
-      :default-sort="{prop: 'created_at', order: 'descending'}",
       :highlight-current-row="true",
       @cell-click="handleCellClick"
       v-show="filteredItemsData.length",
       @selection-change="handleSelectionChange",
-      :stripe="true"
     )
-      el-table-column(type="selection" fixed="left")
-      el-table-column(label="No", type="index", :index="1" width="50" fixed="left")
-      el-table-column(prop="id", show-overflow-tooltip, label="ID", align="left", :sortable="true")
-      el-table-column(prop="name", show-overflow-tooltip, label="Name", align="left", :sortable="true")
-      el-table-column(prop="quantity", label="Quantity", align="left", show-overflow-tooltip, :sortable="true")
-      el-table-column(prop="unitprice", show-overflow-tooltip, :label="unitPriceLabel", align="left", :sortable="true")
+      el-table-column(type="selection")
+      el-table-column(label="No", type="index", :index="1" width="50")
+      el-table-column(prop="id", show-overflow-tooltip, label="ID", :sortable="true")
+      el-table-column(prop="name", show-overflow-tooltip, label="Name", :sortable="true")
         template(slot-scope="scope")
-          span {{ `${currencySymbol} ${scope.row.unitprice}` }}
-      el-table-column(prop="costprice", show-overflow-tooltip, :label="costPriceLabel", align="left", :sortable="true")
+          span.is-capitalized {{ scope.row.name }}
+      el-table-column(label="Qty", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
-          span {{ `${currencySymbol} ${scope.row.costprice}` }}
-      el-table-column(prop="exptime", show-overflow-tooltip, label="Expiry date", align="left", :sortable="true")
+          span.is-capitalized {{ scope.row.branch ? scope.row.branch.quantity || 0 : 0 }}
+      el-table-column(label="Qty(HQ)", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
-          span {{ formatDate(scope.row.exptime) }}
-      el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
+          span.is-capitalized {{ scope.row.quantity }}
+      el-table-column(show-overflow-tooltip, :label="unitPriceLabel", :sortable="true")
+        template(slot-scope="scope")
+          span.is-capitalized {{ `${currencySymbol} ${scope.row.unitprice}` }}
+      el-table-column(show-overflow-tooltip, :label="costPriceLabel", :sortable="true")
+        template(slot-scope="scope")
+          span.is-capitalized {{ `${currencySymbol} ${scope.row.costprice}` }}
+      el-table-column(show-overflow-tooltip, label="Created At", :sortable="true")
+        template(slot-scope="scope")
+          span.el-icon-time.mr-5
+          span.is-capitalized {{ formatDate(scope.row.created_at) }}
+      el-table-column(label="Actions", :render-header="renderDelete", width="70")
         template(slot-scope="scope")
           button.button(:class="$style.trash" @click.stop="deleteRow(scope.row)")
-            i.material-icons delete
-      //- div(slot="append" v-show="showLoading")
-      //-  div(ref='loader' style="height: 45px;")
-      //-    infinite-loading(spinner="waveDots" v-if="loading")
+            span.el-icon-delete.font-size-23
+      div(slot="append" v-show="showLoading")
+       div(ref='loader' style="height: 45px")
+         infinite-loading(spinner="waveDots" v-if="loading")
 </template>
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions, mapGetters } from 'vuex';
-import { formatDate, formatStatus, dateForHumans } from '@/filters/format';
-import Loading from '@/components/shared/Loading';
-import ProductForm from '@/components/products/ProductForm';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-import InfiniteLoading from 'vue-infinite-loading';
-import deleteMixin from '@/mixins/DeleteMixin';
-import MoneyMixin from '@/mixins/MoneyMixin';
-import filterMixin from '@/mixins/FilterMixin';
-import EmptyState from '@/components/EmptyState';
-import { ObjectToFormData } from '@/utils/helper';
+import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
+import Loading from '@/components/shared/Loading'
+import ProductForm from '@/components/products/ProductForm'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import InfiniteLoading from 'vue-infinite-loading'
+import deleteMixin from '@/mixins/DeleteMixin'
+import MoneyMixin from '@/mixins/MoneyMixin'
+import filterMixin from '@/mixins/FilterMixin'
+import EmptyState from '@/components/EmptyState'
+import { ObjectToFormData } from '@/utils/helper'
 
 export default {
+
   mounted() {
-    this.loading = true;
-    this.clearProducts();
-    this.preloadItemsList();
-    this.handleBottomScroll();
+    this.loading = true
+    this.clearProducts()
+    this.preloadItemsList()
+    this.handleBottomScroll()
   },
+
   mixins: [deleteMixin, filterMixin, MoneyMixin],
+
   watch: {
     products(newValue) {
-      this.items = newValue;
-      this.filter.page = newValue.nextPage;
+      this.items = newValue
+      this.filter.page = newValue.nextPage
     },
   },
+
   data() {
     return {
-      formPanelOpen: false,
       isCreatingProduct: false,
       filter: {
         page: 1,
-        allproducts: 'allproducts',
+        strict: 0,
+        name: null
       },
       displaySearchFilters: false,
       loading: false,
       items: {
         data: []
       }
-    };
+    }
   },
+
   methods: {
+
     ...mapActions('products', [
       'loadProducts',
       'clearProducts',
       'deleteProduct',
     ]),
+
     ...mapActions('products', {
       searchItems: 'loadProducts',
     }),
+
     ...mapActions('products', {
-      loadItems: 'loadProductsByPage',
+      loadItems: 'loadProducts',
     }),
+
+    ...mapMutations('app', ['SET_FORM_STATE']),
+
     deleteItems() {},
+
     warnUser(warning) {
       return this.$swal({
         title: 'Are you sure?',
@@ -128,8 +156,9 @@ export default {
         showCancelButton: true,
         confirmButtonText: 'Yes',
         cancelButtonText: 'No',
-      });
+      })
     },
+
     deleteRow(row) {
       this.warnUser().then((res) => {
         if (res.value) {
@@ -139,43 +168,54 @@ export default {
             product: row,
           })
           .then((res) => {
-            this.$snackbar.open('successfully deleted');
+            this.$snackbar.open('successfully deleted')
           })
         }
       })
     },
+
     handleCellClick(row, cell) {
       if (cell.type !== 'selection') {
-        this.showProduct(row);
+        this.showProduct(row)
       }
     },
+
     createNewProduct() {
-      this.formPanelOpen = true;
-      this.isCreatingProduct = true;
+      this.SET_FORM_STATE(true)
+      this.isCreatingProduct = true
       this.$scrollTo(this.$refs['new-product-form'].$el, 1000, {
         container: '#snap-screen',
         easing: 'ease',
         offset: 20,
-      });
+      })
     },
+
     closeNewProductsForm() {
-      this.formPanelOpen = false;
-      this.isCreatingProduct = false;
+      this.SET_FORM_STATE(false)
+      this.isCreatingProduct = false
     },
+
     showProduct(row) {
-      this.$router.push({ name: 'product_view', params: { id: row.id } });
+      this.$router.push({ name: 'product_view', params: { id: row.id } })
     },
-    ...{ formatDate, formatStatus, dateForHumans },
+
+    ...{ formatDate, formatStatus, dateForHumans }
+
   },
+
   computed: {
+
     ...mapState('products', ['products']),
+    ...mapState('app', ['formPanelOpen']),
     costPriceLabel() {
       return `Cost Price (${this.currencySymbol})`
     },
     unitPriceLabel() {
       return `Unit Price (${this.currencySymbol})`
     },
+
   },
+
   components: {
     Loading,
     ProductForm,
@@ -183,7 +223,8 @@ export default {
     InfiniteLoading,
     EmptyState,
   },
-};
+
+}
 </script>
 
 <style lang="sass">
