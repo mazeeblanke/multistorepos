@@ -10,7 +10,6 @@
         ref="employee-form",
         :class="$style.pageForms",
         @close-form="closeDialog",
-        @updated-employee="updatedEmployeeDetails"
         :_employee="selectedEmployee",
       )
     .level.toolbar
@@ -38,7 +37,9 @@
               )
                 button.button.is-primary(
                   :disabled="!selectedEmployeeSales.data.length"
-                ) Download Purchase history
+                ) 
+                  span.el-icon-download.mr-5
+                  span Download Purchase history
         .level-item
           .field.has-addons
             p.control
@@ -123,6 +124,7 @@
           )
             el-table-column(label="No", type="index", :index="1")
             el-table-column(prop="sales_id", show-overflow-tooltip, label="Sales ID", sortable)
+            el-table-column(prop="product.name", show-overflow-tooltip, label="Product", sortable)
             el-table-column(prop="sub_total", show-overflow-tooltip, label="Total", sortable)
             el-table-column(prop="payment_type", show-overflow-tooltip, label="Payment Method")
             el-table-column(prop="quantity", show-overflow-tooltip, label="Qty Bought")
@@ -167,6 +169,7 @@ export default {
       },
       json_fields : {
         Customer: 'customer',
+        Product: 'product.name',
         Total: 'total',
         Discount: 'discount',
         profit:  'profit',
@@ -250,13 +253,6 @@ export default {
       'SET_SELECTED_EMPLOYEE'
     ]),
 
-    updatedEmployeeDetails(employee) {
-      this.SET_SELECTED_EMPLOYEE({
-        ...this.selectedEmployee,
-        ...employee
-      });
-    },
-
     closeDialog() {
       this.fullScreenActive = false;
     },
@@ -271,30 +267,25 @@ export default {
       'selectedEmployee',
     ]),
 
-    disablePurchaseHistory () {
-      return !this.selectedEmployeeSales || 
-      !(this.selectedEmployeeSales.data && 
-      this.selectedEmployeeSales.data.length)
-    },
+    // disablePurchaseHistory () {
+    //   return !this.selectedEmployeeSales || 
+    //   !(this.selectedEmployeeSales.data && 
+    //   this.selectedEmployeeSales.data.length)
+    // },
 
     employeeBranch() {
-      return this.selectedEmployee.branch || {};
+      return this.selectedEmployee.branch || {}
     },
 
     selectedEmployeeSales () {
-      return this.selectedEmployee ? this.selectedEmployee.sales : { data: [] }
-    },
-
-    fullname() {
-      if (this.selectedEmployee.firstname && this.selectedEmployee.surname) {
-        return `${this.selectedEmployee.firstname} ${this.selectedEmployee.surname}`;
-      }
-      return '-';
+      return this.selectedEmployee 
+        ? this.selectedEmployee.sales 
+        : { data: [] }
     },
 
     documentName() {
       if (this.selectedEmployee) {
-        return `${this.selectedEmployee.full_name}'s purchase history`;
+        return `${this.selectedEmployee.full_name}'s_purchase_history`;
       }
       return null;
     },

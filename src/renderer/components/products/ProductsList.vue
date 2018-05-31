@@ -5,7 +5,7 @@
         ref="new-product-form",
         @close-form="closeNewProductsForm",
         @action-complete="closeNewProductsForm",
-        v-if="isCreatingProduct"
+        v-show="isCreatingProduct"
       )
     .level.toolbar(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
@@ -21,7 +21,7 @@
             @input="search('name')",
             class="input-with-select"
           )
-            el-button(slot="append" icon="el-icon-search")
+            // el-button(slot="append" icon="el-icon-search")
       .level-right
         .level-item
           a.button.is-primary(@click="createNewProduct", :disabled="formPanelOpen")
@@ -58,7 +58,7 @@
       el-table-column(label="Qty", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
           span.is-capitalized {{ scope.row.branch ? scope.row.branch.quantity || 0 : 0 }}
-      el-table-column(label="Qty(HQ)", show-overflow-tooltip, :sortable="true")
+      el-table-column(label="Qty (HQ)", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
           span.is-capitalized {{ scope.row.quantity }}
       el-table-column(show-overflow-tooltip, :label="unitPriceLabel", :sortable="true")

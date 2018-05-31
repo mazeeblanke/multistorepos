@@ -47,6 +47,19 @@ export const UPDATE_STATE = (state, { data, lastPage, page, total }, key) => {
   }
 }
 
+export const CMD = (filepath) => {
+  switch (process.platform) {
+    case 'darwin':
+      return `open ${filepath}`
+    case 'win32':
+      return `"${filepath}"`
+    case 'win64':
+      return `"${filepath}"`
+    default:
+      return `xdg-open ${filepath}`
+  }
+}
+
 export const createImgOnCanvas = (url, callback) => {
   let img = new Image()
   let data

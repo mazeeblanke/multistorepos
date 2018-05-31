@@ -9,7 +9,7 @@
             header.card-header
               p.card-header-title Branch Management
               p.level-item.page-title.subtitle.is-5
-                span.tag.is-medium Branch: {{ currentBranch.name }}
+                span.tag.is-medium Branch: {{ settings.branch.name }}
               a.card-header-icon
                 span.el-icon-more-outline.font-size-23
             .tabs
@@ -25,59 +25,57 @@
 </template>
 
 <script>
-/* eslint-disable */
-import { mapState } from 'vuex';
-import SideBar from '@/components/shared/SideBar';
-const BASE_PATH = '/app/customers';
+
+import { mapState } from 'vuex'
+import SideBar from '@/components/shared/SideBar'
+const BASE_PATH = '/app/branches'
 
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
-    console.log('in here');
-    next({ name: 'customers_list' });
+    next({ name: 'branches_list' })
   } else {
-    console.log('out here');
-    next();
+    next()
   }
-};
+}
 
 export default {
-  data() {
+
+  data () {
     return {
-      activeTab: 0,
-    };
+      activeTab: 0
+    }
   },
+
   computed: {
-    ...mapState('branch', [
-      'currentBranch',
-    ]),
+    ...mapState('settings', ['settings'])
   },
-  beforeRouteEnter(to, from, next) {
-    redirectIfBase(to, next);
+
+  beforeRouteEnter (to, from, next) {
+    redirectIfBase(to, next)
   },
-  beforeRouteUpdate(to, from, next) {
-    redirectIfBase(to, next);
+
+  beforeRouteUpdate (to, from, next) {
+    redirectIfBase(to, next)
   },
+
   methods: {
-    resetScroll() {
+    resetScroll () {
       this.$scrollTo(this.$el, 1000, {
         container: '#snap-screen',
         easing: 'ease',
-        cancelable: false,
-      });
-    },
+        cancelable: false
+      })
+    }
   },
+
   components: {
-    SideBar,
-  },
-};
+    SideBar
+  }
+
+}
 </script>
 
 <style lang="sass">
-
-</style>
-<style lang="sass">
-.BaseAppCard
-  min-height: 670px
-  // .el-input
-  //   width: 300px
+  .BaseAppCard
+    min-height: 670px
 </style>

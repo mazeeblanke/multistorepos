@@ -71,84 +71,88 @@
                 )
           b-table-column(width="40", label="Actions")
             button.button(@click="deletebranchRow(props.index)", :class="$style.trash")
-              span.icon
-                i.branch.material-icons delete
+              span.el-icon-delete.font-size-23
 </template>
 
 
 
 <script>
-/* eslint-disable */
-import { mapState, mapActions } from 'vuex'
-import EmptyState from '@/components/EmptyState'
-import _ from 'lodash'
+
+import { mapActions, mapState } from 'vuex'
 
 export default {
+
   props: {
+
     product: {
-      required: true,
+      required: true
     },
+
     validation: {
-      required: false,
+      required: false
     },
+
     resetbranches: {
       required: false,
-      type: Function,
+      type: Function
     },
+
     addBranch: {
       required: false,
-      type: Function,
+      type: Function
     },
+
     resetVendor: {
       required: false,
-      type: Function,
-    },
+      type: Function
+    }
+
   },
 
-  components: {
-    EmptyState,
-  },
-
-  data() {
+  data () {
     return {
+
       availablebranchs: [],
+
       branchSuggestions: [],
-      fetchingItems: false,
-    };
+
+      fetchingItems: false
+
+    }
   },
 
   computed: {
-    selectedbranchId() {
+
+    ...mapState('settings', ['settings']),
+
+    selectedbranchId () {
       if (this.product && this.product.branches) {
         return this.product.branches
-        .filter(m => m.id)
-        .map(m => m.id);
+          .filter(m => m.id)
+          .map(m => m.id)
       }
       return []
-    },
+    }
   },
 
   methods: {
 
-    ...mapActions ('branch', [
-      'loadBranches',
+    ...mapActions('branch', [
+      'loadBranches'
     ]),
 
     _loadBranches (query) {
       if (query) {
-        this.fetchingItems = true;
+        this.fetchingItems = true
         this.loadBranches({
           name: query,
+          store_id: this.settings.store.id
         }).then((res) => {
-          console.log(res)
-          this.branchSuggestions = _.uniqBy([
-            ...res.branches.data,
-            ...this.branchSuggestions
-          ], s => s.id)
+          this.branchSuggestions = res.data
           this.fetchingItems = false
         }).catch(() => {
           this.fetchingItems = false
-        });
+        })
       }
     },
 
@@ -163,31 +167,23 @@ export default {
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
-      }).then(() => {
-        const branch = this.product.branches[index];
-        if (this.product.branches.length > 1) {
-          if (this.product.id && branch.code) {
-            this.deleteproductbranch({
-              reqId: this.product.id,
-              branchId: branch.item_id,
-            }).then(() => {
-              this.product.branches.splice(index, 1);
-            });
+        cancelButtonText: 'No'
+      }).then((res) => {
+        if (res.value) {
+          if (this.product.branches.length > 1) {
+            this.product.branches.splice(index, 1)
           } else {
-            this.product.branches.splice(index, 1);
+            this.$snackbar.open({
+              message: 'You must have at least one branch.',
+              type: 'is-danger'
+            })
           }
-        } else {
-          this.$snackbar.open({
-            message: 'You must have at least one item in this product.',
-            type: 'is-danger',
-          })
         }
       })
     }
 
   }
-};
+}
 </script>
 
 

@@ -2,9 +2,9 @@
   section.section
     .container-fluid
       .columns.is-gapless
-        .column(:class="$can('admin|super-admin') ? 'is-2' : ''")
+        .column(:class="$can('admin|superadmin') ? 'is-2' : ''")
           SideBar
-        .column(:class="$can('admin|super-admin') ? 'is-10' : ''")
+        .column(:class="$can('admin|superadmin') ? 'is-10' : ''")
           .BaseAppCard.card(ref='base-card')
             header.card-header
               p.card-header-title Suppliers Management

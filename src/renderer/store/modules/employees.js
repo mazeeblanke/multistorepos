@@ -35,7 +35,7 @@ export default {
 
     createEmployee ({ commit }, payload) {
       return Vue.axios.post('users', payload).then(res => {
-        commit('ADD_EMPLOYEE', res.data.data)
+        commit('SET_EMPLOYEES', res.data)
         return res.data
       })
     },

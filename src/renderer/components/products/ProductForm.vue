@@ -1,63 +1,19 @@
 <template lang="pug">
   .ProductForm
     FullscreenDialog(@closed="closeDialog", :active.sync="fullScreenActive")
-      div.xcel-import 
-        .level.toolbar
-          .level-left
-            .level-item 
-              h5.title.is-5 Add Products
-          .level-right
-            .level-item
-              b-field
-                input(type="file", @change="addCSVFile", ref="uploadInput", :style="{display: 'none'}")
-                div.groupUpload(@click="triggerUpload")
-                  button(class="button is-primary")
-                    span.icon.mr-10.ml-2
-                      i.material-icons cloud_upload
-                    span Click to upload
-                  div.filename(v-if="files && files.length")
-                    span.file-name {{ files[0].name }}
-            .level-item
-              button.button.is-primary(@click="addItemsFromCSV", :disabled="processing",)
-                span.icon
-                  i.material-icons add
-                span Add items 
-        EmptyState(empty-text="Select an excel file! [CSV format only]" v-if="!csvHeaders.length")
-        div.xcel-import-content(v-loading="parsingCSV || processing")        
-          .columns(v-if="csvHeaders.length")
-            .column.is-5
-              nav.panel
-                p.panel-heading.font-weight-bold CSV Headers
-                draggable(v-model="csvHeaders")
-                  transition-group
-                    a.panel-block(v-for="(header, index) in csvHeaders", :key="index")
-                      span.icon.mr-15
-                        span.el-icon-rank
-                      span {{ header }} 
-            .column.is-1
-              nav.panel
-                a.panel-block(v-for="(header, index) in systemHeaders", :key="index")
-                  span.icon
-                    i.material-icons forward
-            .column.is-5
-              nav.panel
-                p.panel-heading.font-weight-bold System Headers
-                draggable(v-model="systemHeaders")
-                  transition-group
-                    a.panel-block(v-for="(header, index) in systemHeaders", :key="index")
-                      span.icon.mr-15
-                        span.el-icon-rank
-                      span {{ header }} 
-        button.button.is-primary.mt-25.ml-64(@click="resetImport", v-if="csvHeaders.length")
-          span.icon
-            i.material-icons close
-          span Clear                
+      ImportExcel(
+        :create-items="createProduct",
+        :system-headers="systemHeaders",
+        :close-form="closeForm",
+        :additional-payload="additionalImportPayload"
+        model="product"
+      )     
     .level.toolbar
       .level-left
         .level-item
           .page-title.subtitle.is-5 {{ _product? 'Edit Product' : 'New Product' }}
       .level-right
-        .level-item
+        .level-item(v-if="!_product")
           el-switch(
             style="display: block"
             v-model="product.advanced"
@@ -73,11 +29,11 @@
           )
             span.el-icon-circle-plus-outline.mr-5
             span {{ _product? 'Save product edits' : 'Add Product' }}
-        .level-item    
+        .level-item(v-if="!_product")    
           button.button.is-primary(
             @click="fullScreenActive = true"
           ) 
-            span.el-icon-download
+            span.el-icon-download.mr-5
             span Import Excel
         .level-item
           a.button.no-border(@click="closeForm()")
@@ -209,9 +165,9 @@ import { validationMixin } from 'vuelidate'
 import { required, minValue } from 'vuelidate/lib/validators'
 import EmptyState from '@/components/EmptyState'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
-import Papa from 'papaparse'
 import draggable from 'vuedraggable'
 import MaterialsForm from '@/components/products/MaterialsForm'
+import ImportExcel from '@/components/shared/ImportExcel'
 
 export default {
 
@@ -274,7 +230,6 @@ export default {
         minValue: minValue(0)
       },
       barcode: { required },
-      // exptime: { required },
       name: { required },
       status: { required }
     }
@@ -290,20 +245,17 @@ export default {
     _product () {
       this.product = this._product
     }
-    // files(newVal) {
-    //   console.log('jwejwe');
-    //   console.log(newVal);
-    //   if (Array.from(newVal).length) {
-    //     this.parseCSV();
-    //   }
-    // },
   },
 
   computed: {
 
-    ...mapState('users', ['currentUser']),
+    ...mapState('settings', ['settings']),
 
-    ...mapState('settings', ['settings'])
+    additionalImportPayload () {
+      return {
+        store_id: this.settings.store.id
+      }
+    }
 
   },
 
@@ -330,118 +282,8 @@ export default {
       })
     },
 
-    triggerUpload () {
-      this.$refs.uploadInput.click()
-    },
-
-    addCSVFile (e) {
-      const file = e.target.files[0]
-      if (!file.name.match(/\.csv$/)) {
-        this.$snackbar.open({
-          type: 'is-warning',
-          message: 'File must be a csv!!'
-        })
-        return
-      }
-      this.files = Array.from(e.target.files)
-      if (this.files.length) {
-        this.parseCSV()
-      }
-      this.$refs.uploadInput.value = []
-    },
-
-    resetImport () {
-      this.files = []
-      this.$refs.uploadInput.value = []
-      this.csvHeaders = []
-    },
-
-    addItemsFromCSV () {
-      const headerMappings = this.systemHeaders.reduce((agg, curr, index) => {
-        agg[this.csvHeaders[index]] = curr
-        return agg
-      }, {})
-      console.log(headerMappings)
-      const data = this.csvData.data.map((product, i) => {
-        let payload = {}
-        Object.keys(product).forEach((key) => {
-          if (headerMappings[key]) {
-            payload[headerMappings[key]] = product[key]
-          }
-        })
-        return {
-          ...payload,
-          store_id: this.settings.store.id
-        }
-      })
-      this.processing = true
-      this.createProduct({products: data})
-        .then(res => {
-          this.$snackbar.open(res.message)
-          this.$emit('action-complete')
-          this.processing = false
-        })
-        .catch((err) => {
-          console.log(err.response.data)
-          this.csvErrors = err.response.data
-            .map((e, i) => {
-              const _e = e.field.split('.')
-              return `<article class="message is-danger">
-                      <div class="message-body">
-                        <strong>${i + 1}) </strong>
-                        ${_e[2]} of ${_e[0]} at position/line ${+_e[1] + 1} must be a ${e.validation}
-                      </div>
-                    </article>`
-            })
-            .join(' ')
-          this.warnUser(this.csvErrors)
-          this.processing = false
-          this.$snackbar.open({
-            type: 'is-danger',
-            message: err.message
-          })
-        })
-    },
-
-    parseCSV () {
-      this.parsingCSV = true
-      Papa.parse(this.files[0], {
-        header: true,
-        dynamicTyping: true,
-        error: (err, file, inputElem, reason) => {
-          console.log(err)
-          if (err) {
-            this.parsingCSV = false
-            this.$snackbar.open({
-              type: 'is-danger',
-              message: `${reason}`
-            })
-          }
-        },
-        complete: (results) => {
-          this.csvHeaders = Object.keys(results.data[0])
-          this.csvHeaders = this.csvHeaders.reduce((agg, curr, i) => {
-            const indexOfSystemHeader = this.systemHeaders.indexOf(curr)
-            if (agg[indexOfSystemHeader]) {
-              agg.splice(indexOfSystemHeader, 0, curr)
-            } else if (indexOfSystemHeader === -1 && agg.length <= this.csvHeaders.length) {
-              agg.splice(agg.lastIndexOf(null), 0, curr)
-            } else {
-              agg.splice(indexOfSystemHeader, 1, curr)
-            }
-            if (agg.length > this.csvHeaders.length) { agg.splice(agg.indexOf(null), 1) }
-            return agg
-          }, Array(this.csvHeaders.length).fill(null))
-          this.csvData = {
-            ...results,
-            data: results.data.slice(0, results.data.length - 1)
-          }
-          this.parsingCSV = false
-        }
-      })
-    },
-
     closeForm () {
+      this.closeDialog()
       this.$emit('close-form')
     },
 
@@ -454,6 +296,7 @@ export default {
         barcode: null,
         exptime: null,
         name: null,
+        branches: [{}, {}],
         status: null
       }
     },
@@ -504,9 +347,15 @@ export default {
   },
 
   components: {
+
     EmptyState,
+
     FullscreenDialog,
+
     MaterialsForm,
+
+    ImportExcel,
+
     draggable
   }
 

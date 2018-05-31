@@ -33,7 +33,7 @@ section.section(:style="{ width: '100%' }")
               .level-left
                 .level-item.page-title.subtitle.is-5
                   span.el-icon-news.mr-5.font-size-23
-                  span.mr-10 Listing Items({{ getCartItemsNumber }})
+                  span.mr-10 Listing Items ({{ getCartItemsNumber }})
                   template(v-if="cart.customer")
                     span.tag.is-dark.is-medium 
                       span.material-icons accessibility
@@ -80,7 +80,7 @@ section.section(:style="{ width: '100%' }")
               stripe
             )
               el-table-column(type="selection")
-              el-table-column(label="No", width="50")
+              el-table-column(label="S/N", width="50")
                 template(slot-scope="props" v-if="props.row")
                   span {{ props.$index + 1 }}
               el-table-column(prop="name", align="left", show-overflow-tooltip, label="Product Name")

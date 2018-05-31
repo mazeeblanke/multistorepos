@@ -5,7 +5,7 @@
         ref="new-customer-form",
         @close-form="closeNewCustomerForm",
         @action-complete="closeNewCustomerForm",
-        v-if="formPanelOpen"
+        v-show="formPanelOpen"
       )
     .level.toolbar(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
@@ -20,7 +20,7 @@
               @input="search('full_name')", 
               class="input-with-select"
             )
-              el-button(slot="append", icon="el-icon-search")  
+              // el-button(slot="append", icon="el-icon-search")  
       .level-right
         .level-item
           a.button.is-primary(
@@ -74,7 +74,7 @@
       el-table-column(label="Actions", :render-header="renderDelete", width="70")
         template(slot-scope="scope", scope="props")
           button.button(:class="$style.trash")
-            i.material-icons delete
+            span.el-icon-delete.font-size-23
       div(slot="append" v-show="showLoading")
        div(ref='loader' style="height: 45px;")
          infinite-loading(spinner="waveDots" v-if="loading")

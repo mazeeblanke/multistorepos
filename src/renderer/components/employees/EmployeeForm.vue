@@ -1,5 +1,13 @@
 <template lang="pug">
   div
+    FullscreenDialog(@closed="closeDialog", :active.sync="fullScreenActive")
+      ImportExcel(
+        :create-items="createEmployee", 
+        :system-headers="systemHeaders",
+        :close-form="_closeForm",
+        :additional-payload="additionalImportPayload"
+        model="user"
+      )
     .EmployeeForm(v-loading="processing || processingTransaction")
       .level.toolbar
         .level-left
@@ -14,6 +22,12 @@
             )
               b-icon(icon="save")
               span {{ _employee? 'Save employee edits' : 'Add Employee' }}
+          .level-item(v-if="!_employee")      
+            button.button.is-primary(
+              @click="fullScreenActive = true"
+            ) 
+              span.el-icon-download.mr-5
+              span Import Excel    
           .level-item
             a.button.no-border(@click="$emit('close-form')")
               span.icon
@@ -148,38 +162,38 @@
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions, mapMutations } from 'vuex';
-import { validationMixin } from 'vuelidate';
-import { required, sameAs, email, minLength } from 'vuelidate/lib/validators';
-import { ObjectToFormData } from '@/utils/helper';
-import EmptyState from '@/components/EmptyState';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-
+import { mapState, mapActions } from 'vuex'
+import { validationMixin } from 'vuelidate'
+import { required, sameAs, email, minLength } from 'vuelidate/lib/validators'
+import EmptyState from '@/components/EmptyState'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import ImportExcel from '@/components/shared/ImportExcel'
 
 export default {
 
   props: {
 
     _employee: {
-      type: Object,
+      type: Object
     },
 
     sellItems: {
-      type: Function,
+      type: Function
     },
 
     processingTransaction: {
-      required: false,
+      required: false
     },
 
     closeForm: {
       required: false
     }
+
   },
 
   mixins: [validationMixin],
 
-  data() {
+  data () {
     return {
       employee: {
         full_name: null,
@@ -192,18 +206,24 @@ export default {
         status: null,
         email: null
       },
-      // employeeId: null,
       suggestions: [],
       loading: false,
       branchSuggestions: [],
       loadingBranches: false,
-      // availableMaterials: [],
       processing: false,
-      fullScreenActive: false,
-    };
+      systemHeaders: [
+        'full_name',
+        'email',
+        'password',
+        'access_level',
+        'username',
+        'status'
+      ],
+      fullScreenActive: false
+    }
   },
 
-  validations: function() {
+  validations: function () {
     const employee = {
       full_name: { required },
       username: { required },
@@ -212,20 +232,21 @@ export default {
       email: { required, email },
       status: { required }
     }
+
     if (this._employee) {
       return { employee: {
         ...employee,
         password: { minLength: minLength(8) },
-        passwordConfirmation: { sameAsPassword: sameAs('password') },
+        passwordConfirmation: { sameAsPassword: sameAs('password') }
       }}
     } else {
       return { employee: {
         ...employee,
         password: { required },
-        passwordConfirmation: { 
+        passwordConfirmation: {
           required,
           sameAsPassword: sameAs('password')
-        },
+        }
       }}
     }
   },
@@ -235,113 +256,85 @@ export default {
     this.employee = {
       ...this.employee,
       ...this._employee,
-      branch: this.settings.branch,
+      branch: this.settings.branch
     }
   },
-  
+
   watch: {
+
     _employee () {
       this.employee = { ...this._employee }
       this.branchSuggestions = [this.employee.branch]
-    },
+    }
+
   },
 
   computed: {
-    ...mapState('users', ['currentUser']),
+
     ...mapState('settings', ['settings']),
-    ...mapState('branch', [
-      'selectedBranch',
-      'currentBranch',
-    ]),
+
+    additionalImportPayload () {
+      return {
+        store_id: this.settings.store.id,
+        branch_id: this.settings.branch.id
+      }
+    }
+
   },
 
   methods: {
 
     ...mapActions('employees', ['loadEmployees']),
 
-    ...mapMutations('employees', ['ADD_EMPLOYEE']),
+    ...mapActions('branch', ['loadBranches']),
 
-    ...mapActions('branch', [
-      'loadBranches',
-      'searchBranches',
-    ]),
+    _closeForm () {
+      this.closeForm()
+      this.closeDialog()
+    },
 
-    _loadBranches(query) {
+    _loadBranches (query) {
       if (query) {
-        this.loadingBranches = true;
+        this.loadingBranches = true
         this.loadBranches({
           name: query,
           store_id: this.settings.store_id
         }).then((res) => {
           console.log(res)
-          this.branchSuggestions = res.branches.data;
-          this.loadingBranches = false;
+          this.branchSuggestions = res.branches.data
+          this.loadingBranches = false
         }).catch(() => {
-          this.loadingBranches = false;
-        });
+          this.loadingBranches = false
+        })
       }
     },
 
-    warnUser() {
+    warnUser () {
       return this.$swal({
         title: 'Are you sure?',
         text: 'Continue without creating employee?',
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
-      });
+        cancelButtonText: 'No'
+      })
     },
 
-    handleClick() {
+    handleClick () {
       this.warnUser().then((res) => {
         if (res.value) {
-          this.sellItems();
+          this.sellItems()
         }
       })
     },
 
-    getEmployeeSuggestions(query) {
-      if (query !== '') {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: 'employee',
-        };
-        this.loadEmployees(payload)
-          .then(suggestions => {
-            this.loading = false;
-            this.suggestions = _.flatMap(suggestions);
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.suggestions = [];
-      }
+    closeDialog () {
+      this.fullScreenActive = false
     },
-
-    closeDialog() {
-      this.fullScreenActive = false;
-    },
-
-    updateEmployeeDetails() {
-      this.employee = this.suggestions.find(
-        s => s.id === this.employeeId,
-      );
-    },
-
-    addNewItem() {},
-
-    handleChange() {},
 
     ...mapActions('employees', ['createEmployee', 'updateEmployee']),
 
-    // closeForm() {
-    //   this.$emit('close-form');
-    // },
-
-    resetEmployee() {
+    resetEmployee () {
       this.employee = {
         full_name: null,
         username: null,
@@ -349,27 +342,25 @@ export default {
         passwordConfirmation: null,
         access_level: null,
         email: null
-        // branchid: null,
-      };
+      }
     },
 
-    validateForm() {
+    validateForm () {
       this.$v.employee.$touch()
       if (this.$v.$invalid) {
         this.$snackbar.open({
           type: 'is-danger',
           message: 'Validation errors exist!!'
-        });
+        })
       }
     },
 
     processEmployeeData () {
-
-      const { 
-        full_name, 
-        username, 
-        password, 
-        passwordConfirmation, 
+      const {
+        full_name,
+        username,
+        password,
+        passwordConfirmation,
         access_level,
         email,
         status,
@@ -389,47 +380,48 @@ export default {
       }
     },
 
-    submit() {
+    submit () {
       this.validateForm()
 
       if (!this.$v.$invalid) {
-        this.processing = true;
+        this.processing = true
+
         const doAction = this._employee
           ? this.updateEmployee
           : this.createEmployee
+
         const PAYLOAD = this.processEmployeeData()
+
         doAction(PAYLOAD).then(res => {
           this.$snackbar.open(res.message)
           if (!this._employee) {
             this.resetEmployee()
             this.closeForm()
             this.$v.employee.$reset()
-          } 
-          // else {
-          //   this.$emit('updated-employee', { 
-          //     ...res.user_details[0],
-          //     branch_details: this.employee.branch,
-          //     branch: this.employee.branch,
-          //   });
-          // }
-          this.processing = false;
+          }
+          this.processing = false
         }).catch((err) => {
-          console.log(err.data);
-          this.processing = false;
+          console.log(err.data)
+          this.processing = false
           this.$snackbar.open({
             type: 'is-danger',
             message: `Error occurred ${err}`
           })
         })
       }
+    }
+  },
 
-    },
-  },
   components: {
+
     FullscreenDialog,
-    EmptyState,
-  },
-};
+
+    ImportExcel,
+
+    EmptyState
+  }
+
+}
 </script>
 
 <style lang="sass">

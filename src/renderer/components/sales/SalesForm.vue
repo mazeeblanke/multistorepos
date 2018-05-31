@@ -7,7 +7,7 @@ div
     ref="check-product",
   )
   .RequisitionForm
-    .level.toolbar.shadow-divider
+    .level.toolbar
       .level-left
         .level-item
           span.tag.is-medium(title="Sales id") 
@@ -21,6 +21,7 @@ div
               .field
                 el-select(
                   :value="formatedValue"
+                  :default-first-option="true"
                   :filterable="true"
                   :remote="true"
                   placeholder="Enter product name"

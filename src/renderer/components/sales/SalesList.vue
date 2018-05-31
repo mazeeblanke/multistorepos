@@ -10,7 +10,7 @@
       v-loading="generatingReceipt || refunding"
       element-loading-text="processing ..."
     )
-      .level.toolbar.shadow-divider(:class="{ 'shadow-divider': formPanelOpen }")
+      .level.toolbar(:class="{ 'shadow-divider': formPanelOpen }")
         .level-left
           .level-item.page-title.subtitle.is-5 Listing Sales ({{ filteredItemsData.length }})
         .level-item
@@ -51,7 +51,7 @@
                     value-key="id",
                     @change="(newBranch) => refreshSales(newBranch)",
                     size="small",
-                    v-show="$can('super-admin')"
+                    v-show="$can('superadmin')"
                   )
                     el-option(
                       v-for="branch in branchSuggestions",

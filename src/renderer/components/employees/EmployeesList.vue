@@ -22,7 +22,7 @@
               @input="search('username')", 
               class="input-with-select"
             )
-              el-button(slot="append" icon="el-icon-search")  
+              // el-button(slot="append" icon="el-icon-search")  
       .level-right
         .level-item
           a.button.is-primary(

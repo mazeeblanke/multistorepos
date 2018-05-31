@@ -31,9 +31,10 @@ export default {
       })
     },
 
-    loadBranch ({ commit }, payload) {
-      return branches(payload).then(res => {
-        commit('SET_SELECTED_BRANCH', res.data.message[0])
+    loadBranch ({ commit }, { id }) {
+      return Vue.axios.get(`branch/${id}`).then(res => {
+        commit('SET_SELECTED_BRANCH', res.data.data)
+        return res.data
       })
     },
 
@@ -46,14 +47,14 @@ export default {
 
     createBranch ({ commit }, payload) {
       return Vue.axios.post('branches', payload).then(res => {
-        commit('ADD_BRANCH', res.data.data)
+        commit('SET_BRANCHES', res.data)
         return res.data
       })
     },
 
     updateBranch ({ commit }, payload) {
-      return branches(payload).then(res => {
-        // commit('ADD_BRANCH', payload.customer);
+      return Vue.axios.patch(`branch/${payload.id}`, payload).then(res => {
+        commit('SET_SELECTED_BRANCH', res.data.data)
         return res.data
       })
     },
@@ -75,7 +76,11 @@ export default {
     },
 
     SET_SELECTED_BRANCH (state, data) {
-      state.selectedBranch = { ...{ sales: [] }, ...data }
+      state.selectedBranch = {
+        sales: { data: [] },
+        ...state.selectedBranch,
+        ...data
+      }
     },
 
     SET_SELECTED_BRANCH_SALES (state, data) {

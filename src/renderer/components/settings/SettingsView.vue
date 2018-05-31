@@ -3,22 +3,26 @@
     div.columns.is-mobile
       .column.is-2
         el-menu(
-          default-active="2"
-          class="el-menu-vertical-demo"
-          @open="handleOpen"
-          @close="handleClose"
+          default-active="/app/settings/v/general",
+          class="el-menu-vertical-demo",
           :router="true"
         )
           el-menu-item(index="/app/settings/v/general")
             b-icon.mr-5(icon="settings")
             span General
+          el-menu-item(index="/app/settings/v/profile")
+            b-icon.mr-5(icon="person")
+            span Profile
           el-menu-item(index="4")
             b-icon.mr-5(icon="system_update_alt")
             span Software Update
           el-menu-item(index="5")
+            b-icon.mr-5(icon="assignment")
+            span Invoice Settings
+          el-menu-item(index="5")
             b-icon.mr-5(icon="restore")
             span Reset
-          el-menu-item(index="6")
+          el-menu-item(index="/app/settings/v/about")
             b-icon.mr-5(icon="info")
             span About
       .column.is-10
@@ -39,25 +43,6 @@ const redirectIfBase = (to, next) => {
 }
 
 export default {
-  data () {
-    return {
-      previewingDoc: false,
-      isLoading: false,
-      fullScreenActive: false,
-      isLoadingSales: false
-    }
-  },
-
-  methods: {
-
-    handleOpen () {},
-
-    handleClose () {}
-
-  },
-
-  computed: {},
-
   beforeRouteEnter (to, from, next) {
     redirectIfBase(to, next)
   },
@@ -65,7 +50,6 @@ export default {
   beforeRouteUpdate (to, from, next) {
     redirectIfBase(to, next)
   }
-
 }
 </script>
 
@@ -91,8 +75,8 @@ export default {
   .el-menu
     height: 100% !important
   .is-active
-    background-color: #ecf5ff !important
-    color: #0a44ae !important
+    background-color: #ffffff !important
+    color: #05296b !important
   .el-loading-mask
     z-index: 0 !important
 </style>

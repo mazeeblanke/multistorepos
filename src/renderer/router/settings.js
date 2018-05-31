@@ -2,6 +2,8 @@ import { PROGRESS } from '../utils/constants'
 const SettingsManagement = () => import('@/components/settings/SettingsManagement')
 const SettingsView = () => import('@/components/settings/SettingsView')
 const General = () => import('@/components/settings/General')
+const About = () => import('@/components/settings/About')
+const Profile = () => import('@/components/settings/Profile')
 
 export default {
   path: 'settings',
@@ -22,6 +24,26 @@ export default {
           path: 'general',
           name: 'general',
           component: General,
+          meta: {
+            permission: 'admin|superadmin|clerk',
+            fail: '/app/new-sale',
+            requiresAuth: true
+          }
+        },
+        {
+          path: 'about',
+          name: 'about',
+          component: About,
+          meta: {
+            permission: 'admin|superadmin|clerk',
+            fail: '/app/new-sale',
+            requiresAuth: true
+          }
+        },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: Profile,
           meta: {
             permission: 'admin|superadmin|clerk',
             fail: '/app/new-sale',

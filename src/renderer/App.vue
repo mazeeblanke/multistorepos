@@ -508,7 +508,8 @@ export default {
     background: #051021
     .columns
       margin: 0px !important
-      padding: 10px !important
+      // padding: 10px !important
+      padding: 0px !important
     .is-6, .is-12
       margin: 0px 0px !important
       padding: 1px !important

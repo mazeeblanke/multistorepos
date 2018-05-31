@@ -12,27 +12,9 @@
                 span.tag.is-medium Branch: {{ settings.branch.name }}
               a.card-header-icon
                 span.el-icon-more-outline.font-size-23  
-              // a.card-header-icon
-              //   el-dropdown
-              //     span(class="el-dropdown-link")
-              //       span.icon
-              //         i.material-icons keyboard_arrow_down
-              //     el-dropdown-menu(slot="dropdown")
-              //       el-dropdown-item(:disabled="!filteredCustomers.length")
-              //         JsonExcel(
-              //           :data="filteredCustomers",
-              //           :fields="json_fields",
-              //           :name="documentName",
-              //           type="xlsx",
-              //           v-if="filteredCustomers.length"
-              //         ) Export customers list to excel ({{filteredCustomers.length}})
-              //       el-dropdown-item Advanced excel export (Customers)
-              //       el-dropdown-item Action 2
-              //       el-dropdown-item Action 2
-              //       el-dropdown-item Action 2
             .tabs
               ul
-                router-link(tag="li", :to="{name: 'purchase_orders_list'}", active-class="is-active")
+                router-link(tag="li", :to="{name: 'customers_list'}", active-class="is-active")
                   a Customers
             .tab-content
               router-view(@formPanelClose='resetScroll')

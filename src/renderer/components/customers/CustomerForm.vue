@@ -1,5 +1,13 @@
 <template lang="pug">
-  div 
+  div
+    FullscreenDialog(@closed="closeDialog", :active.sync="fullScreenActive")
+      ImportExcel(
+        :create-items="createCustomer", 
+        :system-headers="systemHeaders",
+        :close-form="closeForm",
+        :additional-payload="additionalImportPayload"
+        model="customer"
+      ) 
     .CustomerForm(v-loading="processing || processingTransaction")
       .level.toolbar
         .level-left
@@ -14,6 +22,12 @@
             )
               b-icon(icon="save")
               span {{ _customer? 'Save customer edits' : 'Add Customer' }}
+          .level-item(v-if="!_customer")      
+            button.button.is-primary(
+              @click="fullScreenActive = true"
+            ) 
+              span.el-icon-download.mr-5
+              span Import Excel     
           .level-item
             a.button.no-border(@click="closeForm()")
               span.icon
@@ -188,6 +202,7 @@ import { ucFirst } from '@/utils/helper'
 import EmptyState from '@/components/EmptyState'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import countries from '@/data/countries.json'
+import ImportExcel from '@/components/shared/ImportExcel'
 
 const chance = require('chance').Chance();
 
@@ -223,6 +238,20 @@ export default {
         cardnumber: chance.fbid(),
         country: null,
       },
+      systemHeaders: [
+        'email',
+        'address',
+        'full_name',
+        'date_of_birth',
+        'phone',
+        'marital_status',
+        'gender',
+        'town',
+        'confirmation',
+        'cardnumber',
+        'country',
+        'title'
+      ],
       countries,
       customerId: null,
       processing: false,
@@ -260,7 +289,13 @@ export default {
 
     ...mapState('users', ['currentUser']),
 
-    ...mapState('settings', ['settings'])
+    ...mapState('settings', ['settings']),
+
+    additionalImportPayload () {
+      return {
+        store_id: this.settings.store.id
+      }
+    }
   
   },
 
@@ -274,7 +309,12 @@ export default {
     ]),
 
     closeForm () {
-      this.$emit('close-form');
+      this.closeDialog()
+      this.$emit('close-form')
+    },
+
+    closeDialog () {
+      this.fullScreenActive = false
     },
 
     resetCustomer() {
@@ -330,8 +370,12 @@ export default {
   },
 
   components: {
+
     FullscreenDialog,
+
     EmptyState,
+
+    ImportExcel
   }
 
 }

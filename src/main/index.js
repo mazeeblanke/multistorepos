@@ -1,9 +1,11 @@
 'use strict'
-/* eslint-disable */
-import { app, BrowserWindow, ipcMain, Menu, protocol } from 'electron'
-const path = require("path");
 
-// Modify the user agent for all requests to the following urls.
+import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import { CMD } from '../renderer/utils/helper'
+const exec = require('child_process').exec
+const notifier = require('node-notifier')
+
+// const path = require('path')
 
 const template = [
   {
@@ -104,30 +106,11 @@ const winURL = process.env.NODE_ENV === 'development'
   : `file://${__dirname}/index.html`
 
 function createWindow () {
-  /**
-   * Initial window options
-   */
-  protocol.registerServiceWorkerSchemes(['file', 'l'])
-  // protocol.interceptFileProtocol('file', (request, callback) => {
-  //   // const url = request.url.substr(7)
-  //   // console.log(request)
-  //   // console.log('badeest g ------------')
-  //   // ipcMain.emit('stuff', request)
-  //   callback({path: request.url})
-  //   }, (error) => {
-  //   if (error) {
-  //     console.error('Failed to intercept file protocol')
-  //   }
-  // })
-
   mainWindow = new BrowserWindow({
     height: 800,
     useContentSize: true,
     width: 1600,
-    minWidth: 1200,
-    webPreferences: {
-      webSecurity: false
-    }
+    minWidth: 1200
   })
 
   mainWindow.loadURL(winURL)
@@ -139,28 +122,55 @@ function createWindow () {
   })
 
   ipcMain.on('print', (event, data) => {
-    // if (data.type !== 'report') {
-    //   setTimeout(() => {
-    //     prevWindow.loadURL(data.data)
-    //   }, 5000)
-    // } else {
     mainWindow.webContents.print({ silent: false })
-    // }
   })
 
-  // const filter = { urls: ["https://*.github.com/*", "*://electron.github.io", "*"] };
+  mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
+    item.on('updated', (event, state) => {
+      const RECEIVED_BYTES = item.getReceivedBytes()
+      const FILE_SIZE = item.getTotalBytes()
+      if (state === 'interrupted') {
+        console.log('Download is interrupted but can be resumed')
+      } else if (state === 'progressing') {
+        if (item.isPaused()) {
+          console.log('Download is paused')
+        } else {
+          console.log(`Received bytes: ${RECEIVED_BYTES}`)
+          mainWindow.setProgressBar(RECEIVED_BYTES / FILE_SIZE)
+        }
+      }
+    })
 
-  // session.defaultSession.webRequest.onBeforeSendHeaders(
-  //   filter,
-  //   (details, callback) => {
-  //     details.requestHeaders["User-Agent"] = "MyAgent";
-  //     console.log("hit n run");
-  //     callback({ cancel: false, requestHeaders: details.requestHeaders });
-  //   },
-  // );
+    item.once('done', (event, state) => {
+      const FILE_PATH = item.getSavePath()
+      if (state === 'completed') {
+        console.log('Download successfully')
+        notifier.notify({
+          title: 'Download Complete',
+          message: `Your file ${item.getFilename()} download successfully`,
+          sound: true,
+          wait: true
+        },
+        function (err, response) {
+        // Response is response from notification
+          console.log(err)
+        })
+
+        notifier.on('click', function (notifierObject, options) {
+        // Triggers if `wait: true` and user clicks notification
+          exec(CMD(FILE_PATH))
+        })
+
+        notifier.on('timeout', function (notifierObject, options) {
+        // Triggers if `wait: true` and notification closes
+        })
+      } else {
+        console.log(`Download failed: ${state}`)
+      }
+    })
+  })
 }
 
-// app.commandLine.appendSwitch('disable-web-security') // try add this line
 app.on('ready', createWindow)
 
 app.on('window-all-closed', () => {

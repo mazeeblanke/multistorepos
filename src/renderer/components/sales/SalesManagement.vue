@@ -2,32 +2,16 @@
   section.section
     .container-fluid
       .columns.is-gapless
-        .column(v-show="$can('admin|super-admin')" :class="$can('admin|super-admin') ? 'is-2' : ''")
+        .column(v-show="$can('admin|superadmin')" :class="$can('admin|superadmin') ? 'is-2' : ''")
           SideBar
-        .column(:class="$can('admin|super-admin') ? 'is-10' : ''")
+        .column(:class="$can('admin|superadmin') ? 'is-10' : ''")
           .BaseAppCard.card(ref='base-card')
             header.card-header
               p.card-header-title Sales Management
               p.level-item.page-title.subtitle.is-5
                 span.tag.is-medium Branch: {{ currentBranch.name }}
               a.card-header-icon
-                el-dropdown
-                  span(class="el-dropdown-link")
-                    span.icon
-                      i.material-icons keyboard_arrow_down
-                  el-dropdown-menu(slot="dropdown")
-                    el-dropdown-item(:disabled="!filteredSales.length")
-                      JsonExcel(
-                        :data="filteredSales",
-                        :fields="json_fields",
-                        :name="documentName",
-                        type="xlsx",
-                        v-if="filteredSales.length"
-                      ) Export sales list to excel ({{filteredSales.length}})
-                    el-dropdown-item Advanced excel export (Sales)
-                    el-dropdown-item Action 2
-                    el-dropdown-item Action 2
-                    el-dropdown-item Action 2
+                span.el-icon-more-outline.font-size-23 
             .tabs
               ul
                 router-link(tag="li", :to="{name: 'sales_list'}", active-class="is-active")

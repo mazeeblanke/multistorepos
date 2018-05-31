@@ -29,7 +29,7 @@
               span.ml-10
                 strong.is-uppercase ({{ currentUser && currentUser.access_level }})
               b-icon(icon="arrow_drop_down")
-            b-dropdown-item Profile
+            router-link.dropdown-item(:to="{name: 'profile'}") Profile
             router-link.dropdown-item(:to="{name: 'settings'}") Settings
             b-dropdown-item
               a(@click="logoutUser") Log Out

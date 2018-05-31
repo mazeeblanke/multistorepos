@@ -1,5 +1,13 @@
 <template lang="pug">
   div
+    FullscreenDialog(@closed="closeDialog", :active.sync="fullScreenActive")
+      ImportExcel(
+        :create-items="createBranch", 
+        :system-headers="systemHeaders",
+        :close-form="closeForm",
+        :additional-payload="additionalImportPayload"
+        model="branch"
+      )
     .BranchForm(v-loading="processing")
       .level.toolbar
         .level-left
@@ -15,6 +23,12 @@
             )
               b-icon(icon="save")
               span {{ _branch? 'Save branch edits' : 'Add Branch' }}
+          .level-item(v-if="!_branch")      
+            button.button.is-primary(
+              @click="fullScreenActive = true"
+            ) 
+              span.el-icon-download.mr-5
+              span Import Excel    
           .level-item
             a.button.no-border(@click="closeForm()")
               span.icon
@@ -23,7 +37,7 @@
         .column.is-4
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Branch Name
+              label.label Name
             .field-body
               .field
                 el-input(
@@ -58,7 +72,7 @@
         .column.is-4
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Branch Address
+              label.label Address
             .field-body
               .field
                 el-input(
@@ -152,6 +166,7 @@ import { required } from 'vuelidate/lib/validators'
 import EmptyState from '@/components/EmptyState'
 import currencies from '@/data/Common-Currency.json'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import ImportExcel from '@/components/shared/ImportExcel'
 
 export default {
 
@@ -179,6 +194,13 @@ export default {
         receiptinfo: null
       },
       suggestions: [],
+      systemHeaders: [
+        'name',
+        'email',
+        'address',
+        'currency',
+        'printout'
+      ],
       loading: false,
       processing: false,
       fullScreenActive: false,
@@ -229,7 +251,13 @@ export default {
 
     ...mapState('branch', [
       'selectedBranch'
-    ])
+    ]),
+
+    additionalImportPayload () {
+      return {
+        store_id: this.settings.store.id
+      }
+    }
 
   },
 
@@ -252,6 +280,7 @@ export default {
     },
 
     closeForm () {
+      this.closeDialog()
       this.$emit('close-form')
     },
 
@@ -272,35 +301,34 @@ export default {
       this.$v.branch.$touch()
       if (!this.$v.$invalid) {
         this.processing = true
+
         const doAction = this._branch
           ? this.updateBranch
           : this.createBranch
-        // this.branch = {
-        //   ...this.branch,
-        //   ...{
-        //     [this._branch ? 'updatebranch' : 'addbranch']: 'value',
-        //     // access2: this._branch ? this.branch.access : null,
-        //     // name: this._branch ? this.branch.fullname : null,
-        //     // user: this._branch ? this.branch.username : null,
-        //     branchid: this._branch ? this._branch.id : null
-        //   }
-        // }
 
-        doAction(this.branch).then(res => {
+        doAction({
+          ...this.branch,
+          id: this._branch && this._branch.id
+        }).then(res => {
           this.$snackbar.open(res.message)
+
           if (!this._branch) {
+            this.closeForm()
             this.resetBranch()
             this.$v.branch.$reset()
           } else {
             this.$emit('updated-branch', { ...res.data })
           }
+
           this.processing = false
         }).catch((err) => {
           console.log(err)
+
           this.$snackbar.open({
             type: 'is-danger',
             message: err.message
           })
+
           this.processing = false
         })
       }
@@ -309,13 +337,15 @@ export default {
 
   components: {
     FullscreenDialog,
-    EmptyState
+    EmptyState,
+    ImportExcel
   }
 
 }
 </script>
 
 <style lang="sass">
+
   .BranchFormHeader
     padding: 2rem
     padding-bottom: 0
@@ -329,4 +359,5 @@ export default {
       align-items: flex-start
     .el-select, .el-input-number, .el-input__inner
       width: 100% !important
+
 </style>

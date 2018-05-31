@@ -34,6 +34,7 @@
                 v-if="selectedCustomerSales"
               )
                 button.button.is-primary(:disabled="disablePurchaseHistory")
+                  span.el-icon-download.mr-5
                   span Download Purchase history
         .level-item
           .field.has-addons
@@ -120,6 +121,7 @@
             el-table-column(label="No", type="index", :index="1")
             el-table-column(prop="customerOrder.customer.full_name", show-overflow-tooltip, label="Customer name")
             el-table-column(prop="sales_id", show-overflow-tooltip, label="Sales ID")
+            el-table-column(prop="product.name", show-overflow-tooltip, label="Product", sortable)
             el-table-column(prop="sub_total", show-overflow-tooltip, label="Total")
             el-table-column(prop="quantity", show-overflow-tooltip, label="Qty")
             el-table-column(prop="payment_type", show-overflow-tooltip, label="Payment type")
@@ -165,6 +167,7 @@ export default {
       json_fields : {
         Customer: 'customerOrder.customer.full_name',
         Total: 'sub_total',
+        Product: 'product.name',
         // Discount: 'discount',
         // profit:  'profit',
         // Tax: 'tax',
@@ -269,7 +272,7 @@ export default {
 
     documentName() {
       if (this.selectedCustomer) {
-        return `${this.selectedCustomer.full_name}'s purchase history`
+        return `${this.selectedCustomer.full_name}'s_purchase_history`
       }
       return null
     },

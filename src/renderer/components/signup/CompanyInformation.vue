@@ -11,7 +11,7 @@
                 alt="OAS logo"
               )
             i.material-icons.security security   
-          el-steps(:active="active" finish-status="success")
+          el-steps(:active="active" finish-status="success" align-center)
             el-step(title="Step 1")
             el-step(title="Step 2")
             el-step(title="Step 3")  
@@ -209,10 +209,10 @@
                         :value="currency",
                         :key="index",
                       )  
-                el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
+                el-table-column(label="Actions", :render-header="renderDelete", width="70")
                   template(slot-scope="scope")
                     button.button(:class="$style.trash", @click.stop="deleteRow(scope.$index)")
-                      i.material-icons delete  
+                      span.el-icon-delete.font-size-23  
             el-tab-pane(label="Complete Signup" name="2")
               h4.mt-25(class="title is-5") Payment Plan
               div

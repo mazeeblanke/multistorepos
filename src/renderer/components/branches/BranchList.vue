@@ -5,7 +5,7 @@
         ref="new-branch-form",
         @close-form="closeNewBranchForm",
         @action-complete="closeNewBranchForm",
-        v-if="formPanelOpen"
+        v-show="formPanelOpen"
       )
     .level.toolbar(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
@@ -21,7 +21,7 @@
               @input="search('name')", 
               class="input-with-select"
             )
-              el-button(slot="append" icon="el-icon-search")
+              // el-button(slot="append" icon="el-icon-search")
       .level-right
         .level-item
           button.button.is-primary(

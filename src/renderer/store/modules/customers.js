@@ -41,7 +41,7 @@ export default {
 
     createCustomer ({ commit }, payload) {
       return Vue.axios.post('customers', payload).then(res => {
-        commit('ADD_CUSTOMER', res.data.data)
+        commit('SET_CUSTOMERS', res.data)
         return res.data
       })
     },

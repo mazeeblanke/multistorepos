@@ -13,7 +13,7 @@
         :class="$style.pageForms",
         @close-form="closeDialog",
         @action-complete="updateSelectedProduct",
-        v-if="isAddingProductSupply"
+        v-if="isAddingProductSupply",
       )
     .level.toolbar
       .level-left
@@ -27,7 +27,9 @@
             span.tag.is-medium.is-warning {{ formattedProductName }}
       .level-right
         .level-item
-            button.button.is-primary(@click="addProductSupply") Add product supply
+            button.button.is-primary(@click="addProductSupply") 
+              span.el-icon-circle-plus-outline.mr-5
+              span Add product supply
         .level-item
           JsonExcel(
             class="btn btn-default",
@@ -39,7 +41,9 @@
           )
             button.button.is-primary(
               :disabled="!selectedProductSales.data.length"
-            ) Download Purchase history
+            ) 
+              span.el-icon-download.mr-5
+              span Download Purchase history
         .level-item
           .field.has-addons
             p.control
@@ -120,6 +124,7 @@
             el-table-column(label="No", type="index", :index="1")
             el-table-column(prop="product_id", label="Product ID")
             el-table-column(prop="sales_id", show-overflow-tooltip, label="Sales ID")
+            el-table-column(prop="product.name", show-overflow-tooltip, label="Product", sortable)
             el-table-column(prop="sub_total", show-overflow-tooltip, label="Total")
             el-table-column(prop="unit_price", show-overflow-tooltip, label="Unit Price")
             el-table-column(prop="payment_type", show-overflow-tooltip, label="Payment method")
@@ -158,6 +163,7 @@ export default {
       filter: {
         aggregate: 0,
         limit: 4,
+        with_user: 1,
         persist: false
       },
       items: {
@@ -165,16 +171,13 @@ export default {
       },
       json_fields: {
         'Sales ID': 'sales_id',
-        Customer: 'customer',
+        Product: 'product.name',
         Total: 'sub_total',
-        Discount: 'discount',
-        profit: 'profit',
-        Costprice: 'costprice',
         Unitprice: 'unit_price',
-        'Sold By': 'user',
+        'Sold By': 'user.full_name',
         'Payment Method': 'payment_type',
         'Qty Bought': 'quantity',
-        'Sold At': 'created_At'
+        'Sold At': 'created_at'
       }
     }
   },
@@ -285,7 +288,7 @@ export default {
 
     documentName () {
       if (this.selectedProduct) {
-        return `${this.selectedProduct.name}'s purchase history`
+        return `${this.selectedProduct.name}'s_purchase_history`
       }
       return null
     },
