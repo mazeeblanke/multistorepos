@@ -144,6 +144,7 @@ function createWindow () {
     item.once('done', (event, state) => {
       const FILE_PATH = item.getSavePath()
       if (state === 'completed') {
+        mainWindow.setProgressBar(0)
         console.log('Download successfully')
         notifier.notify({
           title: 'Download Complete',

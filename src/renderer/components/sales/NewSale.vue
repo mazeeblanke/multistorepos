@@ -173,11 +173,15 @@ export default {
       const taxTotal = calculatePercentInCash(this.tax, newValue)
       const total = Math.max((newValue - discountTotal) + taxTotal, 0)
       const tax = this.tax
+      const threshold = branch.threshold
+      const discount_per_threshold = branch.discount
       const subTotal = newValue
       this.setCart({
         ...this.cart,
         discountTotal,
+        discount_per_threshold,
         taxTotal,
+        threshold,
         total,
         discount,
         tax,
@@ -426,6 +430,15 @@ export default {
     Invoice: () => import('@/components/shared/Invoice')
 
   },
+
+  beforeRouteLeave(to, from, next) {
+    if (this.hasPaid) {
+      this.newSale()
+      next()
+    } else {
+      next()
+    }
+  }
 
 };
 </script>

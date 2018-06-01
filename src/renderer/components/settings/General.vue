@@ -305,6 +305,7 @@ import MoneyMixin from '@/mixins/MoneyMixin'
 import currencies from '@/data/Common-Currency.json'
 import EmptyState from '@/components/EmptyState'
 import VueCoreImageUpload from 'vue-core-image-upload/src/vue-core-image-upload.vue'
+import { calculatePercentInCash, calculateDiscount } from '@/utils/helper'
 import Avatar from 'vue-avatar-component'
 import _ from 'lodash'
 
@@ -495,15 +496,35 @@ export default {
         this.processing = true
         this.updateSettings(payload)
         .then((res) => {
+          
           this.$snackbar.open(res.message)
           this.storeSettings = JSON.parse(JSON.stringify(this._settings))
+
+          const branch = this._settings.branch
+          const store = this._settings.store
+          const subTotal = this.cart.subTotal
+          const discount = calculateDiscount(subTotal, branch.threshold, branch.discount)
+          const discountTotal = calculatePercentInCash(discount, subTotal)
+          const taxTotal = calculatePercentInCash(this.tax, subTotal)
+          const total = Math.max((subTotal - discountTotal) + taxTotal, 0)
+          const discount_per_threshold = branch.discount
+          const tax = this.tax
+          const threshold = branch.threshold
+          
           this.SET_CART({
             ...this.cart,
-            tax: this._settings.store.tax.reduce((agg, tax) => {
-              return agg + parseInt(tax.value)
-            }, 0)
+            subTotal,
+            discount,
+            discountTotal,
+            discount_per_threshold,
+            taxTotal,
+            total,
+            tax,
+            threshold
           })
+
           this.processing = false
+
         })
         .catch((err) => {
           console.log(err)
@@ -540,6 +561,12 @@ export default {
         return _.map(TAX, t => t.type)
       }
       return []
+    },
+
+    tax () {
+      return this._settings.store.tax.reduce((agg, tax) => {
+        return agg + parseInt(tax.value)
+      }, 0)
     },
 
     shouldSaveChanges () {

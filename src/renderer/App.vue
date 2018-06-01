@@ -293,7 +293,8 @@ export default {
         background-color: lighten($primary, 10%);
 
   .nav
-    background: $secondary
+    // background: $secondary
+    background: linear-gradient(to bottom, #05296B, #001948)
     height: 6.25rem
     padding: 0 1.5rem
 
@@ -308,7 +309,7 @@ export default {
 
     .dropdown-trigger .button
       background-color: darken($secondary, 20%)
-      border-color: lighten($secondary, 10%)
+      border-color: darken($secondary, 90%)
       color: rgba(255, 255, 255, 0.9)
       min-width: 300px
       justify-content: flex-start
@@ -516,7 +517,8 @@ export default {
     .button
       height: 100px
       font-size: 14px !important
-      background-color: #05296b !important
+      // background-color: #05296b !important
+      background: linear-gradient(to bottom, #05296B, #00235f)
       border-radius: 0px !important
       white-space: normal;
   .el-table--striped .el-table__body tr.el-table__row--striped td

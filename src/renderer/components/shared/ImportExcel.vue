@@ -189,8 +189,8 @@
             }
           })
           return {
-            ...payload,
-            ...this.additionalPayload
+            ...this.additionalPayload,
+            ...payload
           }
         })
 
@@ -245,7 +245,7 @@
           },
 
           complete: (results) => {
-            this.csvHeaders = Object.keys(results.data[0])
+            this.csvHeaders = Object.keys(results.data[0]).filter(h => h)
             this.csvHeaders = this.csvHeaders.reduce((agg, curr, i) => {
               const indexOfSystemHeader = this.systemHeaders.indexOf(curr)
               if (agg[indexOfSystemHeader]) {

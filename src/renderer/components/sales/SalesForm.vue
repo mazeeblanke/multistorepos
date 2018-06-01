@@ -7,7 +7,7 @@ div
     ref="check-product",
   )
   .RequisitionForm
-    .level.toolbar
+    .level.toolbar.shadow-divider
       .level-left
         .level-item
           span.tag.is-medium(title="Sales id") 
@@ -315,55 +315,6 @@ export default {
 
 
 <style lang="sass">
-  .RequisitionFormHeader
-    padding: 2rem
-    padding-bottom: 0
-
-  .RequisitionFormMain
-    padding: 2rem
-
-  // .MaterialsForm
-  //   border-top: 1px solid #EAEAEA
-
-  // .multiselect
-  //   font-size: 1rem
-  //   min-height: 2.25em
-
-  // .multiselect__tags
-  //   display: flex
-  //   align-items: center
-  //   min-height: 2.25em
-  //   padding-left: calc(0.375em - 1px)
-  //   padding-right: calc(0.375em - 1px)
-  //   padding-top: calc(0.375em - 1px)
-  //   border-color: #dbdbdb
-
-  // .multiselect__input
-  //   font-size: 1rem
-  //   width: auto
-  //   margin-bottom: calc(0.375em - 1px)
-
-  // .multiselect__tags
-  //   border-bottom-left-radius: 3px !important
-  //   border-bottom-right-radius: 3px !important
-
-  // .custom__tag
-  //   display: inline-block
-  //   padding: 0px 7px
-  //   background: #EFEFEF
-  //   margin-right: 5px
-  //   border-radius: 3px
-  //   cursor: pointer
-  //   margin-bottom: calc(0.375em - 1px)
-
-  .custom__remove
-    padding: 0
-    font-size: 10px
-    margin-left: 8px
-
-  .vendors-select
-    width: 400px
-
   .el-select, .el-input-number, .el-input__inner
     width: 100% !important
 </style>

@@ -91,12 +91,8 @@
           span Setting
 </template>
 
-<script>
-
-</script>
-
 <style lang="sass">
   .sidebar
     button.is-active
-      background-color: #223458 !important
+      background: #223458 !important
 </style>

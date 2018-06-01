@@ -18,6 +18,7 @@ export default {
       sales_id: null,
       products: Array(12).fill(null),
       tax: 0,
+      threshold: null,
       payment_type: null,
       discount: 0,
       customer: null,
@@ -26,6 +27,7 @@ export default {
       loyalty: null,
       total: 0,
       subTotal: 0,
+      discount_per_threshold: 0,
       availableDiscount: null,
       customerDetails: null,
       discountTotal: 0,
@@ -70,29 +72,30 @@ export default {
       commit('REMOVE_SALE', sale)
     },
 
-    getReceipt ({ commit }, payload) {
-      return sales(payload).then(res => {
-        return res.data
+    getReceipt ({ commit }, { id }) {
+      return Vue.axios.get(`sales-history/${id}`).then(res => {
+        console.log(res.data.data)
+        return res.data.data
       })
     },
 
-    addToCart ({ commit }, payload) {
-      return sales(payload).then(res => {
-        return res.data
-      })
-    },
+    // addToCart ({ commit }, payload) {
+    //   return sales(payload).then(res => {
+    //     return res.data
+    //   })
+    // },
 
-    checkForThreshold ({ commit }, payload) {
-      return sales(payload).then(res => {
-        return res.data
-      })
-    },
+    // checkForThreshold ({ commit }, payload) {
+    //   return sales(payload).then(res => {
+    //     return res.data
+    //   })
+    // },
 
-    removeFromCart ({ commit }, payload) {
-      return sales(payload).then(res => {
-        return res.data
-      })
-    },
+    // removeFromCart ({ commit }, payload) {
+    //   return sales(payload).then(res => {
+    //     return res.data
+    //   })
+    // },
 
     refundSale ({ commit }, payload) {
       return sales(payload).then(res => {
@@ -100,11 +103,11 @@ export default {
       })
     },
 
-    updateCart ({ commit }, payload) {
-      return sales(payload).then(res => {
-        return res.data
-      })
-    },
+    // updateCart ({ commit }, payload) {
+    //   return sales(payload).then(res => {
+    //     return res.data
+    //   })
+    // },
 
     completeTransaction ({ commit }, payload) {
       return Vue.axios.post('sales', payload).then(res => {
@@ -114,16 +117,21 @@ export default {
 
     loadSales ({ commit }, payload) {
       return Vue.axios.get('sales-history', { params: payload }).then(res => {
+        console.log(payload)
+        if (payload.persist) {
+          console.log(res.data.body)
+          commit('SET_SALES', res.data.body)
+        }
         return res.data
       })
     },
 
-    loadSalesByPage ({ commit }, payload) {
-      return sales(payload).then(res => {
-        commit('SET_SALES', res.data)
-        return res.data
-      })
-    },
+    // loadSalesByPage ({ commit }, payload) {
+    //   return sales(payload).then(res => {
+    //     commit('SET_SALES', res.data)
+    //     return res.data
+    //   })
+    // },
 
     loadRefundsByPage ({ commit }, payload) {
       return sales(payload).then(res => {
@@ -155,6 +163,8 @@ export default {
         amountPaid: 0,
         cashChange: 0,
         loyalty: null,
+        threshold: 0,
+        discount_per_threshold: 0,
         total: 0,
         subTotal: 0,
         availableDiscount: null,
@@ -233,7 +243,8 @@ export default {
     },
 
     SET_SALES (state, payload) {
-      state.filteredSales = payload.message
+      // state.filteredSales = payload.message
+      console.log(payload)
       UPDATE_STATE(state, payload, 'sales')
     },
 

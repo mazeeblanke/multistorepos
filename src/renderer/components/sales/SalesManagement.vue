@@ -9,7 +9,7 @@
             header.card-header
               p.card-header-title Sales Management
               p.level-item.page-title.subtitle.is-5
-                span.tag.is-medium Branch: {{ currentBranch.name }}
+                span.tag.is-medium Branch: {{ settings.branch.name }}
               a.card-header-icon
                 span.el-icon-more-outline.font-size-23 
             .tabs
@@ -67,9 +67,7 @@ export default {
     documentName() {
       return `Sales history`
     },
-    ...mapState('branch', [
-      'currentBranch',
-    ]),
+    ...mapState('settings', ['settings']),
   },
   beforeRouteEnter(to, from, next) {
     redirectIfBase(to, next);

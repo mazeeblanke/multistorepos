@@ -39,7 +39,7 @@
       :style="{ height: '400px' }"
     )
     el-table(
-      ref="items-table",
+      ref="items_table",
       :data="filteredItemsData",
       :max-height="500",
       height="500"

@@ -293,7 +293,9 @@ export default {
 
     additionalImportPayload () {
       return {
-        store_id: this.settings.store.id
+        store_id: this.settings.store.id,
+        confirmation: chance.hash(),
+        cardnumber: chance.fbid()
       }
     }
   

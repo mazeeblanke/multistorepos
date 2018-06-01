@@ -79,6 +79,7 @@
 <script>
 
 import { mapActions, mapState } from 'vuex'
+import _ from 'lodash'
 
 export default {
 
@@ -148,7 +149,7 @@ export default {
           name: query,
           store_id: this.settings.store.id
         }).then((res) => {
-          this.branchSuggestions = res.data
+          this.branchSuggestions = _.uniqBy([ ...this.branchSuggestions, ...res.data ], 'id')
           this.fetchingItems = false
         }).catch(() => {
           this.fetchingItems = false

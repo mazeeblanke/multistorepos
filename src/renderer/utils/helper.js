@@ -1,3 +1,4 @@
+import _ from 'lodash'
 const numeral = require('numeral')
 
 export const isLoggedIn = () => localStorage.getItem('pos_token')
@@ -11,7 +12,7 @@ export const money = money => numeral(money).format()
 export const multiplyCash = (a, b) => (a * b).toFixed(2)
 
 export const calculateDiscount = (subTotal, threshold, discount) => {
-  return threshold && parseAmount(subTotal / threshold * discount)
+  return threshold && parseAmount((subTotal / threshold) * discount)
 }
 
 export const subtractCash = (cash1, cash2) => {
@@ -26,9 +27,14 @@ export const parseColData = data => {
   return data || '-'
 }
 
+export const calcSubTotal = (items) => {
+  const subTotals = _.map(items, 'sub_total')
+  return sumCash(subTotals)
+}
+
 export const sumCash = cashList => {
   return cashList.reduce((agg, cash) => {
-    return agg + parseInt(cash)
+    return agg + parseFloat(cash)
   }, 0)
 }
 

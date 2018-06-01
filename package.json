@@ -57,6 +57,7 @@
     }
   },
   "dependencies": {
+    "@xunlei/vue-context-menu": "^1.0.2",
     "accounting": "^0.4.1",
     "animate.css": "^3.6.1",
     "autotable": "^1.0.0",
@@ -68,6 +69,7 @@
     "chart.js": "^2.7.1",
     "debounce": "^1.1.0",
     "electron-context-menu": "^0.9.1",
+    "electron-editor-context-menu": "^1.1.1",
     "element-ui": "^2.3.3",
     "express": "^4.16.3",
     "font-awesome": "^4.7.0",
@@ -99,6 +101,7 @@
     "vue-axios": "^2.0.2",
     "vue-chart-js": "^1.4.1",
     "vue-chartjs": "^3.0.2",
+    "vue-context-menu": "^2.0.6",
     "vue-core-image-upload": "^2.4.5",
     "vue-electron": "^1.0.6",
     "vue-infinite-loading": "^2.2.2",

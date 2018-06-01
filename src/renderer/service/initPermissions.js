@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import { PERMISSIONS } from '@/utils/constants'
 import Acl from 'vue-acl'
-import router from './router'
+import router from '../router'
 
 let initPermision = null
 

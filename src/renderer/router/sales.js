@@ -1,6 +1,7 @@
 import { PROGRESS } from '../utils/constants'
 const SalesManagement = () => import('@/components/Sales/SalesManagement')
 const SalesList = () => import('@/components/sales/SalesList')
+const SaleDetailsList = () => import('@/components/sales/SaleDetailsList')
 const ReceiptsList = () => import('@/components/sales/ReceiptsList')
 const RefundsList = () => import('@/components/sales/RefundsList')
 const ProductEnquiriesList = () => import('@/components/products/enquiries/EnquiriesList')
@@ -9,6 +10,17 @@ export default {
   path: 'sales',
   component: SalesManagement,
   children: [
+    {
+      path: 'sale_details',
+      name: 'sale_details_list',
+      component: SaleDetailsList,
+      meta: {
+        progress: PROGRESS,
+        permission: 'admin|superadmin',
+        fail: '/app/new-sale',
+        requiresAuth: true
+      }
+    },
     {
       path: 'sales',
       name: 'sales_list',

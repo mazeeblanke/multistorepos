@@ -363,45 +363,6 @@ export default {
 </script>
 
 <style lang="sass">
-  .xcel-import
-    .groupUpload
-      display: flex
-      button 
-        border-top-right-radius: 0px
-        border-bottom-right-radius: 0px
-      .filename
-        border-top-left-radius: 0px
-        border-bottom-left-radius: 0px
-    background-color: white
-    height: 525px
-    width: 900px
-    padding: 2px
-    border-radius: 2px
-    .xcel-import-content
-      position: relative
-      .button 
-        position: absolute
-        margin-top: 10px
-        right: 82px
-    .panel-heading
-      background-color: white !important
-    .columns 
-      overflow-y: scroll
-      margin: 0px 0px
-      padding: 40px 20px
-      display: flex
-      justify-content: center
-      height: 380px
-    .is-1 
-      .panel-block
-        display: flex
-        justify-content: center
-        border: none
-        &:first-of-type
-          margin-top: 41px
-      i.material-icons 
-        color: #9E9E9E !important
-
   .ProductFormHeader
     padding: 2rem
     padding-bottom: 0

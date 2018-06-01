@@ -1,7 +1,9 @@
 <template lang="pug">
   .AppBase
     NavBar
-    #snap-screen.u-flex-fill(:class="{ 'is-v-flex-start': formPanelOpen }")
+    #snap-screen.u-flex-fill(
+      :class="{ 'is-v-flex-start': formPanelOpen }"
+    )
       router-view
 </template>
 

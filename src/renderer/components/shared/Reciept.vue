@@ -12,7 +12,7 @@
           <br>
           <span>{{ settings.branch.address }}</span>
           <br>
-          <span>{{ settings.branch.phone || '093-4883-3434' }}</span>
+          <span>{{ settings.store.phone || '093-4883-3434' }}</span>
           <br>
           <span>{{ settings.branch.email }}</span>
           <br>
@@ -81,15 +81,15 @@ import $ from 'jquery';
 // import html2canvas from 'html2canvas';
 
 export default {
+
   props: ['items', 'total', 'cart', 'printReceipt'],
+
   data() {
     return {
       isGeneratingPDF: false,
     };
   },
-  // mounted() {
-  //   this.generateReceiptPdf();
-  // },
+
   methods: {
     ...{ formatDate, formatStatus, formatMoney, dateForHumans },
     // generateReceiptPdf() {
@@ -109,27 +109,27 @@ export default {
     //   });
     // },
   },
+
   mixins: [
     MoneyMixin,
   ],
-  watch: {
-    // printReceipt(val) {
-    //   if (val) {
-    //     this.generateReceiptPdf();
-    //   }
-    // },
-  },
+
   computed: {
+    
     ...mapState('settings', [
       'settings',
     ]),
+
     avatarUrl() {
       return `${window.baseUrl}/assets/img/logo.jpg?time=${Date.now()}`;
     },
+
   },
+
   components: {
-    Avatar,
-  },
+    Avatar
+  }
+
 };
 </script>
 
