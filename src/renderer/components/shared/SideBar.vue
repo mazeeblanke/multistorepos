@@ -40,15 +40,15 @@
           tag="button"
         ) 
           span.material-icons.is-15.mr-5 shopping_cart
-          span Purchase Order
+          span Suppliers
       .column.is-6(v-show="$can('admin|superadmin')")
         router-link.button.is-primary.has-full-width(
-          :to="{ name: 'sales_list'}", 
+          :to="{ name: 'sale_details_list'}", 
           active-class="is-active", 
           tag="button"
         ) 
           span.material-icons.is-15.mr-5 attach_money
-          span Invoices
+          span Sales
       .column.is-6(v-show="$can('admin|superadmin')")
         router-link.button.is-primary.has-full-width(
            :to="{ name: 'expenditures_list'}", 

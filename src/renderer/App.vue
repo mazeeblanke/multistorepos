@@ -207,6 +207,10 @@ export default {
     width: 100px
   .has-width-300
     min-width: 300px
+
+  .is-clickable
+    cursor: pointer !important
+
   .is-centered, .is-h-centered
     display: flex
     justify-content: flex-start
@@ -294,7 +298,7 @@ export default {
 
   .nav
     // background: $secondary
-    background: linear-gradient(to bottom, #05296B, #001948)
+    background: linear-gradient(to bottom, #05296B, #00276f)
     height: 6.25rem
     padding: 0 1.5rem
 
@@ -360,7 +364,7 @@ export default {
     // margin-top: 100px
     height: 90vh
     display: flex
-    align-items: center
+    align-items: flex-start
     overflow: auto
 
   section

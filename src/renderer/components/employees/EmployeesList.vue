@@ -46,9 +46,8 @@
       ref="items-table",
       :data="filteredItemsData",
       :max-height="500",
-      :border="false"
+      :border="false",
       :default-sort="{prop: 'created_at', order: 'descending'}",
-      :highlight-current-row="true",
       @cell-click="handleCellClick"
       v-show="filteredItemsData.length",
       @selection-change="handleSelectionChange",
@@ -133,8 +132,7 @@ export default {
   watch: {
     employees(newValue) {
       this.items = newValue
-      this.filter.page = newValue.nextPage
-    },
+    }
   },
 
   methods: {

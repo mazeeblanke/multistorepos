@@ -46,7 +46,6 @@
       :data="filteredItemsData",
       :max-height="500",
       :border="false"
-      :highlight-current-row="true",
       @cell-click="handleCellClick"
       v-show="filteredItemsData.length",
       @selection-change="handleSelectionChange",

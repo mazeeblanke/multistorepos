@@ -22,7 +22,7 @@
             )
               b-icon(icon="save")
               span {{ _customer? 'Save customer edits' : 'Add Customer' }}
-          .level-item(v-if="!_customer")      
+          .level-item(v-if="allowExcelImport")      
             button.button.is-primary(
               @click="fullScreenActive = true"
             ) 
@@ -212,8 +212,9 @@ export default {
     _customer: {
       type: Object,
     }, 
-    sellItems: {
-      type: Function,
+    allowExcelImport: {
+      type: Boolean,
+      default: true
     },
     processingTransaction: {
       require: false,
@@ -355,7 +356,7 @@ export default {
             this.resetCustomer();
             this.$v.customer.$reset()
           } else {
-            this.$emit('action-complete')
+            this.$emit('action-complete', res.data)
           }
           this.processing = false;
         })

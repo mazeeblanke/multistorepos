@@ -14,7 +14,7 @@
                 span.el-icon-more-outline.font-size-23
             .tabs
               ul
-                router-link(tag="li", :to="{name: 'purchase_orders_list'}", active-class="is-active")
+                router-link(tag="li", :to="{name: 'employees_list'}", active-class="is-active")
                   a Employees
             .tab-content
               router-view(@formPanelClose='resetScroll')

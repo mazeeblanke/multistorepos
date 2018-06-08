@@ -94,9 +94,9 @@
                       :key="branch.id",
                     )
           .column.is-2
-            div(class="store-logo")
+            div
               // avatar(:fullname="storeSettings.store.name", :size="120", :image='avatarUrl', v-loading="uploadingAvatar")
-              avatar(:fullname="storeSettings.store.name", :size="120", v-loading="uploadingAvatar")
+              avatar(:fullname="_settings.store.name", :size="120")
               //- figure(class="image is-128x128")
               //-   img(class="is-rounded animated fadeIn", src="https://bulma.io/images/placeholders/96x96.png")
               // vue-core-image-upload.mt-10(
@@ -233,7 +233,6 @@
               :data="storeSettings.store.tax",
               max-height="250",
               :border="true",
-              :stripe="true",
               @selection-change="handleSelectionChange",
             )
               div(slot="empty")
@@ -353,7 +352,7 @@ export default {
         email: { required, email },
         currency: { required },
         tax: {
-          required,
+          // required,
           $each: {
             type: { required },
             value: { required }
@@ -470,7 +469,7 @@ export default {
       this.warnUser()
       .then((res) => {
         if (res.value) {
-          this.s.taxes = this.s.taxes.filter((i) => {
+          this.storeSettings.store.tax = this.storeSettings.store.tax.filter((i) => {
             return this.selectedItems.indexOf(i) === -1
           })
           this.$snackbar.open('Tax(es) removed!')
@@ -489,6 +488,7 @@ export default {
     },
     
     submit () {
+      this.$v.storeSettings.$touch()
       if (!this.$v.$invalid) {
         const payload = {
           ...this.storeSettings,

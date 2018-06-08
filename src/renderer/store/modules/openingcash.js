@@ -1,6 +1,7 @@
-import { openingCash, search } from '../../service/endpoints'
+import { openingCash } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -23,38 +24,25 @@ export default {
     },
 
     loadOpeningcashs ({ commit }, payload) {
-      return search(payload).then(res => {
-        return res.data
+      return Vue.axios.get('openingcash', { params: payload }).then(res => {
+        if (payload.persist === true) {
+          commit('SET_OPENING_CASHS', res.data.data)
+        }
+        return res.data.data
       })
     },
 
-    createOpeningcash ({ commit }, payload) {
-      return openingCash(payload).then(res => {
-        // commit('ADD_OPENING_CASH', res.data.customer_details[0])
+    createOpeningcash ({ commit, rootState }, payload) {
+      return Vue.axios.post('openingcash', payload).then(res => {
+        if (rootState.settings.settings.branch.id === payload.branch_id) {
+          commit('SET_OPENING_CASHS', res.data)
+        }
         return res.data
       })
     },
 
     updateOpeningcash ({ commit }, payload) {
       return openingCash(payload).then(res => {
-        // commit('ADD_OPENING_CASH', payload.customer);
-        return res.data
-      })
-    },
-
-    getLoyaltyDiscount ({ commit }, payload) {
-      return openingCash(payload).then(res => {
-        return res.data
-      })
-    },
-
-    loadOpeningcashsByPage ({ commit }, payload) {
-      const data = payload.filter || payload
-      return openingCash(data).then(res => {
-        // if (!payload.filter) commit('SET_OPENING_CASHS', res.data)
-        if ((payload instanceof FormData && payload.get('persist') === 'true')) {
-          commit('SET_OPENING_CASHS', res.data)
-        }
         return res.data
       })
     },

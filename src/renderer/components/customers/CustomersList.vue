@@ -12,15 +12,15 @@
         .level-item.page-title.subtitle.is-5 
           | Listing Customers ({{ filteredItemsData.length }})
       .level-item
-          div.search
-            el-input(
-              placeholder="Search customers by name...", 
-              clearable,
-              v-model="filter.full_name",
-              @input="search('full_name')", 
-              class="input-with-select"
-            )
-              // el-button(slot="append", icon="el-icon-search")  
+        div.search
+          el-input(
+            placeholder="Search customers by name...", 
+            clearable,
+            v-model="filter.full_name",
+            @input="search('full_name')", 
+            class="input-with-select"
+          )
+            // el-button(slot="append", icon="el-icon-search")  
       .level-right
         .level-item
           a.button.is-primary(
@@ -44,8 +44,8 @@
       ref="items-table",
       :data="filteredItemsData",
       :max-height="500",
+      :default-sort="{prop: 'created_at', order: 'descending'}",
       :border="false",
-      :highlight-current-row="true",
       @cell-click="handleCellClick",
       v-show="filteredItemsData.length",
       @selection-change="handleSelectionChange"
@@ -76,7 +76,7 @@
           button.button(:class="$style.trash")
             span.el-icon-delete.font-size-23
       div(slot="append" v-show="showLoading")
-       div(ref='loader' style="height: 45px;")
+       div(ref='loader' style="height: 45px")
          infinite-loading(spinner="waveDots" v-if="loading")
 </template>
 

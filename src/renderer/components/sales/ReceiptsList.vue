@@ -1,7 +1,7 @@
 <template lang="pug">
   .RequisitionList
     .form-panel(:class="{ 'is-active': formPanelOpen }")
-    .level.toolbar.shadow-divider(:class="{ 'shadow-divider': formPanelOpen }")
+    .level.toolbar(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
         .level-item.page-title.subtitle.is-5 Listing Receipts ({{ filteredItemsData.length }})
       .level-right

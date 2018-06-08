@@ -12,14 +12,14 @@
         span.icon
           i.material-icons keyboard_arrow_down
     el-tabs(v-model="currentTab", value='summary', type="card")
-      el-tab-pane.p-0(name="enquirires_list", label='Enquiries') 
-        EnquiriesList 
+      // el-tab-pane.p-0(name="enquirires_list", label='Enquiries') 
+      //   EnquiriesList 
       // el-tab-pane.p-0(name="expired_products", label='Expired Products', :style="{ 'min-height': '400px' }")
       //   ExpiredProductsList  
       // el-tab-pane.p-0(name="close_to_expired_products", label='Close to Expired Products ')  
       //   CloseToExpiredProductsList                  
-      el-tab-pane.p-0(name="reorder_products", label='Reorder Products ')  
-        ReorderProductsList                  
+      // el-tab-pane.p-0(name="reorder_products", label='Reorder Products ')  
+      //   ReorderProductsList                  
 </template>
 
 <script>

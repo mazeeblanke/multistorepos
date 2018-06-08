@@ -9,17 +9,11 @@
             header.card-header
               p.card-header-title Suppliers Management
               p.level-item.page-title.subtitle.is-5
-                span.tag.is-medium Branch: {{ currentBranch.name }}
+                span.tag.is-medium Branch: {{ settings.branch.name }}
               a.card-header-icon
-                //- div
-                //-   el-input(placeholder="Search..." class="input-with-select")
-                //-     el-button(slot="append" icon="el-icon-search")
-              //- a.card-header-icon
-              //-   span.icon
-              //-     i.material-icons keyboard_arrow_down
+                span.el-icon-more-outline.font-size-23
             .tabs
               ul
-                //- template(v-if="$route.path === '/app/purchasing/requisitions' || $route.path === '/app/purchasing/purchaseorders'")
                 router-link(tag="li", :to="{name: 'suppliers_list'}", active-class="is-active")
                   a Suppliers
             .tab-content
@@ -34,10 +28,8 @@ const BASE_PATH = '/app/suppliers';
 
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
-    console.log('in here');
-    next({ name: 'suppliers_list' });
+    next({ name: 'suppliers_list' })
   } else {
-    console.log('out here');
     next();
   }
 };
@@ -49,8 +41,8 @@ export default {
     };
   },
    computed: {
-    ...mapState('branch', [
-      'currentBranch',
+    ...mapState('settings', [
+      'settings',
     ]),
   },
   beforeRouteEnter(to, from, next) {
@@ -69,7 +61,7 @@ export default {
     },
   },
   components: {
-    SideBar,
+    SideBar
   },
 };
 </script>
@@ -80,6 +72,4 @@ export default {
 <style lang="sass">
 .BaseAppCard
   min-height: 670px
-  // .el-input
-  //   width: 300px
 </style>

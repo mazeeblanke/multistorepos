@@ -16,16 +16,37 @@ export default {
         commit('sales/RESET_CART', null, { root: true })
         commit(
           'settings/SET_STORE_SETTINGS',
-          { data: { branch, store } },
+          { data: { branch, store, loggedInUser: user } },
           { root: true }
         )
         return res.data
       })
     },
-    login ({ commit, state }, payload) {
+    login ({ commit, state, rootState }, payload) {
       return Vue.axios.post('login', payload).then(res => {
         localStorage.setItem('pos_token', res.data.token.token)
-        commit('SET_CURRENT_USER', res.data.user)
+
+        const { user, branch, store } = res.data
+        const appPrevSettings = rootState.settings.settings
+
+        let settings = {
+          loggedInUser: user,
+          store
+        }
+
+        if (
+          appPrevSettings &&
+          (!appPrevSettings.branch || appPrevSettings.store.id !== store.id)
+        ) {
+          settings.branch = branch
+        }
+
+        commit('SET_CURRENT_USER', user)
+        commit(
+          'settings/SET_STORE_SETTINGS',
+          { ...settings },
+          { root: true }
+        )
         return res.data
       })
     },

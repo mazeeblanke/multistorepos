@@ -25,16 +25,16 @@
         .nav-item.is-tab
           b-dropdown(position="is-bottom-left")
             a.button(slot="trigger")
-              span Logged in as {{ currentUser && ucFirst(currentUser.username) }}
+              span Logged in as {{ ucFirst(currentUser.username) }}
               span.ml-10
-                strong.is-uppercase ({{ currentUser && currentUser.access_level }})
+                strong.is-uppercase ({{ currentUser.access_level }})
               b-icon(icon="arrow_drop_down")
             router-link.dropdown-item(:to="{name: 'profile'}") Profile
             router-link.dropdown-item(:to="{name: 'settings'}") Settings
             b-dropdown-item
               a(@click="logoutUser") Log Out
-        .nav-item.is-tab
-          i.material-icons.notifications notifications
+        // .nav-item.is-tab
+        //   i.material-icons.notifications notifications
         .nav-item.is-tab
           figure(class="image is-48x48")
             img(:src="currentUser.gravatar", class="is-rounded has-max-height")
@@ -77,14 +77,19 @@ export default {
     }
   },
   computed: {
-    ...mapState('users', [
-      'currentUser'
+    ...mapState('settings', [
+      'settings'
     ]),
+
+    currentUser () {
+      return this.settings && this.settings.loggedInUser
+    },
+
     computedMenu () {
       const menu = [
         {
           icon: 'attach_money',
-          path: '/app/sales/sales',
+          path: '/app/sales/sale_details',
           label: 'Sales'
         },
         {

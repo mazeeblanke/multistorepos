@@ -6,19 +6,19 @@
       nav.level
         .level-item.has-text-centered
           div
-            p.title {{ _metrics.customers_count || 0 }}
+            p.title {{ _metrics.customerCount || 0 }}
             p.heading Customers
         .level-item.has-text-centered
           div
-            p.title {{ _metrics.products_count || 0 }}
+            p.title {{ _metrics.productCount || 0 }}
             p.heading Products
         .level-item.has-text-centered
           div
-            p.title {{ _metrics.users_count || 0 }}
+            p.title {{ _metrics.userCount || 0 }}
             p.heading Employees
         .level-item.has-text-centered
           div
-            p.title {{ _metrics.sales_count || 0 }}
+            p.title {{ _metrics.saleCount || 0 }}
             p.heading Sales
 </template>
 

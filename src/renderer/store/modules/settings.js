@@ -17,17 +17,17 @@ export default {
 
     updateSettings ({ commit }, payload) {
       return Vue.axios.post('settings', payload).then((res) => {
-        commit('SET_STORE_SETTINGS', res.data)
+        commit('SET_STORE_SETTINGS', res.data.data)
         return res.data
       })
     }
   },
   mutations: {
 
-    SET_STORE_SETTINGS (state, { data }) {
+    SET_STORE_SETTINGS (state, payload) {
       state.settings = {
         ...state.settings,
-        ...data
+        ...payload
       }
     },
 

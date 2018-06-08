@@ -8,7 +8,7 @@ export default {
     ...mapState('settings', ['settings']),
     currencySymbol () {
       if (this.settings && this.settings.branch.currency) {
-        return this.settings.branch.currency.symbol
+        return this.settings.branch.currency.symbol || DEFAULT_CURRENCY
       }
       return DEFAULT_CURRENCY
     }

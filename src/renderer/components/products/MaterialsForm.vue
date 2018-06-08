@@ -3,7 +3,7 @@
       .level.toolbar
         .level-left
           .level-item
-            button.button(@click="addBranch")
+            button.button(@click="addBranch", :disabled="editMode")
               span.icon
                 i.branch.material-icons add
               span Add Branch
@@ -21,15 +21,16 @@
           b-table-column(label="Branch Name", width="300", sortable=true)
             el-select.has-full-width(
               ref="el-select_branch",
-              v-model="product.branches[props.index]",
+              :value="props.row"
               size="small",
-              @input="() => validation && validation.$each[props.index].name.$touch()"
+              @change="handleChange($event, props.row, props.index)"
               :class="{ 'is-error': validation && validation.$each[props.index].name.$error }",
               remote,
               filterable,
               :remote-method="_loadBranches",
               placeholder="Select Branch",
               clearable,
+              :disabled="editMode"
               value-key="name",
               no-data-text="No more results!",
               :loading="fetchingItems",
@@ -63,18 +64,27 @@
           b-table-column(width="150", field="quantity", label="Quantity")
             .field
               .control
-                el-input(
+                el-input-number(
                   type="number",
-                  min=0,
+                  :min=0,
+                  controls-position="right"
                   v-model.number="props.row.quantity",
                   size="small"
                 )
+          b-table-column(width="150", field="reorder", label="Reorder")
+            .field
+              .control
+                el-input-number(
+                  type="number",
+                  :min=0,
+                  controls-position="right"
+                  v-model.number="props.row.reorder",
+                  size="small"
+                )
           b-table-column(width="40", label="Actions")
-            button.button(@click="deletebranchRow(props.index)", :class="$style.trash")
+            button.button(@click="deletebranchRow(props.index)", :class="$style.trash", :disabled="editMode")
               span.el-icon-delete.font-size-23
 </template>
-
-
 
 <script>
 
@@ -90,6 +100,10 @@ export default {
     },
 
     validation: {
+      required: false
+    },
+
+    editMode: {
       required: false
     },
 
@@ -136,6 +150,12 @@ export default {
     }
   },
 
+  mounted () {
+    this.$nextTick(() => {
+      this.branchSuggestions = this.product.branches
+    })
+  },
+
   methods: {
 
     ...mapActions('branch', [
@@ -149,12 +169,21 @@ export default {
           name: query,
           store_id: this.settings.store.id
         }).then((res) => {
-          this.branchSuggestions = _.uniqBy([ ...this.branchSuggestions, ...res.data ], 'id')
+          this.branchSuggestions = _.uniqBy([ ...res.data, ...this.product.branches ], 'id')
           this.fetchingItems = false
         }).catch(() => {
           this.fetchingItems = false
         })
       }
+    },
+
+    handleChange (newRowVal, { reorder, quantity }, index) {
+      this.validation && this.validation.$each[index].name.$touch()
+      this.$set(this.product.branches, index, {
+        ...newRowVal,
+        ...{ reorder, quantity },
+        branch_id: newRowVal.id
+      })
     },
 
     resetbranch (index = null) {

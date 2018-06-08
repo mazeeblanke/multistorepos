@@ -1,26 +1,20 @@
 <template lang="pug">
   div
-    .ExpenditureForm(v-loading="processing || processingTransaction")
+    .ExpenditureForm(v-loading="processing")
       .level.toolbar
         .level-left
           .level-item
-            .page-title.subtitle.is-5 {{ _expenditure? 'Edit Expenditure' : 'New Expenditure' }}
-          .level-item
-            //- span.tag.is-warning.is-medium Sale ID: {{ salesid }}
-            //- expenditures::addexpenditure2($_POST['address1'], $_POST['address2']);
+            .page-title.subtitle.is-5 
+              | {{ _expenditure? 'Edit Expenditure' : 'New Expenditure' }}
         .level-right
           .level-item
             button.button.is-primary(
               :class="{'is-loading': processing}",
-              :disabled="processing || $v.$invalid",
+              :disabled="processing",
               @click="submit()"
             )
               b-icon(icon="save")
               span {{ _expenditure? 'Save expenditure edits' : 'Add Expenditure' }}
-          .level-item
-            //- button.button.is-primary(
-            //-   @click="fullScreenActive = !fullScreenActive"
-            //- ) Select expenditure
           .level-item
             a.button(@click="closeForm()")
               span.icon
@@ -30,25 +24,25 @@
         .column.is-6
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Employee name
+              label.label Name
             .field-body
               .field
                 el-select(
                   size="small",
-                  v-model="expenditure.usersalary"
+                  v-model="expenditure.user_id"
                   :filterable="true"
                   :remote="true"
                   :clearable="true"
-                  @change="filteredItems.data = []"
-                  placeholder="Search sales by user..."
-                  :remote-method="getSalesSuggestions"
-                  popper-class="salesUserSelect"
+                  placeholder="Select User"
+                  :remote-method="getEmployeeSuggestions"
+                  @change="() => $v.expenditure.user_id.$touch()",
+                  :class="{ 'is-error': $v.expenditure.user_id.$error }"
                 )
                   el-option(
-                    v-for="(item, index) in suggestions"
+                    v-for="(employee, index) in employeeSuggestions"
                     :key="index"
-                    :label="item.username"
-                    :value="item.username"
+                    :label="employee.username"
+                    :value="employee.id"
                   )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -56,9 +50,12 @@
             .field-body
               .field
                 el-input-number(
+                  controls-position="right",
                   size="small",
                   v-model="expenditure.amount",
                   placeholder="Enter expenditure's amount",
+                  @input="() => $v.expenditure.amount.$touch()",
+                  :class="{ 'is-error': $v.expenditure.amount.$error }"
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -69,6 +66,8 @@
                   size="small",
                   v-model="expenditure.title",
                   placeholder="Enter expenditure's title",
+                  @input="() => $v.expenditure.title.$touch()",
+                  :class="{ 'is-error': $v.expenditure.title.$error }"
                 )
         .column.is-6
           .field.is-horizontal
@@ -81,7 +80,9 @@
                   v-model="expenditure.type"
                   filterable
                   placeholder="Enter expenditure type"
-                  :allow-create="true"
+                  allow-create
+                  @change="() => $v.expenditure.type.$touch()",
+                  :class="{ 'is-error': $v.expenditure.type.$error }"
                 )
                   el-option(label="Salary", value="salary")
                   el-option(label="Office supplies", value="office supplies")
@@ -96,6 +97,7 @@
                   size="small",
                   v-model="expenditure.details",
                   placeholder="Enter details",
+                  
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -112,10 +114,11 @@
                   :loading="loadingBranches",
                   no-data-text="No results!",
                   value-key="id",
-                  @change="selectBranch"
+                  @change="() => $v.expenditure.branch.$touch()",
+                  :class="{ 'is-error': $v.expenditure.branch.$error }"
                 )
                   el-option(
-                    v-for="branch in branchSuggestions",
+                    v-for="(branch, index) in branchSuggestions",
                     :value="branch",
                     :label="branch.name",
                     :key="branch.id",
@@ -127,240 +130,205 @@
 import { mapState, mapActions, mapMutations } from "vuex";
 import { validationMixin } from "vuelidate";
 import { required } from "vuelidate/lib/validators";
-import { ObjectToFormData } from "@/utils/helper";
+// import { ObjectToFormData } from "@/utils/helper";
 import EmptyState from "@/components/EmptyState";
 import FullscreenDialog from "@/components/shared/FullscreenDialog";
-
-// const ucFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default {
   props: {
     _expenditure: {
       type: Object,
-    },
-    sellItems: {
-      type: Function,
-    },
-    processingTransaction: {
-      require: false,
-    },
+    }
   },
   mixins: [validationMixin],
   data() {
     return {
       expenditure: {
-        usersalary: null,
         details: null,
         title: null,
         amount: null,
         type: null,
-        addexpenditure: "addexpenditure",
-        branchid: null,
-        branch: null,
+        user_id: null,
+        branch: null
       },
-      // expenditureId: null,
-      suggestions: [],
+      employeeSuggestions: [],
       loading: false,
-      // availableMaterials: [],
       processing: false,
       fullScreenActive: false,
       loadingBranches: false,
+      loadingEmployees: false,
       branchSuggestions: [],
     };
   },
+
   validations: {
     expenditure: {
-      usersalary: { required },
       title: { required },
       amount: { required },
       type: { required },
-      // access: { required },
+      user_id: { required },
+      branch: { required }
     },
   },
+
   mounted() {
-    if (this._expenditure) {
-      this.expenditure = {
-        ...this._expenditure,
-        fullname: this._expenditure.name,
-        passwordConfirmation: this._expenditure.password,
-      };
-      // console.log(this.expenditure);
-    }
+    // if (this._expenditure) {
+    //   this.expenditure = {
+    //     ...this._expenditure,
+    //     fullname: this._expenditure.name,
+    //     passwordConfirmation: this._expenditure.password,
+    //   };
+    //   // console.log(this.expenditure);
+    // }
     this.expenditure = {
       ...this.expenditure,
-      branchid: this.currentBranch.id,
-      branch: this.currentBranch,
+      branch: this.settings.branch,
     }
-    this.branchSuggestions = [this.currentBranch];
+    this.branchSuggestions = [this.settings.branch];
   },
+
   watch: {
-    _expenditure() {
-      //  this.expenditure = this._expenditure;
-      this.expenditure = {
-        ...this._expenditure,
-        fullname: this._expenditure.name,
-        passwordConfirmation: this._expenditure.password,
-      };
-    },
-    // searchQuery(newValue) {
-    //   // console.log('ajjaskjdhasjdsk');
-    //   this.searchSales();
-    // },
+    // _expenditure() {
+    //   //  this.expenditure = this._expenditure;
+    //   this.expenditure = {
+    //     ...this._expenditure,
+    //     fullname: this._expenditure.name,
+    //     passwordConfirmation: this._expenditure.password,
+    //   };
+    // }
   },
+
   computed: {
-    ...mapState("users", ["currentUser"]),
+
+    ...mapState("settings", ["settings"]),
+
     ...mapState("branch", ["currentBranch", "branches"]),
+
   },
+  
   methods: {
-    ...mapActions("expenditures", ["loadExpenditures", "getLoyaltyDiscount"]),
-    ...mapMutations("expenditures", ["ADD_EXPENDITURE"]),
-    ...mapActions("customers", ["loadCustomers"]),
+
+    ...mapActions("employees", [
+      "loadEmployees"
+    ]),
+
     ...mapActions('branch', [
       'loadBranches',
     ]),
-    selectBranch(branch) {
-      this.expenditure.branchid = branch.id;
-    },
-    _loadBranches(query) {
-      if (query !== '') {
-        this.loadingBranches = true;
-        this.loadBranches(ObjectToFormData({
-          allbranches: 'allbranches',
-        }))
-        .then((res) => {
-          this.branchSuggestions = res;
-          this.loadingBranches = false;
-        })
-        .catch(() => {
-          this.loadingBranches = false;
-        });
-      }
-    },
-    getSalesSuggestions(query) {
-      if (query) {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: "user",
-        };
-        this.loadCustomers(payload)
-          .then(suggestions => {
-            this.loading = false;
-            this.suggestions = suggestions;
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.suggestions = [];
-      }
-    },
-    warnUser() {
-      return this.$swal({
-        title: "Are you sure?",
-        text: "Continue without creating expenditure?",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes",
-        cancelButtonText: "No",
-      });
-    },
-    handleClick() {
-      this.warnUser().then((res) => {
-        if (res.value) {
-          this.sellItems();
-        }
-      });
-    },
-    getEmployeeSuggestions(query) {
-      if (query !== "") {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: "expenditure",
-        };
-        this.loadEmployees(payload)
-          .then(suggestions => {
-            this.loading = false;
-            this.suggestions = _.flatMap(suggestions);
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.suggestions = [];
-      }
-    },
-    closeDialog() {
-      this.fullScreenActive = false;
-    },
-    updateEmployeeDetails() {
-      this.expenditure = this.suggestions.find(
-        s => s.id === this.expenditureId,
-      );
-    },
-    addNewItem() {},
-    handleChange() {},
+
     ...mapActions("expenditures", [
       "createExpenditure",
       "updateExpenditure",
       "clearSelectedExpenditure",
     ]),
+
+    _loadBranches(query) {
+      if (query) {
+        this.loadingBranches = true;
+        this.loadBranches({
+          name: query,
+          store_id: this.settings.store.id
+        }).then((res) => {
+          this.branchSuggestions = res.data;
+          this.loadingBranches = false;
+        }).catch(() => {
+          this.loadingBranches = false;
+        });
+      }
+    },
+    
+    getEmployeeSuggestions (query) {
+      if (query) {
+        this.loadingEmployees = true;
+        this.loadEmployees({
+          username: query,
+          store_id: this.settings.store.id
+        })
+          .then(({ data }) => {
+            this.loadingEmployees = false
+            this.employeeSuggestions = data
+          })
+          .catch(() => {
+            this.loadingEmployees = false
+          });
+      } else {
+        this.employeeSuggestions = []
+      }
+    },
+
     closeForm() {
       this.$emit("close-form");
     },
+
     resetExpenditure() {
       this.expenditure = {
-        ...this.expenditure,
-        usersalary: null,
+        user_id: null,
         details: null,
         title: null,
         amount: null,
         type: null,
-        addexpenditure: "addexpenditure",
-        // branchid: null,
-        // branch: null,
-      };
+        branch: this.settings.branch
+      }
     },
+
+    processPayload () {
+
+      const { 
+        user_id,
+        details,
+        title,
+        amount,
+        type,
+        branch
+      } = this.expenditure
+
+      return {
+        user_id,
+        details,
+        title,
+        amount,
+        type,
+        branch_id: branch.id,
+        store_id: this.settings.store.id
+      }
+
+    },
+
     submit() {
+      this.$v.expenditure.$touch()
+
       if (!this.$v.$invalid) {
+
         this.processing = true;
+
         const doAction = this._expenditure
           ? this.updateExpenditure
-          : this.createExpenditure;
-        // this.expenditure = {
-        //   ...this.expenditure,
-        //   // ...{
-        //   //   [this._expenditure ? 'updateuser' : 'userreg']: 'value',
-        //   //   access2: this._expenditure ? this.expenditure.access : null,
-        //   //   name: this._expenditure ? this.expenditure.fullname : null,
-        //   //   user: this._expenditure ? this.expenditure.username : null,
-        //   // },
-        // };
-        doAction(
-          ObjectToFormData({
-            ...this.expenditure,
-          }),
-        ).then(res => {
-          if (res.status === "Success") {
-            this.$snackbar.open(res.status + " !" + res.message);
-            // this.$emit('action-complete');
-            if (!this._expenditure) {
-              // this.$emit('action-complete', { ...res.expenditure_details[0] });
-              if (this.currentBranch.id === this.expenditure.branchid ) {
-                this.ADD_EXPENDITURE(res.expenditure_details[0]);
-              }
-              this.resetExpenditure();
-            } else {
-              this.$emit("updated-expenditure", {
-                ...res.expenditure_details[0],
-              });
-            }
-          } else {
-            this.$snackbar.open(res.status);
-          }
+          : this.createExpenditure
+
+        doAction({
+          expenditure: [this.processPayload()],
+          branch_id: this.expenditure.branch.id
+        })
+        .then(res => {
+          this.$snackbar.open(res.message);
           this.processing = false;
-        });
+          this.resetExpenditure()
+          this.$v.expenditure.$reset()
+          this.$emit('action-complete', res.data)
+        })
+        .catch((err) => {
+          this.processing = false;
+          this.$snackbar.open({
+            type: 'is-danger',
+            message: err
+          })
+        })
+      } else {
+        this.processing = false
+        this.$snackbar.open({
+          type: 'is-danger',
+          message: 'validation errors exist !'
+        })
       }
     },
   },
@@ -379,47 +347,6 @@ export default {
   .ExpenditureFormMain
     padding: 2rem
 
-  .MaterialsForm
-    border-top: 1px solid #EAEAEA
-
-  .multiselect
-    font-size: 1rem
-    min-height: 2.25em
-
-  .multiselect__tags
-    display: flex
-    align-items: center
-    min-height: 2.25em
-    padding-left: calc(0.375em - 1px)
-    padding-right: calc(0.375em - 1px)
-    padding-top: calc(0.375em - 1px)
-    border-color: #dbdbdb
-
-  .multiselect__input
-    font-size: 1rem
-    width: auto
-    margin-bottom: calc(0.375em - 1px)
-
-  .multiselect__tags
-    border-bottom-left-radius: 3px !important
-    border-bottom-right-radius: 3px !important
-
-  .custom__tag
-    display: inline-block
-    padding: 0px 7px
-    background: #EFEFEF
-    margin-right: 5px
-    border-radius: 3px
-    cursor: pointer
-    margin-bottom: calc(0.375em - 1px)
-
-  .custom__remove
-    padding: 0
-    font-size: 10px
-    margin-left: 8px
-
-  .vendors-select
-    width: 400px
   .ExpenditureForm
     height: 80%;
     .is-v-centered

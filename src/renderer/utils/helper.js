@@ -1,4 +1,5 @@
 import _ from 'lodash'
+
 const numeral = require('numeral')
 
 export const isLoggedIn = () => localStorage.getItem('pos_token')

@@ -2,6 +2,7 @@
   .AppBase
     NavBar
     #snap-screen.u-flex-fill(
+      ref="snap-screen"
       :class="{ 'is-v-flex-start': formPanelOpen }"
     )
       router-view

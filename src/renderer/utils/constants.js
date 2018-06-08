@@ -64,6 +64,21 @@ export const PERMISSIONS = [
   'admin'
 ]
 
+export const COLOR_PALETTE = [
+  '#05296b',
+  '#14056b',
+  '#055c6b',
+  '#6b4705',
+  '#031840',
+  '#221702',
+  '#020d22',
+  '#042053',
+  '#14056b',
+  '#055c6b',
+  '#6b4705',
+  '#031840'
+]
+
 export const PROGRESS = {
   func: [
     { call: 'color', modifier: 'temp', argument: '#ffb000' },

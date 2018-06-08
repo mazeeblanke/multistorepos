@@ -21,7 +21,6 @@
             @input="search('name')",
             class="input-with-select"
           )
-            // el-button(slot="append" icon="el-icon-search")
       .level-right
         .level-item
           a.button.is-primary(@click="createNewProduct", :disabled="formPanelOpen")
@@ -42,9 +41,9 @@
       ref="items_table",
       :data="filteredItemsData",
       :max-height="500",
+      :default-sort="{prop: 'created_at', order: 'descending'}",
       height="500"
       :border="false"
-      :highlight-current-row="true",
       @cell-click="handleCellClick"
       v-show="filteredItemsData.length",
       @selection-change="handleSelectionChange",
@@ -206,10 +205,13 @@ export default {
   computed: {
 
     ...mapState('products', ['products']),
+
     ...mapState('app', ['formPanelOpen']),
+
     costPriceLabel() {
       return `Cost Price (${this.currencySymbol})`
     },
+    
     unitPriceLabel() {
       return `Unit Price (${this.currencySymbol})`
     },

@@ -11,6 +11,7 @@
         :class="$style.pageForms",
         @close-form="closeDialog",
         :_employee="selectedEmployee",
+        :allow-excel-import="false"
       )
     .level.toolbar
       .level-left
@@ -200,10 +201,9 @@ export default {
       return this.preloadItemsList()
     })
     .then((res) => {
-      console.log(res)
       this.isLoadingSales = false
       this.handleBottomScroll()
-      this.setSelectedEmployeeSales(res.body)
+      this.setSelectedEmployeeSales(res)
     })
     .catch((err) => {
       console.log(err);
@@ -231,9 +231,9 @@ export default {
     ...{ formatDate, dateForHumans },
 
     setItems (res) {
-      const { data } = res.body
+      const { data } = res
       const salesHistory = {
-        ...res.body,
+        ...res,
         data: this.items.data.concat(data)
       }
       this.setSelectedEmployeeSales(salesHistory)
@@ -266,12 +266,6 @@ export default {
     ...mapState('employees', [
       'selectedEmployee',
     ]),
-
-    // disablePurchaseHistory () {
-    //   return !this.selectedEmployeeSales || 
-    //   !(this.selectedEmployeeSales.data && 
-    //   this.selectedEmployeeSales.data.length)
-    // },
 
     employeeBranch() {
       return this.selectedEmployee.branch || {}

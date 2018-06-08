@@ -1,229 +1,330 @@
 <template lang="pug">
   div 
-    .EmployeeForm(v-loading="processing")
+    .EnquiryForm(v-loading="processing")
       .level.toolbar
         .level-left
           .level-item
-            .page-title.subtitle.is-5 {{ _enquiry? 'Edit enquiry' : 'New Enquiry' }}
+            .page-title.subtitle.is-5 
+              | {{ selectedEnquiry? 'Edit enquiry' : 'New Enquiry' }}
+          .level-item
+            template(v-if="enquiry.customer")
+              span.tag.is-dark.is-medium 
+                span.material-icons accessibility
+                span {{ enquiry.customer.full_name }}     
         .level-right
           .level-item
             button.button.is-primary(
               :class="{'is-loading': processing}",
-              :disabled="processing || $v.$invalid",
               @click="submit()"
             )
-              b-icon(icon="save")
-              span {{ _enquiry? 'Save enquiry edits' : 'Add Enquiry' }}
-          .level-item(v-if="!!!_enquiry")
-            a.button(@click="closeForm()")
+              span 
+                | {{ selectedEnquiry? 'Save enquiry edits' : 'Create Enquiries' }}     
+          .level-item(v-if="!!!selectedEnquiry")
+            button.button.is-primary(@click="addNewItem")
+              span.material-icons add
+              span Add Item             
+          .level-item(v-if="!!!selectedEnquiry")
+            SelectCustomer(@selected:customer="selectCustomer")
+          .level-item
+            a.button.no-border(@click="closeForm()")
               span.icon
-                i.material-icons close
-              span Close             
-      .columns.is-desktop.EmployeeFormMain
-        .column.is-6
-          .field.is-horizontal
-            .field-label.has-text-right.is-v-centered
-              label.label Product
-            .field-body
-              .field
-                el-select(
-                  :value="enquiry.product_details[0].name"
-                  :remote="true"
-                  filterable
-                  :clearable="true"
-                  placeholder="Enter product name"
-                  :remote-method="getProductSuggestions"
-                  :loading="loading"
-                  @change="selectProduct"
-                  :value-key="enquiry.product_details[0].id"
-                  :disabled="!!_enquiry"
+                i.material-icons close          
+      .columns.is-desktop.EquiryFormMain.mb-10
+        el-table(
+          ref="enquiry-table",
+          :data="enquiry.products",
+          max-height="300",
+          :border="false",
+          @selection-change="handleSelectionChange"
+        )
+          el-table-column(type="selection")
+          el-table-column(label="S/N", type="index", :index="1", width="70", fixed="left")
+          el-table-column(show-overflow-tooltip, label="Product Name", :sortable="true", width="250", fixed="left")
+            template(slot-scope="scope")
+              el-select(
+                clearable,
+                :value="enquiry.products[scope.$index].name"
+                @change="selectProduct($event, scope.$index, scope.row)"
+                :remote="true"
+                @clear="resetProduct(scope.$index, scope.row)"
+                filterable
+                placeholder="Enter product name"
+                :remote-method="getProductSuggestions"
+                :loading="loading"
+                value-key="name"
+                size="small"
+                :disabled="!!selectedEnquiry"
+                @input="() => $v.enquiry.products.$each[scope.$index].name.$touch()",
+                :class="{ 'is-error': $v.enquiry.products.$each[scope.$index].name.$error }",
+                allow-create
+              )
+                el-option(
+                  v-for="(product, index) in productSuggestions"
+                  :key="product.id"
+                  :label="product.name"
+                  :value="product"
+                  :disabled="selectedProductId.includes(product.id)"
                 )
-                  el-option(
-                    v-for="(item, index) in productSuggestions"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item"
-                    :disabled="item.name === enquiry.product_details[0].name"
-                  )
-          .field.is-horizontal
-            .field-label.has-text-right.is-v-centered
-              label.label Customer
-            .field-body
-              .field 
-                el-select(
-                  v-model="enquiry.customer_details[0].firstname"
-                  :filterable="true"
-                  :clearable="true"
-                  :remote="true"
-                  placeholder="Enter customer name"
-                  @change="selectCustomer"
-                  :remote-method="getCustomerSuggestions"
-                  :loading="loading"
-                  :disabled="!!_enquiry"
-                )
-                  el-option(
-                    v-for="(item, index) in customerSuggestions"
-                    :key="index"
-                    :label="item.firstname"
-                    :value="item"
-                  )
-          .field.is-horizontal(v-if="_enquiry")
-            .field-label.has-text-right.is-v-centered
-              label.label Actual note
-            .field-body
-              .field 
-                el-input(
-                  v-model="enquiry.actualnote",
-                  placeholder="Enter actual note",
-                )         
-        .column.is-6 
-          .field.is-horizontal
-            .field-label.has-text-right.is-v-centered
-              label.label Enquiry note
-            .field-body
-              .field 
-                el-input(
-                  v-model="enquiry.inquirynote",
-                  placeholder="Enter enquiry note",
-                  :disabled="!!_enquiry"
-                ) 
-          .field.is-horizontal
-              .field-label.has-text-right.is-v-centered
-                label.label Date
-              .field-body
-                .field 
-                  el-date-picker.has-full-width(
-                    v-model="enquiry.expecteddate"
-                    type="datetime"
-                    placeholder="Select expected date"
-                    :disabled="!!_enquiry"
-                    value-format="yyyy-MM-dd HH:mm:ss"
-                  )                  
+          el-table-column(show-overflow-tooltip, label="Product ID", :sortable="true", width="150")
+            template(slot-scope="scope")
+              el-input(
+                :value="selectedEnquiry ? (selectedEnquiry.product && selectedEnquiry.product.id) : enquiry.products[scope.$index].id",
+                disabled
+                size="small"
+              ) 
+          el-table-column(show-overflow-tooltip, label="Qty", :sortable="true", width="130")
+            template(slot-scope="scope")
+              el-input-number(
+                v-model.number="enquiry.products[scope.$index].qty",
+                size="small",
+                type="number"
+                :min="0"
+                controls-position="right",
+              ) 
+          el-table-column(show-overflow-tooltip, label="Enquiry Note", :sortable="true", width="300")
+            template(slot-scope="scope")
+              el-input(
+                v-model="enquiry.products[scope.$index].inquiry_note",
+                clearable,
+                placeholder="Enter inquiry note",
+                size="small"
+                @change="() => $v.enquiry.products.$each[scope.$index].inquiry_note.$touch()",
+                :class="{ 'is-error': $v.enquiry.products.$each[scope.$index].inquiry_note.$error }",
+              )
+          el-table-column(show-overflow-tooltip, label="Actual Note", v-if="selectedEnquiry", :sortable="true", width="300")
+            template(slot-scope="scope")
+              el-input(
+                v-model="enquiry.products[scope.$index].actual_note",
+                clearable,
+                placeholder="Enter actual note",
+                size="small"
+              )
+          el-table-column(label="Status" show-overflow-tooltip, v-if="selectedEnquiry", :sortable="true", width="130")
+            template(slot-scope="scope")
+              el-select(
+                clearable,      
+                size="small",    
+                v-model="enquiry.products[scope.$index].status",
+                placeholder="Enter status",
+              )
+                el-option(label="Available", value="available")
+                el-option(label="Not Available", value="not available")    
+          el-table-column(show-overflow-tooltip, label="Expected Date", :sortable="true", width="180")
+            template(slot-scope="scope")
+              el-date-picker.has-full-width(
+                v-model="enquiry.products[scope.$index].expected_date"
+                type="datetime"
+                clearable
+                placeholder="Select expected date"
+                value-format="yyyy-MM-dd HH:mm:ss"
+                size="small"
+                @input="() => $v.enquiry.products.$each[scope.$index].expected_date.$touch()",
+                :class="{ 'is-error': $v.enquiry.products.$each[scope.$index].expected_date.$error }",
+              )
+          el-table-column(:render-header="renderDelete", width="70", fixed="right")
+            template(slot-scope="scope")
+              button.button(:class="$style.trash", :disabled="!!selectedEnquiry", @click.stop="removeRow(scope.$index)")
+                span.el-icon-delete.font-size-23                   
 </template>
 
 <script>
 /* eslint-disable */
 import { mapState, mapActions, mapMutations } from 'vuex';
 import { validationMixin } from 'vuelidate';
+import deleteMixin from '@/mixins/DeleteMixin'
 import { required } from 'vuelidate/lib/validators';
-import { ObjectToFormData } from '@/utils/helper';
 import EmptyState from '@/components/EmptyState';
+import SelectCustomer from '@/components/products/enquiries/SelectCustomer'
 import FullscreenDialog from '@/components/shared/FullscreenDialog';
 import _ from 'lodash'
 
 export default {
+
   props: {
-    _enquiry: {
+
+    selectedEnquiry: {
       type: Object,
-    }, 
-    sellItems: {
-      type: Function,
-    },
-    processingTransaction: {
-      require: false,
     }
+
   },
-  mixins: [validationMixin],
+
+  mixins: [validationMixin, deleteMixin],
+
   data() {
     return {
       enquiry: {
-        actualnote: null,
-        inquirynote: null,
-        expecteddate: null,
-        actualdate: null,
-        customerid4: null,
-        product7: null,
-        customer_details: [{}],
-        product_details: [{}],
-        // addproductinquiry: 'addproductinquiry',
+        customer: null,
+        products: [{
+          name: null,
+          expected_date: null,
+          inquiry_note: null,
+          index: 0,
+          qty: 0
+        }]
       },
-      // enquiryId: null,
-      customerSuggestions: [],
+      // customerSuggestions: [],
       productSuggestions: [],
       loading: false,
-      // availableMaterials: [],
       processing: false,
       fullScreenActive: false,
     };
   },
+
   validations: {
-    // enquiry: {
-    //   fullname: { required },
-    //   username: { required },
-    //   password: { required },
-    //   passwordConfirmation: { required },
-    //   access: { required },
-    // },
-  },
-  mounted() {
-    if (this._enquiry) {
-      this.enquiry = this._enquiry;
+    enquiry: {
+      products: {
+        required,
+        $each: {
+          name: { required },
+          expected_date: { required },
+          inquiry_note: { required }
+        }
+      }
     }
   },
-  watch: {
-    _enquiry() {
-       this.enquiry = this._enquiry;
-    },
-  },
+
   computed: {
-    ...mapState('users', ['currentUser']),
-    //  formatedValue() {
-    //   return this.enquiry.product.name.length > 61 
-    //   ? this.enquiry.product.name.substring(0, 61) + '...'
-    //   : this.enquiry.product.name;
-    // },
+
+    selectedProductId () {
+      if (this.enquiry.products) {
+        return this.enquiry.products
+          .filter(p => p.id)
+          .map(p => p.id)
+      }
+      return []
+    },
+
+    ...mapState('settings', ['settings'])
+
   },
+
+  mounted () {
+    if (this.selectedEnquiry) {
+      this.enquiry = {
+        customer: this.selectedEnquiry.customer,
+        products: [{
+          ...this.selectedEnquiry,
+          name: this.selectedEnquiry.product_name,
+          qty: this.selectedEnquiry.quantity
+        }]
+      }
+    }
+  },
+
   methods: {
-    ...mapActions('employees', ['loadEmployees', 'getLoyaltyDiscount']),
-    ...mapMutations('employees', ['ADD_EMPLOYEE']),
-    ...mapMutations('products', ['ADD_ENQUIRY']),
-    warnUser() {
+
+    ...mapActions('products', [
+      'loadProducts', 
+      'addEnquiry', 
+      'updateProductEnquiry'
+    ]),
+
+
+    warnUser (msg) {
       return this.$swal({
         title: 'Are you sure?',
-        text: 'Continue without creating employee?',
+        text: msg,
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
-      });
+        cancelButtonText: 'No'
+      })
     },
-    handleClick() {
-      this.warnUser().then((res) => {
+
+    resetProduct (index, row) {
+      this.$set(this.enquiry.products, index, {
+        expected_date: row.expected_date,
+        inquiry_note: row.inquiry_note,
+        index: row.index,
+        qty: row.qty,
+        name: null
+      })
+    },
+
+    removeRow (index) {
+      let msg = 'Do you want to delete this product ?'
+      this.warnUser(msg).then((res) => {
         if (res.value) {
-          this.sellItems();
+          if (this.enquiry.products.length > 1) {
+            this.enquiry.products.splice(index, 1)
+          } else {
+            this.$snackbar.open({
+              message: 'You must have at least one product.',
+              type: 'is-danger'
+            })
+          }
         }
       })
     },
-    selectCustomer(item) {
-      // this.customer = this.productSuggestions.find(
-      //   s => s.id === this.customerId,
-      // );
-      this.enquiry = { 
-        ...this.enquiry,
-        customerid4: item.id,
-        customer_details: [item],
+
+    deleteItems () {
+
+      const SELECTED_ALL_PRODUCTS = 
+      this.selectedItems.length === this.enquiry.products.length
+
+      let msg = 'Do you want to delete this product(s) ?'
+
+      if (SELECTED_ALL_PRODUCTS) {
+        this.$snackbar.open({
+          type: 'is-danger',
+          message: 'You must have at least one product!'
+        })
+        return
       }
+
+      this.warnUser(msg).then((res) => {
+        if (res.value) {
+          this.enquiry.products = this.enquiry
+          .products
+          .filter((p, index) => !this.selectedItems.find(i => i.index === index))
+          .map((p, i) => ({ ...p, index: i}))
+          this.$v.enquiry.products.$reset()
+        }
+      })
+      
     },
-    selectProduct(item) {
-      console.log(item);
-      // let { id, quantity: quantityInStock } = item;
-      this.enquiry = { 
-        ...this.enquiry,
-        product7: item.id,
-        product_details: [item],
+
+    selectCustomer (e) {
+      this.enquiry.customer = e
+    },
+
+    selectProduct (product, index, row) {
+
+      const payload = {
+        expected_date: row.expected_date,
+        inquiry_note: row.inquiry_note,
+        qty: row.qty,
+        index: row.index
       }
+
+      if (typeof product === 'string') {
+        this.$set(this.enquiry.products, index, {
+          name: product,
+          ...payload
+        }) 
+      } else {
+        this.$set(this.enquiry.products, index, {
+          ...product,
+          ...payload
+        })
+      }
+
     },
+
     getProductSuggestions(query) {
-      if (query !== '') {
+      if (query) {
         this.loading = true;
-        let payload = {
-          search: query,
-          type: 'product',
-        };
-        this.loadProducts(payload)
-        .then((productSuggestions) => {
+        this.loadProducts({
+          name: query,
+          branch_id: this.settings.branch.id,
+          store_id: this.settings.store.id
+        })
+        .then(({ data }) => {
           this.loading = false;
-          this.productSuggestions = _.flatMap(productSuggestions).filter((i) => i.quantity > 0 );
+          this.productSuggestions =_.uniqBy([ 
+            ...this.productSuggestions,
+            ...data ], 
+          'id')
         })
         .catch(() => {
           this.loading = false;
@@ -232,134 +333,120 @@ export default {
         this.productSuggestions = [];
       }  
     },
-    getCustomerSuggestions(query) {
-      if (query !== '') {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: 'customer',
-        };
-        this.loadCustomers(payload)
-          .then(customerSuggestions => {
-            this.loading = false;
-            this.customerSuggestions = _.flatMap(customerSuggestions);
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.customerSuggestions = [];
-      }
-    },
-    getEmployeeSuggestions(query) {
-      if (query !== '') {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: 'employee',
-        };
-        this.loadEmployees(payload)
-          .then(customerSuggestions => {
-            this.loading = false;
-            this.customerSuggestions = _.flatMap(customerSuggestions);
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.customerSuggestions = [];
-      }
-    },
+
     closeDialog() {
       this.fullScreenActive = false;
     },
-    updateEmployeeDetails() {
-      this.enquiry = this.customerSuggestions.find(
-        s => s.id === this.enquiryId,
-      );
+
+    addNewItem() {
+      this.enquiry.products.push({
+        index: this.enquiry.products.length
+      })
     },
-    addNewItem() {},
-    handleChange() {},
-    ...mapActions('employees', ['createEmployee', 'updateEmployee', 'clearSelectedEmployee']),
-    ...mapActions('products', ['loadProducts', 'addEnquiry', 'updateProductEnquiry']),
-    ...mapActions('customers', ['loadCustomers']),
+
     closeForm() {
       this.$emit('close-form');
     },
-    resetEmployee() {
+
+    resetEnquiry() {
       this.enquiry = {
-        actualnote: null,
-        inquirynote: null,
-        expecteddate: null,
-        actualdate: null,
-        customerid4: null,
-        product7: null,
-        customer_details: [{}],
-        product_details: [{}],
-        // addproductinquiry: 'addproductinquiry',
-      };
-    },
-    submit() {
-      this.$v.enquiry.$touch()
-      if (!this.$v.$invalid) {
-        this.processing = true;
-        const doAction = this._enquiry
-          ? this.updateProductEnquiry
-          : this.addEnquiry;
-        const payload = {
-          ...this.enquiry,
-          ...{
-            [this._enquiry ? 'updateproductinquiry' : 'addproductinquiry']: 'value',
-          },
-        };
-        doAction(ObjectToFormData(payload)).then(res => {
-          if (res.status === 'Success') {
-            this.$snackbar.open(res.status + ' !' + res.message);
-            // this.$emit('action-complete');
-            if (!this._enquiry) {
-              // this.$emit('action-complete', { ...res.enquiry_details[0] });
-              console.log(res.product_inquiry_details[0]);
-              this.ADD_ENQUIRY({
-                ...this.enquiry,
-                ...res.product_inquiry_details[0],
-              });
-              this.resetEmployee();
-            }
-          } else {
-            this.$snackbar.open(res.status);
-          }
-          this.processing = false;
-        });
+        customer: null,
+        products: [{
+          name: null,
+          expected_date: null,
+          inquiry_note: null,
+          index: 0,
+          qty: 0
+        }]
       }
     },
+
+    processEnquiryPayload () {
+
+      const customer = this.enquiry.customer
+
+      return this.enquiry.products.map(p => ({
+        customer_id: (customer && customer.id) || null,
+        product_id: (p && p.id) || null,
+        product_name: p.name,
+        qty: p.qty,
+        status: p.status,
+        actual_note: p.actual_note,
+        inquiry_note: p.inquiry_note,
+        expected_date: p.expected_date,
+        branch_id: this.settings.branch.id,
+        store_id: this.settings.store.id
+      }))
+
+    },
+
+    submit() {
+
+      this.$v.enquiry.$touch()
+
+      if (!this.$v.$invalid) {
+        this.processing = true;
+        const doAction = this.selectedEnquiry
+          ? this.updateProductEnquiry
+          : this.addEnquiry;
+
+        const payload = {
+          ...this.enquiry
+        };
+
+        doAction({
+          products: this.processEnquiryPayload()
+        })
+        .then(res => {
+          this.$snackbar.open(res.message);
+          if (!!!this.selectedEnquiry) {
+            this.resetEnquiry()
+            this.closeForm()
+            this.$v.enquiry.products.$reset()
+          }
+          this.processing = false;
+        })
+        .catch((err) => {
+          this.$snackbar.open({
+            type: 'is-danger',
+            message: err.message
+          })
+          this.processing = false;
+        })
+
+      }
+    }
   },
+
   components: {
     FullscreenDialog,
     EmptyState,
-  },
+    SelectCustomer
+  }
+
 };
 </script>
 
 <style lang="sass">
-  .EmployeeFormHeader
+
+  .EnquiryFormHeader
     padding: 2rem
     padding-bottom: 0
 
-  .EmployeeFormMain
-    padding: 2rem
+  .EquiryFormMain
+    padding: 0.8rem 2rem !important
 
-  .MaterialsForm
-    border-top: 1px solid #EAEAEA
-
-  .vendors-select
-    width: 400px
-  .EmployeeForm
+  .EnquiryForm
     height: 80%;
     .is-v-centered
       align-items: flex-start
     .el-select, .el-input-number, .el-input__inner
       width: 100% !important 
-  .completeTransactionBtn
-    margin-right: 25px !important
-    height: 50px !important  
+
+</style>
+
+<style lang="sass" module>
+.trash
+  border: none
+  background: transparent
 </style>

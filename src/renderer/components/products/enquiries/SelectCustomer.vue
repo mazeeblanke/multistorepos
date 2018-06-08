@@ -5,52 +5,67 @@
         ref="new-customer-form",
         @close-form="closeNewCustomerForm",
         @action-complete="closeNewCustomerForm",
+        :allow-excel-import="false"
       )
     button.button.is-primary(
-      @click.stop="showPopover",
-      :disabled="processing",
+      @click.stop="showPopover"
     )
       span.icon
         i.material-icons add
       span Select customer
     popover.selectCustomerPopover(
       ref="selectCustomerPopover",
-      name="selectCustomerPopover"
+      name="selectCustomerPopover",
+      :style="{top: top, right: right}"
     )
      .columns.is-multiline
-      .column.is-12.mt-25
+      .column.is-11.mt-25
         .field.is-horizontal
           .field-body
             .field 
               el-select.has-width-100(
+                v-model="customer"
                 :filterable="true"
                 :clearable="true"
                 :remote="true"
                 placeholder="Enter customer name"
-                @change="applyCustomerToCart"
+                @change="notify"
                 :remote-method="getCustomerSuggestions"
                 :loading="loading"
+                value-key="full_name"
               )
                 el-option(
                   v-for="(item, index) in suggestions"
                   :key="index"
                   :label="item.full_name"
                   :value="item"
-                )         
+                )
+      .column.is-1.mt-25.is-h-centered
+        span.no-border(@click.stop="fullScreenActive = true")
+          span.material-icons add                 
 </template>
 
 <script>
 
 import CustomerForm from '@/components/customers/CustomerForm'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
-import { mapState, mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
+import _ from 'lodash'
 
 export default {
 
-  props: ['processing'],
+  props: {
+    top: {
+      default: '170px'
+    },
+    right: {
+      default: '20px'
+    }
+  },
 
   data () {
     return {
+      customer: {},
       loading: false,
       suggestions: [],
       fullScreenActive: false
@@ -58,21 +73,8 @@ export default {
   },
 
   components: {
-
     CustomerForm,
-
     FullscreenDialog
-
-  },
-
-  computed: {
-
-    ...mapState('sales', ['cart']),
-
-    selectCustomerVisible () {
-      // return this.$refs.selectCustomerPopover.visible;
-      return true
-    }
   },
 
   mounted () {
@@ -90,33 +92,30 @@ export default {
 
     ...mapActions('customers', ['loadCustomers']),
 
-    ...mapActions('sales', [
-      'removeFromCart',
-      'completeTransaction',
-      'setCart'
-    ]),
+    closeNewCustomerForm (e) {
+      this.closeDialog()
+      this.customer = e
+      this.notify(e)
+      if (!e) return
+      this.suggestions = _.uniqBy([
+        ...this.suggestions,
+        ...[e]
+      ], 'id')
+    },
 
-    closeNewCustomerForm () {
-      this.fullScreenActive = false
+    notify (customer) {
+      if (!customer) customer = null
+      this.$emit('selected:customer', customer)
     },
 
     closeDialog () {
       this.fullScreenActive = false
+      this.$refs.selectCustomerPopover.visible = true
     },
 
     showPopover () {
       const popover = this.$refs.selectCustomerPopover
       popover.visible = !popover.visible
-      // this.suggestions = [];
-    },
-
-    applyCustomerToCart (customer) {
-      this.setCart({
-        ...this.cart,
-        customer: customer,
-        customer_id: customer.id
-      })
-      this.$snackbar.open('Successfully added customer to cart')
     },
 
     getCustomerSuggestions (query) {
@@ -124,10 +123,13 @@ export default {
         this.loading = true
         let payload = {
           full_name: query,
+          branch_id: this.settings.branch.id,
+          store_id: this.settings.store.id,
           persist: false
         }
         this.loadCustomers(payload)
           .then(({ data }) => {
+            console.log(data)
             this.loading = false
             this.suggestions = data
           })
@@ -139,6 +141,10 @@ export default {
       }
     }
 
+  },
+
+  computed: {
+    ...mapState('settings', ['settings'])
   }
 }
 </script>
@@ -148,8 +154,10 @@ export default {
     padding-left: 15px
     padding-right: 15px 
     width: 400px !important
-    right: 2px !important
+    // right: 20px !important
     left: auto !important
-    top: 60px !important
-    height: 100px !important  
+    // top: 170px !important
+    height: 100px !important
+  .material-icons
+    cursor: pointer !important  
 </style>

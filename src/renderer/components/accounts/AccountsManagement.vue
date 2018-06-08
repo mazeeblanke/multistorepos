@@ -9,17 +9,11 @@
             header.card-header
               p.card-header-title Accounts Management
               p.level-item.page-title.subtitle.is-5
-                span.tag.is-medium Branch: {{ currentBranch.name }}
+                span.tag.is-medium Branch: {{ settings.branch.name }}
               a.card-header-icon
-                //- div
-                //-   el-input(placeholder="Search..." class="input-with-select")
-                //-     el-button(slot="append" icon="el-icon-search")
-              a.card-header-icon
-                span.icon
-                  i.material-icons keyboard_arrow_down
+                span.el-icon-more-outline.font-size-23
             .tabs
               ul
-                //- template(v-if="$route.path === '/app/purchasing/requisitions' || $route.path === '/app/purchasing/purchaseorders'")
                 router-link(tag="li", :to="{name: 'expenditures_list'}", active-class="is-active")
                   a Expenditures
                 router-link(tag="li", :to="{name: 'opening_cash_list'}", active-class="is-active")
@@ -39,10 +33,8 @@ import SideBar from '@/components/shared/SideBar';
 const BASE_PATH = '/app/accounts'
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
-    console.log('in here');
     next({ name: 'expenditures_list' });
   } else {
-    console.log('out here');
     next();
   }
 };
@@ -54,9 +46,7 @@ export default {
     };
   },
   computed: {
-   ...mapState('branch', [
-      'currentBranch',
-    ]),
+   ...mapState('settings', ['settings']),
   },
   beforeRouteEnter(to, from, next) {
     redirectIfBase(to, next);

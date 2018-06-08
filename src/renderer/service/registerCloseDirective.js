@@ -6,6 +6,7 @@ Vue.directive('close', {
       if (e.target === el) {
         vnode.context[bindings.expression]()
       }
+      e.stopPropagation()
     })
   },
   unbind (el, bindings, vnode) {
@@ -13,6 +14,7 @@ Vue.directive('close', {
       if (e.target === el) {
         vnode.context[bindings.expression]()
       }
+      e.stopPropagation()
     })
   }
 })

@@ -1,4 +1,5 @@
 import { search } from '../../service/endpoints'
+import Vue from 'vue'
 
 export default {
 
@@ -11,10 +12,10 @@ export default {
 
   actions: {
 
-    loadDashboardMetrics ({ commit }, payload) {
-      return search(payload).then(res => {
-        commit('SET_DASHBOARD_METRICS', res.data)
-        return res.data
+    loadMetrics ({ commit }, payload) {
+      return Vue.axios.get('dashboard/stats', payload).then(res => {
+        commit('SET_DASHBOARD_METRICS', res.data.data)
+        return res.data.data
       })
     },
 

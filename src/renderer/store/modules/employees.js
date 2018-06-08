@@ -61,11 +61,13 @@ export default {
   },
   mutations: {
     SET_SELECTED_EMPLOYEE (state, data) {
+      // if (state.selectedEmployee && data.id === state.selectedEmployee.id) {
       state.selectedEmployee = {
         sales: { data: [] },
         ...state.selectedEmployee,
         ...data
       }
+      // }
     },
 
     CLEAR_SELECTED_EMPLOYEE (state) {

@@ -5,7 +5,7 @@
         ref="new-bankingcash-form",
         @close-form="closeNewBankingcashForm",
         @action-complete="closeNewBankingcashForm",
-        v-if="isCreatingBankingcash"
+        v-if="formPanelOpen"
       )
     .level.toolbar.shadow-divider(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
@@ -18,15 +18,14 @@
               i.material-icons add
             span Create Bankingcash
         .level-item
-          a.button(@click="displaySearchFilters = !displaySearchFilters")
-            span Toggle search filters
+          span.is-clickable(@click="displaySearchFilters = !displaySearchFilters")
             span.icon
-              i.material-icons keyboard_arrow_down
-    BankingCashListFilter(
-      :filter-params.sync="filterParams", 
-      @change="filterItems", 
-      v-show="displaySearchFilters"
-    )
+              i.material-icons youtube_searched_for
+    // BankingCashListFilter(
+    //   :filter-params.sync="filterParams", 
+    //   @change="filterItems", 
+    //   v-show="displaySearchFilters"
+    // )
     EmptyState(
       empty-text="No Result", 
       v-if="!filteredItemsData.length && !loading", 
@@ -34,41 +33,49 @@
     )
     Loading(
       loading-text="Loading bankingcashs", 
-      v-if="(loading && !filteredItemsData.length) || isSearching", 
+      v-if="(loading && !filteredItemsData.length)", 
       :style="{ height: '400px' }"
     )
     el-table.bcl(
       ref="items-table",
       :data="filteredItemsData",
-      :max-height="400",
+      :max-height="500",
       :border="false"
       :default-sort="{prop: 'created_at', order: 'descending'}",
       :highlight-current-row="true",
-      v-show="filteredItemsData.length && !isSearching",
-      :stripe="true"
+      v-show="filteredItemsData.length",
+      @selection-change="handleSelectionChange",
     )
-      el-table-column(type="selection", fixed="left")
-      el-table-column(label="No", type="index", :index="1", fixed="left")
-      el-table-column(prop="user", show-overflow-tooltip, label="User (from)", align="left", :sortable="true", fixed="left")
+      el-table-column(type="selection")
+      el-table-column(label="No", type="index", :index="1")
+      el-table-column(show-overflow-tooltip, label="User (from)", :sortable="true")
         template(slot-scope="scope")
-          span {{ parseColData(scope.row.fromuser) }}
-      el-table-column(prop="user", show-overflow-tooltip, label="User (to)", align="left", :sortable="true")
+          span.is-capitalized {{ parseColData(scope.row.fromuser.full_name) }}
+      el-table-column(show-overflow-tooltip, label="User (to)", :sortable="true")
         template(slot-scope="scope")
-          span {{ parseColData(scope.row.touser) }}
-      el-table-column(prop="amount", label="Amount", align="left", show-overflow-tooltip, :sortable="true")
+          span.is-capitalized {{ parseColData(scope.row.touser.full_name) }}
+      el-table-column(label="Amount", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
-          span {{ money(parseColData(scope.row.amount)) }}
-      el-table-column(prop="details", label="Details", align="left", show-overflow-tooltip, :sortable="true")
+          span.is-capitalized {{ money(parseColData(scope.row.amount)) }}
+      el-table-column(label="Details", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
-          span {{ parseColData(scope.row.details) }}
-      el-table-column(prop="bankingcashtime", label="Created at", align="left", show-overflow-tooltip, :sortable="true")
+          span.is-capitalized {{ parseColData(scope.row.details) }}
+      el-table-column(label="Created at", show-overflow-tooltip, :sortable="true", :width="130")
         template(slot-scope="scope")
-            span {{ dateForHumans(scope.row.bankingcashtime) }}
+          span.el-icon-time.mr-5
+          span {{ formatDate(scope.row.created_at) }}
+      el-table-column(label="Actions", :render-header="renderDelete", width="70")
+        template(slot-scope="scope", scope="props")
+          button.button(:class="$style.trash")
+            span.el-icon-delete.font-size-23    
+      div(slot="append" v-show="showLoading")
+        div(ref='loader' style="height: 45px;")
+          infinite-loading(spinner="waveDots" v-if="loading")      
 </template>
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions, mapGetters } from 'vuex'
+import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
 import Loading from '@/components/shared/Loading'
 import BankingcashForm from '@/components/accounts/BankingcashForm'
@@ -79,101 +86,83 @@ import filterMixin from '@/mixins/FilterMixin'
 import MoneyMixin from '@/mixins/MoneyMixin'
 import BankingCashListFilter from '@/components/accounts/filters/BankingCashListFilter'
 import EmptyState from '@/components/EmptyState'
-import { ObjectToFormData, parseColData } from '@/utils/helper'
+import { parseColData } from '@/utils/helper'
 import moment from 'moment'
 
 export default {
+
   mounted() {
     this.clearSelectedBankingcash();
     this.clearBankingcashs();
-    this.loading = true;
-    this.filter = { ...this.filter, branchid: this.currentBranch.id }
-    this.filterParams = { ...this.filterParams, branchid: this.currentBranch.id }
     this.preloadItemsList();
     this.handleBottomScroll(
       document.querySelector('.bcl .el-table__body-wrapper')
     );
   },
+
   mixins: [deleteMixin, filterMixin, MoneyMixin],
+
   data() {
     return {
-      formPanelOpen: false,
-      isCreatingBankingcash: false,
       filter: {
-        searchbankingcash: 'searchbankingcash',
-        page: 1,
-        fromtime6: '1970-01-01 00:00:01',
-        totime6: moment().format('YYYY-MM-DD HH:mm:ss'),
-        branchid: null,
       },
       displaySearchFilters: false,
-      filterParams: {
-        searchbankingcash: 'searchbankingcash',
-        page: 1,
-        fromtime6: '',
-        totime6: '',
-        fromuser4: '',
-        touser4: '',
-        bank: '',
-      },
-      loading: false,
-      items: {
-        data: []
-      }
+      loading: false
     };
   },
+
   watch: {
+
     bankingcashs(newValue) {
-      this.items = newValue;
-      this.filter.page = newValue.nextPage;
-    },
+      this.items = newValue
+    }
+
   },
+
   methods: {
+
     ...mapActions('bankingcash', [
       'clearSelectedBankingcash',
       'clearBankingcashs',
     ]),
-    parseColData(data) {
-      if (data === 'null') {
-        return '-';
-      }
-      return data;
-    },
-    searchBankingcashs() {
-      this.search({
-        ...this.filter,
-        type: this.searchQuery,
-      }, 'POST');
-    },
+
+    ...mapMutations('app', ['SET_FORM_STATE']),
+
     ...mapActions('bankingcash', {
-      searchItems: 'loadBankingcashsByPage',
+      searchItems: 'loadBankingcashs',
     }),
+
     ...mapActions('bankingcash', {
-      loadItems: 'loadBankingcashsByPage',
+      loadItems: 'loadBankingcashs',
     }),
+
     deleteItems() {},
+
     createNewBankingcash() {
-      this.formPanelOpen = true;
-      this.isCreatingBankingcash= true;
+      this.SET_FORM_STATE(true);
       this.$scrollTo(this.$refs['new-bankingcash-form'].$el, 1000, {
         container: '#snap-screen',
         easing: 'ease',
         offset: 20,
       });
     },
+
     closeNewBankingcashForm() {
-      this.formPanelOpen = false;
-      this.isCreatingBankingcash= false;
+      this.SET_FORM_STATE(false);
     },
-    showBankingcash(row) {
-      this.$router.push({ name: 'bankingcash_view', params: { id: row.id } });
-    },
+
     ...{ formatDate, formatStatus, dateForHumans, parseColData },
+
   },
+
   computed: {
+
     ...mapState('bankingcash', ['bankingcashs']),
-    ...mapState('branch', ['currentBranch']),
+
+    ...mapState('app', ['formPanelOpen'])
+
   },
+
   components: {
     Loading,
     BankingcashForm,
@@ -181,16 +170,10 @@ export default {
     InfiniteLoading,
     BankingCashListFilter,
     EmptyState,
-  },
+  }
+
 };
 </script>
-
-<style lang="sass">
-.humanize-display
-  text-transform: capitalize
-  i
-    margin-right: 5px
-</style>
 
 <style lang="sass" module>
 .columns

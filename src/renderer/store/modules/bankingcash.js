@@ -1,6 +1,7 @@
-import { bankingCash, search } from '../../service/endpoints'
+import { bankingCash } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -23,8 +24,11 @@ export default {
     },
 
     loadBankingcashs ({ commit }, payload) {
-      return search(payload).then(res => {
-        return res.data
+      return Vue.axios.get('bankingcash', { params: payload }).then(res => {
+        if (payload.persist === true) {
+          commit('SET_BANKING_CASHS', res.data.data)
+        }
+        return res.data.data
       })
     },
 
@@ -34,9 +38,11 @@ export default {
       })
     },
 
-    createBankingcash ({ commit }, payload) {
-      return bankingCash(payload).then(res => {
-        // commit('ADD_BANKING_CASH', res.data.customer_details[0]);
+    createBankingcash ({ commit, rootState }, payload) {
+      return Vue.axios.post('bankingcash', payload).then(res => {
+        if (rootState.settings.settings.branch.id === payload.branch_id) {
+          commit('SET_BANKING_CASHS', res.data)
+        }
         return res.data
       })
     },

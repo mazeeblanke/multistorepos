@@ -21,18 +21,8 @@ import { ObjectToFormData } from '@/utils/helper';
 export default {
   mounted() {
     // Notifications API needs to be paginated
-    // this.loadNotifications();
-    // this.getProductsStats(ObjectToFormData({
-    //   closetoexpiredproducts: 'closetoexpiredproducts',
-    // }))
-    // .then((res) => {
-    //   this.SET_CLOSE_TO_EXPIRED_PRODUCTS(res);
-    // });
-    // this.access = this.currentUser.access;
-    this.loadDashboardMetrics({
-      type: 'lightanalytics',
-      search: 'search',
-    });
+    // console.log(this.$ws.subscribe('dashboard'))
+    this.loadMetrics()
     this.loadProductStats({
       type: 'lightnotifications',
       search: 'search',
@@ -42,9 +32,11 @@ export default {
     ...mapState('products', [
       'closeToExpiredProducts',
     ]),
+
     ...mapState('dashboard', [
       'metrics',
     ]),
+
     ...mapState('users', [
       'currentUser',
     ]),
@@ -54,7 +46,7 @@ export default {
 
     },
     ...mapActions('dashboard', [
-      'loadDashboardMetrics',
+      'loadMetrics',
       'loadProductStats',
     ]),
   },

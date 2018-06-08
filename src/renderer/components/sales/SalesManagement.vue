@@ -14,7 +14,7 @@
                 span.el-icon-more-outline.font-size-23 
             .tabs
               ul
-                router-link(tag="li", :to="{name: 'sales_list'}", active-class="is-active")
+                router-link(tag="li", :to="{name: 'sale_details_list'}", active-class="is-active")
                   a Sales history
                 router-link(tag="li", :to="{name: 'refunds_list'}", active-class="is-active")
                   a Refunds history
@@ -33,7 +33,7 @@ import SideBar from '@/components/shared/SideBar';
 
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
-    next({ name: 'sales' });
+    next({ name: 'sale_details' });
   } else {
     next();
   }

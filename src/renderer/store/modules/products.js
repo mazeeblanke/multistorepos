@@ -3,6 +3,8 @@ import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
 import Vue from 'vue'
 
+/* eslint-disable */
+
 export default {
   namespaced: true,
   state: {
@@ -91,61 +93,67 @@ export default {
       })
     },
 
-    loadProduct ({ commit }, { id }) {
-      return Vue.axios.get(`product/${id}`).then(res => {
+    loadProduct ({ commit }, { id, branch_id }) {
+      return Vue.axios.get(`product/${id}`, { params: { branch_id } }).then(res => {
         commit('SET_SELECTED_PRODUCT', res.data.product)
       })
     },
 
-    loadProductEnquiry ({ commit }, payload) {
-      return products(payload).then(res => {
-        commit('SET_SELECTED_PRODUCT_ENQUIRY', res.data.message[0])
-      })
-    },
+    // loadProductEnquiry ({ commit }, payload) {
+    //   return products(payload).then(res => {
+    //     commit('SET_SELECTED_PRODUCT_ENQUIRY', res.data.message[0])
+    //   })
+    // },
 
-    loadProductsByPage ({ commit }, payload) {
-      return products(payload).then(res => {
-        commit('SET_PRODUCTS', res.data)
-        return res.data
-      })
-    },
+    // loadProductsByPage ({ commit }, payload) {
+    //   return products(payload).then(res => {
+    //     commit('SET_PRODUCTS', res.data)
+    //     return res.data
+    //   })
+    // },
 
-    loadProductInBranches ({ commit }, payload) {
-      return products(payload).then(res => {
-        return res.data
-      })
-    },
+    // loadProductInBranches ({ commit }, payload) {
+    //   return products(payload).then(res => {
+    //     return res.data
+    //   })
+    // },
 
-    loadProductChangesByPage ({ commit }, payload) {
-      return products(payload).then(res => {
-        commit('SET_CHANGED_PRODUCTS', res.data)
-        return res.data
-      })
-    },
+    // loadProductChangesByPage ({ commit }, payload) {
+    //   return products(payload).then(res => {
+    //     commit('SET_CHANGED_PRODUCTS', res.data)
+    //     return res.data
+    //   })
+    // },
 
-    loadProductEnquiriesByPage ({ commit }, payload) {
-      return products(payload).then(res => {
-        commit('SET_PRODUCTS_ENQUIRIES', res.data)
-        return res.data
+    loadProductEnquiries ({ commit }, payload) {
+      return Vue.axios.get('productinquiry', { params: payload }).then(res => {
+        if (payload.persist) {
+          commit('SET_PRODUCTS_ENQUIRIES', res.data.data)
+        }
+        return res.data.data
       })
     },
 
     createProduct ({ commit }, payload) {
       return Vue.axios.post('products', payload).then(res => {
-        // const _payload = {
-        //   ...res.data.data,
-        //   branch: {
-        //     quantity: res.data.quantity
-        //   }
-        // }
-        // commit('SET_PRODUCTS', { data: _payload })
         commit('SET_PRODUCTS', res.data)
         return res.data
       })
     },
 
     addEnquiry ({ commit }, payload) {
-      return products(payload).then(res => {
+      return Vue.axios.post('productinquiry', payload).then(res => {
+        commit('SET_ENQUIRIES', res.data)
+        return res.data
+      })
+    },
+
+    updateProductEnquiry ({ commit }, { products: payload }) {
+      return Vue
+      .axios
+      .patch(`productinquiry/${payload[0].product_id}`, payload[0])
+      .then(res => {
+        commit('UPDATE_PRODUCT_ENQUIRY', res.data.data)
         return res.data
       })
     },
@@ -164,13 +172,8 @@ export default {
     },
 
     updateProduct ({ commit }, payload) {
-      return products(payload.productFormData).then(res => {
-        return res.data
-      })
-    },
-
-    updateProductEnquiry ({ commit }, payload) {
-      return products(payload).then(res => {
+      return Vue.axios.patch(`products/${payload.id}`, payload).then(res => {
+        commit('SET_SELECTED_PRODUCT', res.data.data)
         return res.data
       })
     }
@@ -203,7 +206,11 @@ export default {
     },
 
     SET_SELECTED_PRODUCT (state, data) {
-      state.selectedProduct = { ...data, sales: { data: [] } }
+      state.selectedProduct = { 
+        sales: { data: [] },
+        ...state.selectedProduct,
+        ...data
+      }
     },
 
     SET_SELECTED_PRODUCT_ENQUIRY (state, data) {
@@ -226,6 +233,10 @@ export default {
       UPDATE_STATE(state, payload, 'products')
     },
 
+    SET_ENQUIRIES (state, payload) {
+      UPDATE_STATE(state, payload, 'productEnquiries')
+    },
+
     SET_PRODUCT (state, payload) {
       state.products.data = state.products.data.concat(payload.data)
     },
@@ -244,6 +255,11 @@ export default {
 
     SET_REORDER_PRODUCTS (state, payload) {
       UPDATE_STATE(state, payload, 'reorderProducts')
+    },
+
+    UPDATE_PRODUCT_ENQUIRY (state, payload) {
+      const foundIndex = state.productEnquiries.data.findIndex(e => e.id === payload.id)
+      Vue.set(state.productEnquiries.data, foundIndex, payload)
     },
 
     SET_CHANGED_PRODUCTS (state, payload) {

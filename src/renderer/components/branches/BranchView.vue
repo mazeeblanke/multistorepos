@@ -180,10 +180,9 @@ export default {
         return this.preloadItemsList()
       })
       .then((res) => {
-        console.log(res)
         this.isLoadingSales = false
         this.handleBottomScroll()
-        this.setSelectedBranchSales(res.body)
+        this.setSelectedBranchSales(res)
       })
       .catch((err) => {
         console.log(err)
@@ -218,9 +217,9 @@ export default {
     ...{ formatDate, dateForHumans },
 
     setItems (res) {
-      const { data } = res.body
+      const { data } = res
       const salesHistory = {
-        ...res.body,
+        ...res,
         data: this.items.data.concat(data)
       }
       this.setSelectedBranchSales(salesHistory)

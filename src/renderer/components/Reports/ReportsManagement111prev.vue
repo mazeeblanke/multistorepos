@@ -2,26 +2,16 @@
   section.section
     .container-fluid
       .columns.is-gapless
-        .column(v-show="$can('admin|super-admin')" :class="$can('admin|super-admin') ? 'is-2' : ''")
+        .column(v-show="$can('admin|superadmin')" :class="$can('admin|superadmin') ? 'is-2' : ''")
           SideBar
-        .column(v-show="$can('admin|super-admin')" :class="$can('admin|super-admin') ? 'is-10' : ''")
+        .column(:class="$can('admin|superadmin') ? 'is-10' : ''")
           .BaseAppCard.card(ref='base-card')
             header.card-header
               p.card-header-title Report Management
               p.level-item.page-title.subtitle.is-5
-                span.tag.is-medium Branch: {{ currentBranch.name }}
+                span.tag.is-medium Branch: {{ settings.branch.name }}
               a.card-header-icon
-                //- div
-                //-   el-input(placeholder="Search..." class="input-with-select")
-                //-     el-button(slot="append" icon="el-icon-search")
-              //- a.card-header-icon
-              //-   span.icon
-              //-     i.material-icons keyboard_arrow_down
-            //- .tabs
-            //-   ul
-            //-     //- template(v-if="$route.path === '/app/purchasing/requisitions' || $route.path === '/app/purchasing/purchaseorders'")
-            //-     router-link(tag="li", :to="{name: 'purchase_orders_list'}", active-class="is-active")
-            //-       a Employees
+                span.el-icon-more-outline.font-size-23
             .tab-content
               router-view(@formPanelClose='resetScroll')
 </template>
@@ -34,31 +24,34 @@ const BASE_PATH = '/app/customers';
 
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
-    console.log('in here');
     next({ name: 'customers_list' });
   } else {
-    console.log('out here');
     next();
   }
 };
 
 export default {
+
   data() {
     return {
       activeTab: 0,
     };
   },
+
   computed: {
-    ...mapState('branch', [
-      'currentBranch',
-    ]),
+
+    ...mapState('settings', ['settings'])
+
   },
+
   beforeRouteEnter(to, from, next) {
     redirectIfBase(to, next);
   },
+
   beforeRouteUpdate(to, from, next) {
     redirectIfBase(to, next);
   },
+
   methods: {
     resetScroll() {
       this.$scrollTo(this.$el, 1000, {
@@ -68,9 +61,11 @@ export default {
       });
     },
   },
+
   components: {
     SideBar,
-  },
+  }
+
 };
 </script>
 

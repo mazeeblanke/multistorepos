@@ -387,12 +387,11 @@ export default {
     _loadBranches(query) {
       if (query !== '') {
         this.loadingBranches = true;
-        this.searchBranches({
-          search: query,
-          type: 'branch',
+        this.loadBranches({
+          name: query
         })
         .then((res) => {
-          this.branchSuggestions = res;
+          this.branchSuggestions = res.data;
           this.loadingBranches = false;
         })
         .catch(() => {

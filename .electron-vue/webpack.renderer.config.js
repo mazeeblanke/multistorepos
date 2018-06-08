@@ -26,6 +26,7 @@ let productionGzipExtensions = ['js', 'css']
  */
 let whiteListedModules = [
   'vue',
+  '@adonisjs/websocket-client',
   'vue-sweetalert2',
   'element-ui',
   'vue-avatar-component',
@@ -73,8 +74,13 @@ let rendererConfig = {
       },
       {
         test: /\.js$/,
-        use: 'babel-loader',
-        exclude: /node_modules/
+        use: {
+          loader: 'babel-loader',
+          options: {
+            plugins: ['transform-regenerator']
+          }
+        },
+        exclude: /node_modules/,
       },
       {
         test: /\.node$/,

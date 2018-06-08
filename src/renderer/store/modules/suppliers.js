@@ -1,6 +1,6 @@
-import { suppliers, search } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -22,47 +22,32 @@ export default {
       commit('CLEAR_SUPPLIERS')
     },
 
-    loadSuppliers ({ commit }, payload) {
-      return search(payload).then(res => {
-        return res.data
-      })
-    },
-
-    searchSupplier ({ commit }, payload) {
-      return search(payload).then(res => {
-        return res.data
-      })
-    },
-
     updateSupplier ({ commit }, payload) {
-      return suppliers(payload).then(res => {
+      return Vue.axios.patch(`supplier/${payload.id}`, payload).then(res => {
+        commit('SET_SELECTED_SUPPLIER', res.data.data)
         return res.data
       })
     },
 
-    getLoyaltyDiscount ({ commit }, payload) {
-      return suppliers(payload).then(res => {
-        return res.data
+    loadSuppliers ({ commit }, payload) {
+      return Vue.axios.get('suppliers', { params: payload }).then(res => {
+        if (payload.persist) {
+          commit('SET_SUPPLIERS', res.data.data)
+        }
+        return res.data.data
       })
     },
 
-    loadSuppliersByPage ({ commit }, payload) {
-      return suppliers(payload).then(res => {
+    createSupplier ({ commit }, payload) {
+      return Vue.axios.post('suppliers', payload).then(res => {
         commit('SET_SUPPLIERS', res.data)
         return res.data
       })
     },
 
-    createSupplier ({ commit }, payload) {
-      return suppliers(payload).then(res => {
-        // commit('ADD_SUPPLIER', res.data.customer_details[0]);
-        return res.data
-      })
-    },
-
     loadSupplier ({ commit }, payload) {
-      return suppliers(payload).then(res => {
-        commit('SET_SELECTED_SUPPLIER', res.data.message[0])
+      return Vue.axios.get(`suppliers/${payload.id}`).then(res => {
+        commit('SET_SELECTED_SUPPLIER', res.data.data)
         return res.data
       })
     }

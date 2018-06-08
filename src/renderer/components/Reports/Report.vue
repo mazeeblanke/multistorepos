@@ -6,7 +6,7 @@ div
       .level-right
         .level-item
           el-form(:inline="true", :model="filter" class="demo-form-inline")
-            el-form-item(label="" v-show="$can('super-admin')")
+            el-form-item(label="" v-show="$can('superadmin')")
               el-select(
                 v-model="filter.currentBranch",
                 filterable,
@@ -28,14 +28,14 @@ div
                 )
             el-form-item(label="")
               el-select(v-model="filter.type", size="mini", clearable, placeholder="Direction")
-                el-option(label="Top" value="top")
-                el-option(label="Bottom" value="bottom")
+                el-option(label="Top" value="desc")
+                el-option(label="Bottom" value="asc")
             el-form-item(label="")
               el-select(v-model="filter.column", size="mini", clearable, placeholder="Type")
                 el-option(label="Quantity" value="quantity")
-                el-option(label="Discount" value="discount")
-                el-option(label="Tax" value="tax")
-                el-option(label="Total" value="total")
+                el-option(label="Discount" value="discount", :disabled="type === 'product'")
+                el-option(label="Tax" value="tax", :disabled="type === 'product'")
+                el-option(label="Sub Total" value="sub_total")
                 el-option(label="Profit" value="profit")
             el-form-item(label="")
               el-select(v-model="filter.limit", :allow-create="true", clearable, :filterable="true", size="mini", placeholder="Limit")
@@ -55,12 +55,12 @@ div
               )
             el-form-item(label="")
               el-select(v-model="reportTimeRange", clearable, @change="setTimeRange", size="mini", placeholder="Time range/period")
-                el-option(label="Hourly" value="hourly")
-                el-option(label="Daily" value="daily")
-                el-option(label="Weekly" value="weekly")
-                el-option(label="Monthly" value="monthly")
-                el-option(label="Quarterly" value="quarterly")
-                el-option(label="Anually" value="anually")
+                el-option(label="Hourly" value="hour")
+                el-option(label="Daily" value="day")
+                el-option(label="Weekly" value="week")
+                el-option(label="Monthly" value="month")
+                el-option(label="Quarterly" value="quarter")
+                el-option(label="Anually" value="year")
             el-form-item
               el-dropdown(split-button size="mini" type="primary" @command="handleCommand" @click="generateReport") Generate Report
                 el-dropdown-menu(slot="dropdown")
@@ -93,8 +93,10 @@ div
         el-table-column(label="No", type="index", :index="1")
         el-table-column(show-overflow-tooltip, :label="typeId", align="left" sortable)
           template(slot-scope="scope")
-            span {{ parseColData(scope.row[`${type}id`]) }}
+            span {{ parseColData(scope.row[`${type}_id`]) }}
         el-table-column(:prop="type", show-overflow-tooltip, :label="typeLabel", align="left" sortable)
+          template(slot-scope="scope")
+            span {{ scope.row.name || scope.row.full_name }}
         el-table-column(:prop="reportTypeCol", show-overflow-tooltip, :label="reportTypeColLabel", align="left" sortable)
     .column.is-5
       div
@@ -121,16 +123,15 @@ div
 import EmptyState from "@/components/EmptyState";
 import { formatDate, dateForHumans } from "@/filters/format";
 import { mapActions, mapState } from "vuex";
-import EmployeeForm from "@/components/employees/EmployeeForm";
-import FullscreenDialog from "@/components/shared/FullscreenDialog";
 import Loading from "@/components/shared/Loading";
 import JsonExcel from "vue-json-excel";
+import VueChart from 'vue-chart-js'
+import { COLOR_PALETTE } from '@/utils/constants'
 import {
-  ObjectToFormData,
   parseColData,
+  ucFirst,
   createImgOnCanvas,
 } from "@/utils/helper";
-import VueChart from "vue-chart-js";
 import pluralize from "pluralize";
 import $ from "jquery";
 import MoneyMixin from "@/mixins/MoneyMixin";
@@ -139,24 +140,20 @@ import _ from "lodash";
 let jsPDF = require("jspdf");
 require("jspdf-autotable");
 
-const ucFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
-const DAILY = "daily";
-const WEEKLY = "weekly";
-const HOURLY = "hourly";
-const MONTHLY = "monthly";
-const QUARTERLY = "quarterly";
-const ANUALLY = "anually";
-
 export default {
+
   props: {
     type: {
       required: true,
     },
   },
+
   mixins: [MoneyMixin],
+
   mounted() {
     this.generateReport();
   },
+  
   data() {
     return {
       isLoading: false,
@@ -194,32 +191,39 @@ export default {
       },
     };
   },
+
+
   components: {
     EmptyState,
     Loading,
-    EmployeeForm,
-    FullscreenDialog,
-    JsonExcel,
     VueChart,
+    JsonExcel
   },
+
   methods: {
-    ...mapActions("branch", ["loadBranches", "searchBranches"]),
-    _loadBranches(query) {
-      if (query !== "") {
-        this.loadingBranches = true;
-        this.searchBranches({
-          search: query,
-          type: "branch",
+
+    ...mapActions("branch", ["loadBranches"]),
+
+    ...mapActions("reports", ["loadReport"]),
+
+    ...{ formatDate, dateForHumans, parseColData },
+    
+    _loadBranches (query) {
+      if (query) {
+        this.loadingBranches = true
+        this.loadBranches({
+          name: query,
+          store_id: this.settings.store.id
+        }).then((res) => {
+          this.branchSuggestions = res.data
+          this.loadingBranches = false
+        }).catch(() => {
+          this.loadingBranches = false
         })
-          .then(res => {
-            this.branchSuggestions = res;
-            this.loadingBranches = false;
-          })
-          .catch(() => {
-            this.loadingBranches = false;
-          });
       }
     },
+
+
     typeLabelValue(scope) {
       const TYPE = scope[this.type];
       if (TYPE instanceof Array) {
@@ -230,16 +234,22 @@ export default {
       }
       return TYPE;
     },
+
+
     handleCommand(command) {
+      if (!command) return 
       command();
     },
+
+
     generateReportPdf(action) {
       const columns = [
         { title: "No", dataKey: "index" },
-        { title: this.typeId, dataKey: `${this.type}id` },
-        { title: this.typeLabel, dataKey: this.type },
+        { title: this.typeId, dataKey: `${this.type}_id` },
+        { title: this.typeLabel, dataKey: this.type === 'product' ? 'name' : 'full_name' },
         { title: ucFirst(this.title), dataKey: this.reportTypeCol },
       ];
+      console.log(columns)
       this.isGeneratingPDF = true;
       let imgData = document.getElementById("myChart").toDataURL("image/jpg");
       let remarks = $("#remarks").val();
@@ -254,7 +264,7 @@ export default {
             cellPadding: 6,
             fontSize: 10,
           },
-          headerStyles: { fillColor: 255, textColor: "black" },
+          headerStyles: { fillColor: 255, textColor: 0 },
           alternateRowStyles: { fillColor: false },
           bodyStyles: { fillColor: false },
           columnStyles: {
@@ -269,6 +279,7 @@ export default {
             if (data.pageCount > 1) {
               headerMarginTop = 20;
             }
+            console.log(this.reportTitle)
             printDoc.text(this.reportTitle, 15, 46);
           },
         });
@@ -291,6 +302,7 @@ export default {
         }
       });
     },
+
     parseTitle(title, row) {
       const moneyTitle = ["profit", "total"];
       if (moneyTitle.includes(title)) {
@@ -298,75 +310,18 @@ export default {
       }
       return row[title];
     },
+
     setTimeRange(value) {
-      if (value === DAILY) {
-        this.filter.range = [
-          this.$moment()
-            .startOf("day")
-            .format("YYYY-MM-DD HH:mm:ss"),
-          this.$moment()
-            .endOf("day")
-            .format("YYYY-MM-DD HH:mm:ss"),
-        ];
-      }
-
-      if (value === WEEKLY) {
-        this.filter.range = [
-          this.$moment()
-            .startOf("week")
-            .format("YYYY-MM-DD HH:mm:ss"),
-          this.$moment()
-            .endOf("week")
-            .format("YYYY-MM-DD HH:mm:ss"),
-        ];
-      }
-
-      if (value === MONTHLY) {
-        this.filter.range = [
-          this.$moment()
-            .startOf("month")
-            .format("YYYY-MM-DD HH:mm:ss"),
-          this.$moment()
-            .endOf("month")
-            .format("YYYY-MM-DD HH:mm:ss"),
-        ];
-      }
-
-      if (value === QUARTERLY) {
-        this.filter.range = [
-          this.$moment()
-            .startOf("quarter")
-            .format("YYYY-MM-DD HH:mm:ss"),
-          this.$moment()
-            .endOf("quarter")
-            .format("YYYY-MM-DD HH:mm:ss"),
-        ];
-      }
-
-      if (value === ANUALLY) {
-        this.filter.range = [
-          this.$moment()
-            .startOf("year")
-            .format("YYYY-MM-DD HH:mm:ss"),
-          this.$moment()
-            .endOf("year")
-            .format("YYYY-MM-DD HH:mm:ss"),
-        ];
-      }
-
-      if (value === HOURLY) {
-        this.filter.range = [
-          this.$moment()
-            .startOf("hour")
-            .format("YYYY-MM-DD HH:mm:ss"),
-          this.$moment()
-            .endOf("hour")
-            .format("YYYY-MM-DD HH:mm:ss"),
-        ];
-      }
+      this.filter.range = [
+        this.$moment()
+          .startOf(value)
+          .format("YYYY-MM-DD HH:mm:ss"),
+        this.$moment()
+          .endOf(value)
+          .format("YYYY-MM-DD HH:mm:ss"),
+      ]
     },
-    ...{ formatDate, dateForHumans },
-    ...mapActions("sales", ["loadSales"]),
+
     changeChartType(type) {
       this.displayChart = false;
       setTimeout(() => {
@@ -374,120 +329,136 @@ export default {
         this.displayChart = true;
       }, 1000);
     },
-    generateReport() {
-      const { type, column, limit, range } = this.filter;
-      const payload = {
-        [`reporttopbottom${pluralize(this.type)}`]: "value",
-        fromtime: range[0] || "1970-01-01 00:00:01",
-        totime: range[1] || "7018-02-07 00:00:00",
-        type: type || "top",
-        column: column || "profit",
-        limit: limit || 10,
-        branchid: this.filter.currentBranch || this.currentBranch.id,
-      };
-      this.sales = null;
-      this.isLoading = true;
-      this.$emit("loading", true);
-      this.loadSales(ObjectToFormData(payload))
-        .then(res => {
-          this.$emit("loading", false);
-          this.isLoading = false;
-          if (res.status === "Success") {
-            this.sales = {
-              data: res.message,
-              meta: payload,
-            };
-            this.sales.data = this.sales.data.map((s, i) => {
-              s[this.type] = this.typeLabelValue(s);
-              s[`parsed${ucFirst(this.title)}`] = this.parseTitle(
-                this.title,
-                s,
-              );
-              s.index = i + 1;
-              return s;
-            });
-            this.displayChart = true;
-          }
-        })
-        .catch(err => {
-          this.$emit("loading", false);
-          this.isLoading = false;
-        });
+
+    processPayload () {
+      const { 
+        type,
+        column,
+        limit,
+        range,
+        currentBranch,
+        store = {}
+      } = this.filter;
+
+      return {
+        fromtime: range[0],
+        totime: range[1],
+        direction: type,
+        type: column,
+        limit: limit,
+        report_type: this.type,
+        branch_id: currentBranch || this.settings.branch.id,
+        store_id: store.id || this.settings.store.id,
+      }
+
     },
-    ...{ parseColData },
+
+    generateReport() {
+
+      this.sales = null;
+
+      this.isLoading = true;
+
+      this.$emit("loading", true);
+
+      this.loadReport(this.processPayload())
+      .then(({ data, meta }) => {
+
+        this.$emit("loading", false)
+
+        this.isLoading = false
+
+        this.sales = { data, meta }
+        
+        this.sales.data = this.sales.data.map((s, i) => {
+          s[this.type] = this.typeLabelValue(s);
+          s[`parsed${ucFirst(this.title)}`] = this.parseTitle(
+            this.title,
+            s,
+          );
+          s.index = i + 1;
+          return s
+        })
+
+        this.displayChart = true;
+
+      })
+      .catch(err => {
+        this.$emit("loading", false);
+        this.isLoading = false;
+      });
+    }
+
   },
+
   computed: {
+
     ...mapState("employees", ["selectedEmployee"]),
+
+    ...mapState("settings", ["settings"]),
+
     ...mapState("store", ["store"]),
+
     ...mapState("branch", ["currentBranch"]),
+
     title() {
       let title;
       const cols = ["quantity", "discount", "tax", "profit", "total"];
       cols.forEach(c => {
-        if (this.sales.meta.column === c) {
+        if (this.sales.meta.type === c) {
           title = c;
         }
       });
-      return title;
+      return this.sales.meta.type;
     },
+
     chartData() {
       return {
-        labels: _.map(this.sales.data, this.type),
+        labels: _.map(this.sales.data, 'name'),
         datasets: [
           {
-            label: `${this.sales.meta.type} of ${pluralize(
-              ucFirst(this.type),
-            )}`,
-            data: _.map(this.sales.data, this.sales.meta.column),
-            // backgroundColor: _.map(this.sales.data, s => 'rgba(153, 102, 255, 1)'),
-            backgroundColor: [
-              "#05296b",
-              "#14056b",
-              "#055c6b",
-              "#6b4705",
-              "#031840",
-              "#221702",
-              "#020d22",
-              "#042053",
-              "#14056b",
-              "#055c6b",
-              "#6b4705",
-              "#031840",
-            ],
+            label: `${ucFirst(this.sales.meta.type)} of ${pluralize(ucFirst(this.type))}`,
+            data: _.map(this.sales.data, this.sales.meta.type),
+            backgroundColor: COLOR_PALETTE,
             borderWidth: 1,
           },
         ],
       };
     },
+
     emptyText() {
       return `No results`;
     },
+
     typeLabel() {
       return ucFirst(`${this.type} Name`);
     },
+
     typeId() {
       return ucFirst(`${this.type} ID`);
     },
+
     reportTypeCol() {
       return `parsed${ucFirst(this.title)}`;
     },
+
     reportTypeColLabel() {
-      return `${ucFirst(this.sales.meta.column)}`;
+      return `${ucFirst(this.sales.meta.type)}`;
     },
+
     json_fields() {
       return {
         No: "index",
-        [this.typeId]: `${this.type}id`,
-        [`${this.typeLabel}`]: this.type,
+        [this.typeId]: `${this.type}_id`,
+        [`${this.typeLabel}`]: this.type === 'product' ? 'name' : 'full_name',
         [`${this.reportTypeColLabel}`]: this.reportTypeCol,
       };
     },
+
     reportTitle() {
-      return `${ucFirst(this.sales.meta.type)} ${this.sales.meta
-        .limit} ${ucFirst(this.type)} Sales (${ucFirst(
-        this.sales.meta.column,
-      )})`;
+      return `${ucFirst(this.sales.meta.direction)} ${this.sales.meta.limit} ${ucFirst(this.type)} Sales (${ucFirst(this.sales.meta.type)})`;
     },
+
   },
 };
 </script>

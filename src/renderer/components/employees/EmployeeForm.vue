@@ -298,10 +298,10 @@ export default {
         this.loadingBranches = true
         this.loadBranches({
           name: query,
-          store_id: this.settings.store_id
-        }).then((res) => {
-          console.log(res)
-          this.branchSuggestions = res.branches.data
+          store_id: this.settings.store.id
+        }).then(({ data }) => {
+          console.log(data)
+          this.branchSuggestions = data
           this.loadingBranches = false
         }).catch(() => {
           this.loadingBranches = false

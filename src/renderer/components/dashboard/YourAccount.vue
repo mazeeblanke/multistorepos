@@ -1,17 +1,14 @@
 <template lang="pug">
   .YourAccount.card
-    //- header.card-header
-    //-   p.card-header-title Your Store
     .card-content
       .content
-        EmptyState(empty-text="Setup your store" v-if="!store", :style="{height: '200px', width: '200px'}")
-        div.has-text-centered(v-else)
-          avatar(:fullname="store.store", :image="avatarUrl", :size="120")
+        div.has-text-centered
+          avatar(:fullname="settings.store.name", :size="120")
           div.has-text-centered
-            h2.title.is-3.has-text-weight-bold.is-lowercase.m-0.text-header {{ store.store }}
-            h5.title.is-5.has-text-weight-normal.is-lowercase.m-0.email {{ store.email }}
-            h6.title.is-6.has-text-weight-normal.is-lowercase.m-0 {{ store.address }}      
-            h6.title.is-6.has-text-weight-normal.is-lowercase.m-0 {{ store.phone }}      
+            h2.title.is-3.has-text-weight-bold.is-lowercase.m-0.text-header {{ settings.store.name }}
+            h5.title.is-5.has-text-weight-normal.is-lowercase.m-0.email {{ settings.store.email }}
+            h6.title.is-6.has-text-weight-normal.is-lowercase.m-0 {{ settings.store.address }}      
+            h6.title.is-6.has-text-weight-normal.is-lowercase.m-0 {{ settings.store.phone }}      
 </template>
 
 
@@ -21,47 +18,45 @@ import { mapActions, mapState, mapMutations } from 'vuex';
 import { validationMixin } from 'vuelidate';
 import { required } from 'vuelidate/lib/validators';
 import { ObjectToFormData, money } from '@/utils/helper';
-import EmptyState from '@/components/EmptyState';
 import Avatar from 'vue-avatar-component';
 
 export default {
   components: {
-    EmptyState,
-    Avatar,
+    Avatar
   },
   mounted() {
     let storeDetails = null;
     this.loading = true;
-    this.getStoreDetails(
-      ObjectToFormData({
-        getloyaltysetting: 'getloyaltysetting',
-      }
-    ))
-    .then((res) => {
-      storeDetails = res.message[0];
-      return this.getStoreDetails(
-        ObjectToFormData({
-          getsetup: 'getsetup',
-        }
-      ))
-    })
-    .then((_res) => {
-      storeDetails = {
-        ...storeDetails,
-        ..._res.message[0],
-      }
-      this.SET_STORE_DETAILS(storeDetails);
-      this.loading = false;
-    })
+    // this.getStoreDetails(
+    //   ObjectToFormData({
+    //     getloyaltysetting: 'getloyaltysetting',
+    //   }
+    // ))
+    // .then((res) => {
+    //   storeDetails = res.message[0];
+    //   return this.getStoreDetails(
+    //     ObjectToFormData({
+    //       getsetup: 'getsetup',
+    //     }
+    //   ))
+    // })
+    // .then((_res) => {
+    //   storeDetails = {
+    //     ...storeDetails,
+    //     ..._res.message[0],
+    //   }
+    //   this.SET_STORE_DETAILS(storeDetails);
+    //   this.loading = false;
+    // })
   },
   methods: {
-    ...mapActions('store', [
-      'getStoreDetails',
-      'setStoreDetails',
-    ]),
-    ...mapMutations('store', [
-      'SET_STORE_DETAILS',
-    ]),
+    // ...mapActions('store', [
+    //   'getStoreDetails',
+    //   'setStoreDetails',
+    // ]),
+    // ...mapMutations('store', [
+    //   'SET_STORE_DETAILS',
+    // ]),
   },
   // watch: {
   //   store(value) {
@@ -71,12 +66,12 @@ export default {
   //   },
   // },
   computed: {
-    ...mapState('store', [
-      'store',
+    ...mapState('settings', [
+      'settings',
     ]),
-    avatarUrl() {
-      return `${baseUrl}/assets/img/logo.jpg?time=${Date.now()}`;
-    },
+    // avatarUrl() {
+    //   return `${baseUrl}/assets/img/logo.jpg?time=${Date.now()}`;
+    // },
   },
 };
 </script>

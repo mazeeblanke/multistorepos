@@ -5,7 +5,7 @@
         ref="product-form",
         :class="$style.pageForms",
         @close-form="closeDialog",
-        :_product="selectedProduct",
+        :init-product="selectedProduct",
         v-if="isEditingProduct"
       )
       ProductSupplyForm.page-forms(
@@ -66,7 +66,7 @@
             .field.is-horizontal
               .field-label.is-normal
                 label.label
-                  strong Quantity: 
+                  strong Qty (In Store): 
               .field-label.is-normal
                 label.label.is-pulled-left  {{ selectedProduct.quantity }}
             .field.is-horizontal
@@ -78,7 +78,7 @@
             .field.is-horizontal
               .field-label.is-normal
                 label.label
-                  strong  Reorder:
+                  strong  Reorder (Store):
               .field-label.is-normal
                 label.label.is-pulled-left {{ selectedProduct.reorder }}
             .field.is-horizontal
@@ -87,6 +87,12 @@
                   strong  Status:
               .field-label.is-normal
                 label.label.is-pulled-left {{ selectedProduct.status }}
+            .field.is-horizontal
+              .field-label.is-normal
+                label.label
+                  strong Barcode: 
+              .field-label.is-normal
+                label.label.is-pulled-left {{ selectedProduct.barcode }}     
           .column.is-6
             .field.is-horizontal
               .field-label.is-normal
@@ -103,23 +109,29 @@
             .field.is-horizontal
               .field-label.is-normal
                 label.label
-                  strong Cost price:
+                  strong Reorder:
               .field-label.is-normal
-                label.label.is-pulled-left {{ selectedProduct.costprice }}
+                label.label.is-pulled-left  {{ selectedProduct.productBranch ? selectedProduct.productBranch.reorder : '' }}
             .field.is-horizontal
               .field-label.is-normal
                 label.label
-                  strong Barcode: 
+                  strong  Qty left:
               .field-label.is-normal
-                label.label.is-pulled-left {{ selectedProduct.barcode }}  
+                label.label.is-pulled-left {{ selectedProduct.productBranch ? selectedProduct.productBranch.quantity : '' }}    
+            .field.is-horizontal
+              .field-label.is-normal
+                label.label
+                  strong Cost price:
+              .field-label.is-normal
+                label.label.is-pulled-left {{ selectedProduct.costprice }} 
         .mt-30
           h5.title.is-5.has-text-centered Product Purchase history
           el-table(
             v-loading="isLoadingSales"
             :data="filteredItemsData",
             :empty-text="emptyText",
-            :max-height="200"
-            :height="200"
+            :max-height="300"
+            :height="300"
           )
             el-table-column(label="No", type="index", :index="1")
             el-table-column(prop="product_id", label="Product ID")
@@ -162,7 +174,7 @@ export default {
       isLoadingSales: false,
       filter: {
         aggregate: 0,
-        limit: 4,
+        limit: 10,
         with_user: 1,
         persist: false
       },
@@ -188,7 +200,8 @@ export default {
     this.clearSelectedProduct()
     this.isLoading = true
     this.loadProduct({
-      id: this.$route.params.id
+      id: this.$route.params.id,
+      branch_id: this.settings.branch.id
     })
       .then(() => {
         this.isLoading = false
@@ -202,7 +215,7 @@ export default {
       .then(res => {
         this.isLoadingSales = false
         this.handleBottomScroll()
-        this.setSelectedProductSales(res.body)
+        this.setSelectedProductSales(res)
       })
       .catch(err => {
         console.log(err)
@@ -242,9 +255,9 @@ export default {
     ...mapActions('sales', ['loadSales']),
 
     setItems (res) {
-      const { data } = res.body
+      const { data } = res
       const salesHistory = {
-        ...res.body,
+        ...res,
         data: this.items.data.concat(data)
       }
       this.setSelectedProductSales(salesHistory)
@@ -281,6 +294,8 @@ export default {
   computed: {
 
     ...mapState('products', ['selectedProduct']),
+
+    ...mapState('settings', ['settings']),
 
     emptyText () {
       return `${this.selectedProduct.name} has not been purchased yet`

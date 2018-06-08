@@ -38,63 +38,73 @@ div
                 value-format="yyyy-MM-dd HH:mm:ss"
               )
             el-form-item(label="")
-              el-select(v-model="reportTimeRange", @change="setTimeRange", size="mini", placeholder="Time range/period")
-                el-option(label="Hourly" value="hourly")
-                el-option(label="Daily" value="daily")
-                el-option(label="Weekly" value="weekly")
-                el-option(label="Monthly" value="monthly")
-                el-option(label="Quarterly" value="quarterly")
-                el-option(label="Anually" value="anually")
+              el-select(
+                v-model="reportTimeRange", 
+                @change="setTimeRange", 
+                size="mini", 
+                placeholder="Time range/period"
+              )
+                el-option(label="Hourly" value="hour")
+                el-option(label="Daily" value="day")
+                el-option(label="Weekly" value="week")
+                el-option(label="Monthly" value="month")
+                el-option(label="Quarterly" value="quarter")
+                el-option(label="Anually" value="year")
             el-form-item
-              el-dropdown(split-button size="mini" type="primary" @command="handleCommand" @click="generateReport") Generate Report
+              el-dropdown(
+                split-button size="mini", 
+                type="primary", 
+                @command="handleCommand", 
+                @click="generateReport"
+              ) Generate Report
                 el-dropdown-menu(slot="dropdown")
                   el-dropdown-item(:command="() => generateReportPdf('preview')") Preview and Print PDF
                   el-dropdown-item(:command="() => generateReportPdf('download')") Download PDF
-                  JsonExcel(
-                    class="btn btn-default",
-                    :data="sales.data.list_of_expenditures",
-                    :fields="json_fields",
-                    name="Report",
-                    type="xlsx",
-                    v-if="sales"
-                  )
-                    el-dropdown-item Export to Excel sheet
+                  // JsonExcel(
+                  //   class="btn btn-default",
+                  //   :data="sales.expenditure",
+                  //   :fields="json_fields",
+                  //   name="Report",
+                  //   type="xlsx",
+                  //   v-if="sales"
+                  // )
+                  //   el-dropdown-item Export to Excel sheet
     nav(class="level expenditureStats" v-if="sales")
       div(class="level-item has-text-centered")
         div
           p(class="heading") Expenditure Costs
-          p(class="title") {{ money(sales.data.total_cost_of_expenditures) }}
+          p(class="title") {{ money(sales.total_expenditure) }}
       div(class="level-item has-text-centered")
         div
           p(class="heading") Inventory Costs
-          p(class="title") {{ money(sales.data.total_cost_of_inventory) }}
+          p(class="title") {{ money(sales.total_costprice) }}
       div(class="level-item has-text-centered")
         div
           p(class="heading") Opening Cash Total
-          p(class="title")  {{ money(sales.data.total_income_from_openingcash) }}
+          p(class="title")  {{ money(sales.total_openingcash) }}
       div(class="level-item has-text-centered")
         div
           p(class="heading") Profit/Loss
-          p(class="title") {{ money(sales.data.total_profit_loss) }}
+          p(class="title") {{ money(sales.total_profitloss) }}
   EmptyState(empty-text="No Expenditures" v-if="!sales && !isLoading", :style="{ height: '400px' }")
   Loading(loading-text="Loading expenditure report" v-if="isLoading && !sales", :style="{ height: '400px' }")
-  .columns.appView(v-if="sales && sales.data.list_of_expenditures.length")
+  .columns.appView(v-if="sales && sales.expenditure.length")
     .column.is-7
       div#d
         h5.title.mb-20 Expenditures
       el-table(
-        :data="sales.data.list_of_expenditures",
+        :data="sales.expenditure",
         :empty-text="emptyText",
         :height="680"
         :max-height="680"
         :stripe="true"
-        v-if="sales.data.list_of_expenditures.length"
+        v-if="sales.expenditure.length"
         :border="true"
       )
         el-table-column(label="No", type="index", :index="1")
         el-table-column(prop="user", show-overflow-tooltip, label="Username", align="left" sortable)
           template(slot-scope="scope")
-            span {{ parseColData(scope.row.user) }}
+            span {{ parseColData(scope.row.user.full_name) }}
         el-table-column(prop="type", show-overflow-tooltip, label="Type", align="left" sortable)
           template(slot-scope="scope")
             span {{ parseColData(scope.row.type) }}
@@ -131,31 +141,27 @@ import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import Loading from '@/components/shared/Loading'
 import MoneyMixin from '@/mixins/MoneyMixin'
 import JsonExcel from 'vue-json-excel'
-import { ObjectToFormData, parseColData, createImgOnCanvas } from '@/utils/helper'
+import { COLOR_PALETTE } from '@/utils/constants'
+import { parseColData, createImgOnCanvas } from '@/utils/helper'
 import VueChart from 'vue-chart-js'
 import $ from 'jquery'
 import imgLetterHead from '@/assets/img/AXXIMUTH2.jpg'
 let jsPDF = require('jspdf')
 require('jspdf-autotable')
 
-const DAILY = 'daily'
-const WEEKLY = 'weekly'
-const HOURLY = 'hourly'
-const MONTHLY = 'monthly'
-const QUARTERLY = 'quarterly'
-const ANUALLY = 'anually'
-
 export default {
+
   mounted () {
     this.generateReport()
   },
+
   data () {
     return {
       isLoading: false,
       isGeneratingPDF: false,
       filter: {
         range: [],
-        currentBranch: null
+        branch: {}
       },
       remarks: '',
       loadingBranches: false,
@@ -187,7 +193,9 @@ export default {
       }
     }
   },
+
   mixins: [MoneyMixin],
+
   components: {
     EmptyState,
     Loading,
@@ -196,11 +204,20 @@ export default {
     JsonExcel,
     VueChart,
   },
+
   methods: {
+
     ...mapActions('branch', [
       'loadBranches',
       'searchBranches'
     ]),
+
+    ...mapActions('reports', [
+      'loadProfitLossReport'
+    ]),
+
+    ...{ formatDate, dateForHumans, parseColData },
+
     _loadBranches (query) {
       if (query !== '') {
         this.loadingBranches = true
@@ -217,14 +234,15 @@ export default {
           })
       }
     },
+
     generateReportPdf (action) {
       const columns = [
         {title: 'No', dataKey: 'index'},
-        {title: 'Username', dataKey: 'user'},
+        {title: 'Username', dataKey: 'user.full_name'},
         {title: 'Type', dataKey: 'type'},
         {title: 'Amount', dataKey: 'amount'}
       ]
-      const data = this.sales.data.list_of_expenditures
+      const data = this.sales.expenditure
         .map((s, i) => {
           s.amount = this.money(parseColData(s.amount))
           s.user = parseColData(s.user)
@@ -247,6 +265,14 @@ export default {
             fontSize: 11
           },
           margin: {top: tableMarginTop},
+          createdCell: function (cell, data) {
+            let dataKeyParts = data.column.raw.dataKey.split('.');
+            if(dataKeyParts.length > 1) {
+              let o = data.row.raw;
+              dataKeyParts.forEach(key => {(o !== null || o !== '') ? o = o[key] : ''});
+              cell.text = o;
+            }
+          },
           headerStyles: {fillColor: 255, textColor: 0},
           alternateRowStyles: {fillColor: false},
           bodyStyles: {fillColor: false},
@@ -279,9 +305,11 @@ export default {
         }
       })
     },
+    
     handleCommand (command) {
       command()
     },
+
     typeLabelValue (scope) {
       const TYPE = scope.row[this.type]
       if (TYPE instanceof Array) {
@@ -292,53 +320,14 @@ export default {
       }
       return TYPE
     },
+
     setTimeRange (value) {
-      if (value === DAILY) {
-        this.filter.range = [
-          this.$moment().startOf('day').format('YYYY-MM-DD HH:mm:ss'),
-          this.$moment().endOf('day').format('YYYY-MM-DD HH:mm:ss')
-        ]
-      }
-
-      if (value === WEEKLY) {
-        this.filter.range = [
-          this.$moment().startOf('week').format('YYYY-MM-DD HH:mm:ss'),
-          this.$moment().endOf('week').format('YYYY-MM-DD HH:mm:ss')
-        ]
-      }
-
-      if (value === MONTHLY) {
-        this.filter.range = [
-          this.$moment().startOf('month').format('YYYY-MM-DD HH:mm:ss'),
-          this.$moment().endOf('month').format('YYYY-MM-DD HH:mm:ss')
-        ]
-      }
-
-      if (value === QUARTERLY) {
-        this.filter.range = [
-          this.$moment().startOf('quarter').format('YYYY-MM-DD HH:mm:ss'),
-          this.$moment().endOf('quarter').format('YYYY-MM-DD HH:mm:ss')
-        ]
-      }
-
-      if (value === ANUALLY) {
-        this.filter.range = [
-          this.$moment().startOf('year').format('YYYY-MM-DD HH:mm:ss'),
-          this.$moment().endOf('year').format('YYYY-MM-DD HH:mm:ss')
-        ]
-      }
-
-      if (value === HOURLY) {
-        this.filter.range = [
-          this.$moment().startOf('hour').format('YYYY-MM-DD HH:mm:ss'),
-          this.$moment().endOf('hour').format('YYYY-MM-DD HH:mm:ss')
-        ]
-      }
+      this.filter.range = [
+        this.$moment().startOf(value).format('YYYY-MM-DD HH:mm:ss'),
+        this.$moment().endOf(value).format('YYYY-MM-DD HH:mm:ss')
+      ]
     },
-    ...{ formatDate, dateForHumans },
-    ...mapActions('sales', [
-      'loadSales'
-    ]),
+
     changeChartType (type) {
       this.displayChart = false
       setTimeout(() => {
@@ -346,72 +335,55 @@ export default {
         this.displayChart = true
       }, 500)
     },
+
     generateReport () {
-      const { range } = this.filter
+      const { range, branch } = this.filter
       const payload = {
-        profitloss: 'value',
-        fromtime8: range[0] || '1970-01-01 00:00:01',
-        totime8: range[1] || '7018-02-07 00:00:00',
-        branchid: this.filter.currentBranch || this.currentBranch.id
+        from_time: range[0],
+        to_time: range[1],
+        branch_id: branch.id || this.settings.branch.id,
+        store_id: this.settings.store.id
       }
       this.sales = null
       this.isLoading = true
       this.$emit('loading', true)
-      this.loadSales(
-        ObjectToFormData(payload)
-      )
+      this.loadProfitLossReport(payload)
         .then((res) => {
           this.isLoading = false
-          if (res.status === 'Success') {
-            this.sales = {
-              data: res.message,
-              meta: payload
-            }
-            this.displayChart = true
-          }
+          this.sales = res
+          this.displayChart = true
         })
         .catch((err) => {
           this.$emit('loading', false)
           this.isLoading = false
         })
     },
-    ...{ parseColData }
+
   },
   computed: {
-    ...mapState('employees', [
-      'selectedEmployee'
+
+    ...mapState('settings', [
+      'settings'
     ]),
-    ...mapState('store', [
-      'store'
-    ]),
-    ...mapState('branch', [
-      'currentBranch'
-    ]),
+
     chartData () {
-      const { data } = JSON.parse(JSON.stringify({ ...this.sales }))
-      delete data.list_of_expenditures
+      const data = JSON.parse(JSON.stringify({ ...this.sales }))
+      delete data.expenditure
       return {
         labels: Object.keys(data),
         datasets: [{
           label: 'Profit/loss Report',
           data: Object.values(data),
-          // backgroundColor: _.map(Object.values(data), s => 'rgba(153, 102, 255, 1)'),
-          backgroundColor: [
-            '#05296b',
-            '#14056b',
-            '#055c6b',
-            '#6b4705',
-            '#031840',
-            '#221702',
-            '#042053'
-          ],
+          backgroundColor: COLOR_PALETTE,
           borderWidth: 1
         }]
       }
     },
+
     emptyText () {
       return `No results`
     }
+
   }
 }
 </script>

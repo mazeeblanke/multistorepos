@@ -1,26 +1,20 @@
 <template lang="pug">
   div
-    .BankingcashForm(v-loading="processing || processingTransaction")
+    .BankingcashForm(v-loading="processing")
       .level.toolbar
         .level-left
           .level-item
-            .page-title.subtitle.is-5 {{ _bankingcash? 'Edit Entry' : 'New Entry' }}
-          .level-item
-            //- span.tag.is-warning.is-medium Sale ID: {{ salesid }}
-            //- bankingcashs::addbankingcash2($_POST['address1'], $_POST['address2']);
+            .page-title.subtitle.is-5 
+              | {{ _bankingcash? 'Edit Entry' : 'New Entry' }}
         .level-right
           .level-item
             button.button.is-primary(
               :class="{'is-loading': processing}",
-              :disabled="processing || $v.$invalid",
+              :disabled="processing",
               @click="submit()"
             )
               b-icon(icon="save")
               span {{ _bankingcash? 'Save Entry edits' : 'Add Entry' }}
-          .level-item
-            //- button.button.is-primary(
-            //-   @click="fullScreenActive = !fullScreenActive"
-            //- ) Select bankingcash
           .level-item
             a.button(@click="closeForm()")
               span.icon
@@ -30,24 +24,25 @@
         .column.is-6
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Employee name (from)
+              label.label Name (from)
             .field-body
               .field
                 el-select(
                   size="small",
-                  v-model="bankingcash.fromuser3"
+                  v-model="bankingcash.fromuser"
                   :filterable="true"
                   :remote="true"
                   :clearable="true"
                   placeholder="e.g john doe"
-                  :remote-method="getSalesSuggestions"
-                  popper-class="salesUserSelect"
+                  :remote-method="getEmployeeSuggestions"
+                  @change="() => $v.bankingcash.fromuser.$touch()",
+                  :class="{ 'is-error': $v.bankingcash.fromuser.$error }"
                 )
                   el-option(
-                    v-for="(item, index) in suggestions"
-                    :key="index"
-                    :label="item.username"
-                    :value="item.username"
+                    v-for="(employee, index) in employeeSuggestions"
+                    :key="employee.id"
+                    :label="employee.full_name"
+                    :value="employee.id"
                   )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -55,9 +50,12 @@
             .field-body
               .field
                 el-input-number(
+                  controls-position="right",
                   size="small",
                   v-model="bankingcash.amount",
                   placeholder="Enter bankingcash's amount",
+                  @input="() => $v.bankingcash.amount.$touch()",
+                  :class="{ 'is-error': $v.bankingcash.amount.$error }"
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -68,28 +66,31 @@
                   size="small",
                   v-model="bankingcash.bank",
                   placeholder="e.g fidelity bank",
+                  @input="() => $v.bankingcash.bank.$touch()",
+                  :class="{ 'is-error': $v.bankingcash.bank.$error }"
                 )
         .column.is-6
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Employee name (to)
+              label.label Name (to)
             .field-body
               .field
                 el-select(
                   size="small",
-                  v-model="bankingcash.touser3"
+                  v-model="bankingcash.touser"
                   :filterable="true"
                   :remote="true"
                   :clearable="true"
                   placeholder="e.g jane doe"
-                  :remote-method="getSalesSuggestions"
-                  popper-class="salesUserSelect"
+                  :remote-method="getEmployeeSuggestions"
+                  @change="() => $v.bankingcash.touser.$touch()",
+                  :class="{ 'is-error': $v.bankingcash.touser.$error }"
                 )
                   el-option(
-                    v-for="(item, index) in suggestions"
-                    :key="index"
-                    :label="item.username"
-                    :value="item.username"
+                    v-for="(employee, index) in employeeSuggestions"
+                    :key="employee.id"
+                    :label="employee.full_name"
+                    :value="employee.id"
                   )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -116,7 +117,8 @@
                   :loading="loadingBranches",
                   no-data-text="No results!",
                   value-key="id",
-                  @change="selectBranch"
+                  @change="() => $v.bankingcash.branch.$touch()",
+                  :class="{ 'is-error': $v.bankingcash.branch.$error }"
                 )
                   el-option(
                     v-for="branch in branchSuggestions",
@@ -131,213 +133,211 @@
 import { mapState, mapActions, mapMutations } from 'vuex';
 import { validationMixin } from 'vuelidate';
 import { required } from 'vuelidate/lib/validators';
-import { ObjectToFormData } from '@/utils/helper';
-import EmptyState from '@/components/EmptyState';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-
-// const ucFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default {
+
   props: {
     _bankingcash: {
       type: Object,
-    },
-    sellItems: {
-      type: Function,
-    },
-    processingTransaction: {
-      require: false,
     }
   },
+
   mixins: [validationMixin],
+
   data() {
     return {
       bankingcash: {
-        fromuser3: null,
-        touser3: null,
+        fromuser: null,
+        touser: null,
         details: null,
         amount: null,
         bank: null,
-        addbankingcash: 'addbankingcash',
-        branchid: null,
         branch: null,
       },
-      // bankingcashId: null,
-      suggestions: [],
+      employeeSuggestions: [],
       loading: false,
-      // availableMaterials: [],
       processing: false,
       fullScreenActive: false,
       loadingBranches: false,
       branchSuggestions: [],
     };
   },
+
   validations: {
     bankingcash: {
-      fromuser3: { required },
-      touser3: { required },
+      fromuser: { required },
+      touser: { required },
+      bank: { required },
       amount: { required },
-      // type: { required },
-      // access: { required },
+      bank: { required },
+      branch: { required }
     },
   },
+
   mounted() {
-    if (this._bankingcash) {
-      this.bankingcash = {
-        ...this._bankingcash,
-        fullname: this._bankingcash.name,
-        passwordConfirmation: this._bankingcash.password,
-      };
-    }
+
+    // if (this._bankingcash) {
+    //   this.bankingcash = {
+    //     ...this._bankingcash,
+    //     fullname: this._bankingcash.name,
+    //     passwordConfirmation: this._bankingcash.password,
+    //   };
+    // }
     this.bankingcash = {
       ...this.bankingcash,
-      branchid: this.currentBranch.id,
-      branch: this.currentBranch,
+      branch: this.settings.branch
     }
-    this.branchSuggestions = [this.currentBranch];
+
+    this.branchSuggestions = [this.settings.branch];
   },
-  watch: {
-    _bankingcash() {
-      //  this.bankingcash = this._bankingcash;
-      this.bankingcash = {
-        ...this._bankingcash,
-        fullname: this._bankingcash.name,
-        passwordConfirmation: this._bankingcash.password,
-      };
-    },
-  },
+
+  // watch: {
+  //   _bankingcash() {
+  //     this.bankingcash = {
+  //       ...this._bankingcash,
+  //     };
+  //   },
+  // },
+
   computed: {
-    ...mapState('users', ['currentUser']),
-    ...mapState('branch', ['currentBranch']),
+
+    ...mapState('settings', ['settings'])
+
   },
+
   methods: {
-    ...mapMutations('bankingcash', ['ADD_BANKING_CASH']),
-    ...mapActions('customers', [
-      'loadCustomers',
-    ]),
+
     ...mapActions('branch', [
       'loadBranches',
     ]),
-    selectBranch(branch) {
-      this.bankingcash.branchid = branch.id;
-    },
+
+    ...mapActions("employees", [
+      "loadEmployees"
+    ]),
+
     _loadBranches(query) {
-      if (query !== '') {
+      if (query) {
         this.loadingBranches = true;
-        this.loadBranches(ObjectToFormData({
-          allbranches: 'allbranches',
-        }))
-        .then((res) => {
-          this.branchSuggestions = res;
+        this.loadBranches({
+          name: query,
+          store_id: this.settings.store.id
+        }).then((res) => {
+          this.branchSuggestions = res.data;
           this.loadingBranches = false;
-        })
-        .catch(() => {
+        }).catch(() => {
           this.loadingBranches = false;
         });
       }
     },
-    getSalesSuggestions(query) {
-      if (query) {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: 'user',
-        };
-        this.loadCustomers(payload)
-          .then(suggestions => {
-            this.loading = false;
-            this.suggestions = suggestions;
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.suggestions = [];
-      }
-    },
-    warnUser() {
-      return this.$swal({
-        title: 'Are you sure?',
-        text: 'Continue without creating bankingcash?',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
-      });
-    },
-    handleClick() {
-      this.warnUser().then((res) => {
-        if (res.value) {
-          this.sellItems();
-        }
-      })
-    },
-    closeDialog() {
-      this.fullScreenActive = false;
-    },
-    updateEmployeeDetails() {
-      this.bankingcash = this.suggestions.find(
-        s => s.id === this.bankingcashId,
-      );
-    },
-    addNewItem() {},
-    handleChange() {},
-    ...mapActions('bankingcash', ['createBankingcash', 'updateBankingcash', 'clearSelectedBankingcash']),
+
+    ...mapActions('bankingcash', [
+      'createBankingcash',
+      'updateBankingcash',
+      'clearSelectedBankingcash'
+    ]),
+
     closeForm() {
       this.$emit('close-form');
     },
+
+    getEmployeeSuggestions (query) {
+      if (query) {
+        this.loadingEmployees = true;
+        this.loadEmployees({
+          username: query,
+          store_id: this.settings.store.id,
+          branch_id: this.settings.branch.id
+        })
+          .then(({ data }) => {
+            this.loadingEmployees = false
+            this.employeeSuggestions = data
+          })
+          .catch(() => {
+            this.loadingEmployees = false
+          });
+      } else {
+        this.employeeSuggestions = []
+      }
+    },
+
     resetBankingcash() {
       this.bankingcash = {
-        ...this.bankingcash,
-        fromuser3: null,
-        touser3: null,
+        fromuser: null,
+        touser: null,
         details: null,
         amount: null,
         bank: null,
-        addbankingcash: 'addbankingcash',
+        branch: null
       };
     },
+
+    processPayload () {
+      const {
+        fromuser,
+        details,
+        touser,
+        amount,
+        branch,
+        bank
+      } = this.bankingcash
+
+      return {
+        from_user: fromuser,
+        details,
+        to_user: touser,
+        amount,
+        bank,
+        branch_id: branch.id,
+        store_id: this.settings.store.id
+      }
+    },
+
     submit() {
+      this.$v.bankingcash.$touch()
       if (!this.$v.$invalid) {
-        this.processing = true;
+
+        this.processing = true
+
         const doAction = this._bankingcash
           ? this.updateBankingcash
           : this.createBankingcash;
-        // this.bankingcash = {
-        //   ...this.bankingcash,
-        //   // ...{
-        //   //   [this._bankingcash ? 'updateuser' : 'userreg']: 'value',
-        //   //   access2: this._bankingcash ? this.bankingcash.access : null,
-        //   //   name: this._bankingcash ? this.bankingcash.fullname : null,
-        //   //   user: this._bankingcash ? this.bankingcash.username : null,
-        //   // },
-        // };
-        doAction(ObjectToFormData(this.bankingcash)).then(res => {
-          if (res.status === 'Success') {
-            this.$snackbar.open(res.status + ' !' + res.message);
-            // this.$emit('action-complete');
-            if (!this._bankingcash) {
-              // this.$emit('action-complete', { ...res.bankingcash_details[0] });
-              if (this.currentBranch.id === this.bankingcash.branchid ) {
-                this.ADD_BANKING_CASH(res.bankingcash_details[0]);
-              }
-              this.resetBankingcash();
-            } else {
-              this.$emit('updated-bankingcash', { ...res.bankingcash_details[0] });
-            }
+
+        doAction({
+          bankingcash: [this.processPayload()],
+          branch_id: this.bankingcash.branch.id
+        })
+        .then(res => {
+          this.$snackbar.open(res.message);
+          if (!this._bankingcash) {
+            this.$emit('action-complete', res.data);
+            this.$v.bankingcash.$reset()
+            this.resetBankingcash()
           } else {
-            this.$snackbar.open(res.status);
+            this.$emit('updated-bankingcash', res.data)
           }
+
           this.processing = false;
-        });
+        })
+        .catch((err) => {
+          this.processing = false
+          this.$snackbar.open({
+            type: 'is-danger',
+            message: err.message
+          })
+        })
+
+      } else {
+        this.processing = false
+
+        this.$snackbar.open({
+          type: 'is-danger',
+          message: 'validation errors exist !'
+        })
       }
     },
-  },
-  components: {
-    FullscreenDialog,
-    EmptyState,
-  },
-};
+  }
+
+}
 </script>
 
 <style lang="sass">
@@ -348,54 +348,11 @@ export default {
   .BankingcashFormMain
     padding: 2rem
 
-  .MaterialsForm
-    border-top: 1px solid #EAEAEA
-
-  .multiselect
-    font-size: 1rem
-    min-height: 2.25em
-
-  .multiselect__tags
-    display: flex
-    align-items: center
-    min-height: 2.25em
-    padding-left: calc(0.375em - 1px)
-    padding-right: calc(0.375em - 1px)
-    padding-top: calc(0.375em - 1px)
-    border-color: #dbdbdb
-
-  .multiselect__input
-    font-size: 1rem
-    width: auto
-    margin-bottom: calc(0.375em - 1px)
-
-  .multiselect__tags
-    border-bottom-left-radius: 3px !important
-    border-bottom-right-radius: 3px !important
-
-  .custom__tag
-    display: inline-block
-    padding: 0px 7px
-    background: #EFEFEF
-    margin-right: 5px
-    border-radius: 3px
-    cursor: pointer
-    margin-bottom: calc(0.375em - 1px)
-
-  .custom__remove
-    padding: 0
-    font-size: 10px
-    margin-left: 8px
-
-  .vendors-select
-    width: 400px
   .BankingcashForm
     height: 80%;
     .is-v-centered
       align-items: flex-start
     .el-select, .el-input-number, .el-input__inner
       width: 100% !important
-  .completeTransactionBtn
-    margin-right: 25px !important
-    height: 50px !important
+
 </style>

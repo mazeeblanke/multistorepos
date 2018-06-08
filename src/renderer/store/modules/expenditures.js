@@ -1,6 +1,7 @@
-import { expenditures, search } from '../../service/endpoints'
+import { expenditures } from '../../service/endpoints'
 import { INIT_STATE } from '@/utils/constants'
 import { UPDATE_STATE } from '@/utils/helper'
+import Vue from 'vue'
 
 export default {
   namespaced: true,
@@ -22,19 +23,18 @@ export default {
       commit('CLEAR_EXPENDITURES')
     },
 
-    loadExpenditures ({ commit }, payload) {
-      return search(payload).then(res => {
-        return res.data
-      })
-    },
+    // loadExpenditures ({ commit }, payload) {
+    //   return search(payload).then(res => {
+    //     return res.data
+    //   })
+    // },
 
-    loadExpendituresByPage ({ commit }, payload) {
-      const data = payload.filter || payload
-      return expenditures(data).then(res => {
-        if ((payload instanceof FormData && payload.get('persist') === 'true')) {
-          commit('SET_EXPENDITURES', res.data)
+    loadExpenditures ({ commit }, payload) {
+      return Vue.axios.get('expenditures', { params: payload }).then(res => {
+        if (payload.persist === true) {
+          commit('SET_EXPENDITURES', res.data.data)
         }
-        return res.data
+        return res.data.data
       })
     },
 
@@ -45,8 +45,11 @@ export default {
       })
     },
 
-    createExpenditure ({ commit }, payload) {
-      return expenditures(payload).then(res => {
+    createExpenditure ({ commit, rootState }, payload) {
+      return Vue.axios.post('expenditures', payload).then(res => {
+        if (rootState.settings.settings.branch.id === payload.branch_id) {
+          commit('SET_EXPENDITURES', res.data)
+        }
         return res.data
       })
     },

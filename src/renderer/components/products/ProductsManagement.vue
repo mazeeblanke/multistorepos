@@ -16,8 +16,8 @@
               ul
                 router-link(tag="li", :to="{name: 'products_list'}", active-class="is-active")
                   a Products
-                router-link(tag="li", :to="{name: 'products_history_list'}", active-class="is-active")
-                  a Product History
+                // router-link(tag="li", :to="{name: 'products_history_list'}", active-class="is-active")
+                //   a Product History
                 router-link(tag="li", :to="{name: 'products_transfer'}", active-class="is-active")
                   a Products Transfer
                 router-link(tag="li", :to="{name: 'products_transfer_list'}", active-class="is-active")

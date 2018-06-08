@@ -30,8 +30,13 @@ let mainConfig = {
       },
       {
         test: /\.js$/,
-        use: 'babel-loader',
-        exclude: /node_modules/
+        use: {
+          loader: 'babel-loader',
+          options: {
+            plugins: ['transform-regenerator']
+          }
+        },
+        exclude: /node_modules/,
       },
       {
         test: /\.node$/,

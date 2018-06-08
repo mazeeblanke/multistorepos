@@ -4,16 +4,16 @@ section.section(:style="{ width: '100%' }")
       .column
         .BaseAppCard.card
           .Sales
-            FullscreenDialog(
-              @closed="closeDialog", 
-              :active.sync="fullScreenActive"
+            RefundSales(
+              v-if="refundSales"
+              :visible.sync="refundSales", 
+              :close="closeRefundSales",
+              :products="filteredCartItems",
+              :total-label="totalLabel",
+              :unit-price-label="unitPriceLabel",
+              :sales-id="cart.sales_id",
+              @refunded="updateCart"
             )
-              CustomerForm.page-forms(
-                ref="customer-form",
-                @close-form="closeDialog",
-                @action-complete="useCreatedCustomer"
-                v-show="addingCustomer"
-              )
             FullscreenDialog(
               @closed="closeReceiptDialog", 
               :scrollable="true", 
@@ -27,13 +27,13 @@ section.section(:style="{ width: '100%' }")
                 :cart="cart",
                 v-if="printReceipt",
                 :print-receipt="printReceipt",
-                :is="(store && store.printout) || 'Reciept'",
+                :is="(settings && settings.printout) || 'Reciept'",
               ) 
             .level.toolbar
               .level-left
                 .level-item.page-title.subtitle.is-5
                   span.el-icon-news.mr-5.font-size-23
-                  span.mr-10 Listing Items ({{ getCartItemsNumber }})
+                  span(:style="{ width: '120px' }") Listing Items ({{ getCartItemsNumber }})
                   template(v-if="cart.customer")
                     span.tag.is-dark.is-medium 
                       span.material-icons accessibility
@@ -53,16 +53,12 @@ section.section(:style="{ width: '100%' }")
                         i.material-icons add
                       span Add Items/Products
                   .level-item
-                    a.button.is-primary(
-                      @click="addCustomer",
-                      :disabled="processing", 
-                      title="Create and add the customer"
+                    SelectCustomer(
+                      top="60px"
+                      right="0px"
+                      :processing="processing", 
+                      @selected:customer="useCreatedCustomer"
                     )
-                      span.icon
-                        i.material-icons add
-                      span Add Customer
-                  .level-item
-                    SelectCustomer(:processing="processing")
             .form-panel(:class="{ 'is-active': formPanelOpen }")
               SalesForm.sales-form.page-forms(
                 ref="new-product-form",
@@ -134,23 +130,26 @@ section.section(:style="{ width: '100%' }")
 /* eslint-disable */
 import { mapState, mapActions, mapMutations } from 'vuex'
 import SalesForm from '@/components/sales/SalesForm'
-import CustomerForm from '@/components/customers/CustomerForm'
-import SelectCustomer from '@/components/sales/SelectCustomer'
+import SelectCustomer from '@/components/products/enquiries/SelectCustomer'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import deleteMixin from '@/mixins/DeleteMixin'
 import MoneyMixin from '@/mixins/MoneyMixin'
-import { validationMixin } from 'vuelidate'
-import { required } from 'vuelidate/lib/validators'
-import { money, calculatePercentInCash, calculateDiscount, ucFirst } from '@/utils/helper'
 import PaymentBar from '@/components/sales/PaymentBar'
-import { multiplyCash, sumCash } from '@/utils/helper'
+import {
+  multiplyCash,
+  sumCash,
+  calculatePercentInCash,
+  calculateDiscount,
+  subtractCash
+} from '@/utils/helper'
+import RefundSales from '@/components/shared/RefundSales'
 import _ from 'lodash'
 
 export default {
 
-  mixins: [deleteMixin, validationMixin, MoneyMixin],
+  mixins: [deleteMixin, MoneyMixin],
 
-  data() {
+  data () {
     return {
       formKey: 'items',
       formPanelOpen: true,
@@ -160,8 +159,8 @@ export default {
       fullScreenActive: false,
       loading: false,
       processing: false,
-      hasPaid: false,
-    };
+      hasPaid: false
+    }
   },
 
   watch: {
@@ -185,9 +184,9 @@ export default {
         total,
         discount,
         tax,
-        subTotal,
+        subTotal
       })
-    },
+    }
 
   },
 
@@ -201,95 +200,119 @@ export default {
       'setCart'
     ]),
 
+    closeRefundSales () {
+      this.SET_REFUND_SALE_STATE(false)
+    },
+
     ...mapMutations('sales', [
       'SET_SALES_ID',
       'REMOVE_CART_ITEM',
-      'RESET_CART'
+      'RESET_CART',
+      'SET_REFUND_SALE_STATE'
     ]),
 
-    print() {
+    print () {
       if (this.settings && this.settings.branch.printout === 'receipt') {
         this.$electron.ipcRenderer.send('print')
       }
     },
 
-    useCreatedCustomer(data) {
-      this.setCart({
-        ...this.cart,
-        customer: data,
-        customer_id: data.id
-      })
-      this.closeDialog();
-    },
-
-    addCustomer() {
-      this.fullScreenActive = true;
-      this.addingCustomer = true;
-    },
-
-    proceedTransaction() {
-      if (this.hasPaid) {
-        if (this.store && this.store.printout == 'reciept') {
-          this.printReceipt = true;
-        } else {
-          this.printReceipt = true;
-          // this.$refs.receipt.generateReceiptPdf();
-        }
-      } else if (!this.shouldProceedWithTransaction) {
-        const message = 'Amount paid is insufficient';
-        this.warnUser(message)
-        .then((res) => {
-          if (res.value) {
-            this.sellItems();
+    updateCart (payload) {
+      if (this.cart.sales_id === payload.sales_id) {
+        let products = this.cart.products.slice()
+        let foundProduct
+        products = products.map(p => {
+          if (p) {
+            if (foundProduct = payload.products.find(_p => _p.id === p.id)) {
+              const qty = subtractCash(p.quantity, foundProduct.quantity)
+              return {
+                ...p,
+                quantity: qty,
+                subTotal: multiplyCash(qty, p.unitprice)
+              }
+            }
           }
+          return p
         })
-      } else{
-        this.sellItems();
+        this.setCart({ ...this.cart, products })
       }
     },
 
-    closeDialog() {
-      this.fullScreenActive = false;
-      this.addingCustomer = false;
-      this.showingReciept = false;
+    useCreatedCustomer (data) {
+      this.setCart({
+        ...this.cart,
+        customer: data,
+        customer_id: data && data.id
+      })
+      this.closeDialog()
     },
 
-    closeReceiptDialog() {
-      this.printReceipt = false;
+    addCustomer () {
+      this.fullScreenActive = true
+      this.addingCustomer = true
     },
 
-    newSale() {
-      this.RESET_CART();
-      this.hasPaid = false;
-    },
-
-    sellItems() {
-      // if (!this.$v.$invalid) {
-        this.processing = true;
-        this.completeTransaction({
-          ...this.cart,
-          branch_id: this.settings.branch.id,
-          store_id: this.settings.store.id
-        })
-        .then(res => {
-          this.handleSale(res);
-        })
-        .catch((err) => {
-          console.log(err)
-          this.processing = false
-          this.$snackbar.open({
-            type: 'is-danger',
-            message: err.message
+    proceedTransaction () {
+      if (this.hasPaid) {
+        if (this.settings && this.settings.printout === 'reciept') {
+          this.printReceipt = true
+        } else {
+          this.printReceipt = true
+          // this.$refs.receipt.generateReceiptPdf();
+        }
+      } else if (!this.shouldProceedWithTransaction) {
+        const message = 'Amount paid is insufficient'
+        this.warnUser(message)
+          .then((res) => {
+            if (res.value) {
+              this.sellItems()
+            }
           })
-        })
-      // }
+      } else {
+        this.sellItems()
+      }
     },
 
-    handleSale(res) {
-      this.$snackbar.open('Transaction complete !!');
-      this.hasPaid = true;
+    closeDialog () {
+      this.fullScreenActive = false
       this.addingCustomer = false
-      if (this.settings && this.settings.branch.printout == 'receipt') {
+      this.showingReciept = false
+    },
+
+    closeReceiptDialog () {
+      this.printReceipt = false
+    },
+
+    newSale () {
+      this.RESET_CART()
+      this.hasPaid = false
+    },
+
+    sellItems () {
+      this.processing = true
+      this.completeTransaction({
+        ...this.cart,
+        branch_id: this.settings.branch.id,
+        store_id: this.settings.store.id
+      })
+      .then(res => {
+        this.handleSale(res)
+      })
+      .catch((err) => {
+        console.log(err)
+        this.processing = false
+        this.$snackbar.open({
+          type: 'is-danger',
+          message: err.message
+        })
+      })
+    },
+
+    handleSale (res) {
+      this.$snackbar.open('Transaction complete !!')
+      this.hasPaid = true
+      this.addingCustomer = false
+      if (this.settings && this.settings.branch.printout === 'receipt') {
         this.printReceipt = true
         this.print()
       } else {
@@ -299,7 +322,7 @@ export default {
       this.processing = false
     },
 
-    removePayment() {
+    removePayment () {
       this.setCart({
         ...this.cart,
         payment_type: null,
@@ -307,40 +330,40 @@ export default {
       })
     },
 
-    warnUser(warning) {
+    warnUser (warning) {
       return this.$swal({
         title: 'Are you sure?',
         text: warning || 'Do you want to remove selected item(s) from cart ?',
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
-      });
+        cancelButtonText: 'No'
+      })
     },
 
-    removeItemFromCart(item) {
+    removeItemFromCart (item) {
       this.warnUser().then((res) => {
         if (res.value) {
           this.REMOVE_CART_ITEM(item)
-          this.$snackbar.open('Removed item successfully');
+          this.$snackbar.open('Removed item successfully')
         }
-      });
+      })
     },
 
-    deleteItems() {},
+    deleteItems () {},
 
-    addProducts() {
-      this.formPanelOpen = true;
+    addProducts () {
+      this.formPanelOpen = true
       this.$scrollTo(this.$refs['new-product-form'].$el, 1000, {
         container: '#snap-screen',
         easing: 'ease',
-        offset: 20,
-      });
+        offset: 20
+      })
     },
 
-    closeNewSalesForm() {
-      this.formPanelOpen = false;
-      this.$emit('formPanelClose');
+    closeNewSalesForm () {
+      this.formPanelOpen = false
+      this.$emit('formPanelClose')
     },
 
     updateSubtotal (item, newQty) {
@@ -361,14 +384,14 @@ export default {
 
   computed: {
 
-    ...mapState('sales', ['salesid', 'cart']),
+    ...mapState('sales', ['salesid', 'cart', 'refundSales']),
 
     ...mapState('settings', ['settings']),
 
     ...mapState('users', ['currentUser']),
 
     ...mapState('branch', [
-      'currentBranch',
+      'currentBranch'
     ]),
 
     // selectedReciept() {
@@ -377,19 +400,19 @@ export default {
     //   }
     // },
 
-    unitPriceLabel() {
+    unitPriceLabel () {
       return `Unit Price (${this.currencySymbol})`
     },
 
-    totalLabel() {
+    totalLabel () {
       return `Total (${this.currencySymbol})`
     },
 
-    filteredCartItems() {
-      return this.cart.products.filter(i => i);
+    filteredCartItems () {
+      return this.cart.products.filter(i => i)
     },
 
-    customerFullname() {
+    customerFullname () {
       return this.cart.customer && this.cart.customer.full_name
     },
 
@@ -398,18 +421,18 @@ export default {
       return sumCash(subTotals)
     },
 
-    tax() {
+    tax () {
       const taxes = this.settings && _.map(this.settings.store.tax, 'value')
       return sumCash(taxes) || 0
     },
 
-    shouldProceedWithTransaction() {
-      return this.cart.cashChange >= 0;
+    shouldProceedWithTransaction () {
+      return this.cart.cashChange > 0
     },
 
-    getCartItemsNumber() {
+    getCartItemsNumber () {
       return this.filteredCartItems.length
-    },
+    }
 
   },
 
@@ -423,7 +446,7 @@ export default {
 
     Reciept: () => import('@/components/shared/Reciept'),
 
-    CustomerForm,
+    RefundSales,
 
     PaymentBar,
 
@@ -431,7 +454,7 @@ export default {
 
   },
 
-  beforeRouteLeave(to, from, next) {
+  beforeRouteLeave (to, from, next) {
     if (this.hasPaid) {
       this.newSale()
       next()
@@ -440,14 +463,13 @@ export default {
     }
   }
 
-};
+}
 </script>
 
 <style lang="sass" scoped>
 .receipt
   z-index: -100;
   position: absolute;
-  // display: none;
 .el-table__body-wrapper
   overflow-x: hidden !important
 .form-panel
@@ -456,15 +478,6 @@ export default {
   border: 0px !important
 .sales-form
   border: none !important
-.sale-stat
-  // font-family: 'Alegreya Sans SC', sans-serif !important
-  .field-label, .field
-    font-size: 17px !important
-  .field-body
-    .field
-      flex-grow: 0 !important
-i.material-icons.updateCartBtn
-  font-size: 15px !important
 .section
    padding: 0rem 0rem !important
 </style>
@@ -475,10 +488,9 @@ i.material-icons.updateCartBtn
   .sales-table
     .el-input-number, .el-input.qty
       width: 100% !important
-.humanize-display
-  text-transform: capitalize
-  i
-    margin-right: 5px
+    padding-left: 4px;
+    box-shadow: 0px -3px 4px 0px rgba(0, 0, 0, 0.12) inset;
+    padding-right: 4px;  
 </style>
 
 <style lang="sass" module>

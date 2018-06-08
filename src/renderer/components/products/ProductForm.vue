@@ -11,15 +11,16 @@
     .level.toolbar
       .level-left
         .level-item
-          .page-title.subtitle.is-5 {{ _product? 'Edit Product' : 'New Product' }}
+          .page-title.subtitle.is-5 {{ initProduct? 'Edit Product' : 'New Product' }}
       .level-right
-        .level-item(v-if="!_product")
+        .level-item(v-if="!initProduct")
           el-switch(
             style="display: block"
             v-model="product.advanced"
             active-color="#000000"
             inactive-color="#e4e7ed"
             active-text="Advanced"
+            :disabled="this.initProduct"
           )
         .level-item
           button.button.is-primary(
@@ -28,8 +29,8 @@
             @click="submit()"
           )
             span.el-icon-circle-plus-outline.mr-5
-            span {{ _product? 'Save product edits' : 'Add Product' }}
-        .level-item(v-if="!_product")    
+            span {{ initProduct? 'Save product edits' : 'Add Product' }}
+        .level-item(v-if="!initProduct")    
           button.button.is-primary(
             @click="fullScreenActive = true"
           ) 
@@ -56,7 +57,7 @@
               )
         .field.is-horizontal
           .field-label.has-text-left.is-v-centered
-            label.label Quantity
+            label.label Qty (In Store)
           .field-body
             .field 
               el-input-number(
@@ -117,7 +118,7 @@
               )
         .field.is-horizontal
           .field-label.has-text-left.is-v-centered
-            label.label Reorder
+            label.label Reorder (Store)
           .field-body
             .field 
               el-input-number(
@@ -155,11 +156,16 @@
                 :value="settings.store.name",
                 disabled
               )
-    MaterialsForm(v-show="product.advanced", :addBranch="addBranch" :product.sync="product")                             
+    MaterialsForm(
+      v-if="product.advanced", 
+      :addBranch="addBranch", 
+      :product.sync="product",
+      :edit-mode="!!initProduct"
+    )                             
 </template>
 
 <script>
-
+/* eslint-disable */
 import { mapState, mapActions } from 'vuex'
 import { validationMixin } from 'vuelidate'
 import { required, minValue } from 'vuelidate/lib/validators'
@@ -171,7 +177,7 @@ import ImportExcel from '@/components/shared/ImportExcel'
 
 export default {
 
-  props: ['_product'],
+  props: ['initProduct'],
 
   mixins: [validationMixin],
 
@@ -186,7 +192,7 @@ export default {
         exptime: null,
         name: null,
         advanced: 1,
-        branches: [{}, {}],
+        branches: [{}],
         status: null
       },
       parsingCSV: false,
@@ -236,14 +242,14 @@ export default {
   },
 
   mounted () {
-    if (this._product) {
-      this.product = this._product
+    if (this.initProduct) {
+      this._updateProduct()
     }
   },
 
   watch: {
-    _product () {
-      this.product = this._product
+    initProduct () {
+      this.product = this.initProduct
     }
   },
 
@@ -271,6 +277,22 @@ export default {
 
     closeDialog () {
       this.fullScreenActive = false
+    },
+
+    _updateProduct () {
+      let initProductBranch = this.initProduct.productBranch || {}
+      let branch = initProductBranch.branch || this.settings.branch
+      this.product = {
+        ...this.initProduct,
+        advanced: 1,
+        branches: [
+          {
+            ...initProductBranch,
+            ...branch,
+            product_branch_id: initProductBranch.id
+          }
+        ]
+      }
     },
 
     warnUser (msg) {
@@ -302,15 +324,47 @@ export default {
     },
 
     processPayload () {
-      let branches = this.product.branches
-        .filter(b => b.id)
-        .map(b => ({
-          quantity: b.quantity,
-          branch_id: b.id
-        }))
-      return {
-        ...this.product,
+      let productBranches
+      const {
+        id,
+        name,
+        quantity,
+        unitprice,
+        costprice,
+        barcode,
+        store_id,
+        reorder,
         branches,
+        status
+      } = this.product
+      if (branches) {
+        productBranches = this.product.branches
+          .filter(b => b.id)
+          .map(b => ({
+            id: b.product_branch_id,
+            product_id: id,
+            quantity: b.quantity,
+            branch_id: b.branch_id || this.settings.branch.id,
+            store_id: b.store_id,
+            reorder: b.reorder
+          }))
+      }
+      return {
+        id,
+        name,
+        quantity,
+        unitprice,
+        costprice,
+        barcode,
+        store_id,
+        reorder,
+        status,
+        branches: !this.initProduct 
+          ? productBranches 
+          : null,
+        productBranches: this.initProduct
+          ? productBranches[0]
+          : null,
         store_id: this.settings.store.id,
         branch_id: this.settings.branch.id
       }
@@ -320,17 +374,20 @@ export default {
       this.$v.product.$touch()
       if (!this.$v.$invalid) {
         this.processing = true
-        const doAction = this._product
+        const doAction = this.initProduct
           ? this.updateProduct
           : this.createProduct
-        const payload = this.processPayload()
+        const payload = this.processPayload() 
         doAction(payload)
           .then(res => {
             this.$snackbar.open(res.message)
             this.$emit('action-complete', res.data)
-            if (!this._product) {
+            if (!this.initProduct) {
               this.resetproduct()
               this.$v.product.$reset()
+            } else {
+              console.log('jejwej j ewj eke')
+              this._updateProduct()
             }
             this.processing = false
           })

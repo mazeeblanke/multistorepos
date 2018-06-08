@@ -168,9 +168,6 @@ export default {
         Customer: 'customerOrder.customer.full_name',
         Total: 'sub_total',
         Product: 'product.name',
-        // Discount: 'discount',
-        // profit:  'profit',
-        // Tax: 'tax',
         'Sales ID': 'sales_id',
         'Sold by': 'user.full_name',
         'Payment method': 'payment_type',
@@ -178,7 +175,8 @@ export default {
       },
       filter: {
         aggregate: 0,
-        with_user: 1
+        with_user: 1,
+        with_customer: 1
       }
     }
   },
@@ -201,7 +199,7 @@ export default {
     .then((res) => {
       this.isLoadingSales = false
       this.handleBottomScroll()
-      this.setSelectedCustomerSales(res.body)
+      this.setSelectedCustomerSales(res)
     })
     .catch((err) => {
       console.log(err)
@@ -282,9 +280,9 @@ export default {
     },
 
     setItems (res) {
-      const { data } = res.body
+      const { data } = res
       const salesHistory = {
-        ...res.body,
+        ...res,
         data: this.items.data.concat(data)
       }
       this.setSelectedCustomerSales(salesHistory)

@@ -9,10 +9,12 @@ export default {
   state: {
     salesid: null,
     transferid: null,
+    refundSales: false,
     sales: INIT_STATE,
     refundedSales: INIT_STATE,
     filteredSales: [],
     selectedSale: null,
+    selectedSaleDetail: null,
     cart: {
       customer_id: null,
       sales_id: null,
@@ -60,6 +62,10 @@ export default {
       commit('SET_SELECTED_SALE', null)
     },
 
+    clearSelectedSaleDetail ({ commit }, payload) {
+      commit('SET_SELECTED_SALE_DETAIL', null)
+    },
+
     clearSales ({ commit }) {
       commit('CLEAR_SALES')
     },
@@ -74,40 +80,16 @@ export default {
 
     getReceipt ({ commit }, { id }) {
       return Vue.axios.get(`sales-history/${id}`).then(res => {
-        console.log(res.data.data)
+        commit('SET_SELECTED_SALE_DETAIL', res.data.data)
         return res.data.data
       })
     },
-
-    // addToCart ({ commit }, payload) {
-    //   return sales(payload).then(res => {
-    //     return res.data
-    //   })
-    // },
-
-    // checkForThreshold ({ commit }, payload) {
-    //   return sales(payload).then(res => {
-    //     return res.data
-    //   })
-    // },
-
-    // removeFromCart ({ commit }, payload) {
-    //   return sales(payload).then(res => {
-    //     return res.data
-    //   })
-    // },
 
     refundSale ({ commit }, payload) {
       return sales(payload).then(res => {
         return res.data
       })
     },
-
-    // updateCart ({ commit }, payload) {
-    //   return sales(payload).then(res => {
-    //     return res.data
-    //   })
-    // },
 
     completeTransaction ({ commit }, payload) {
       return Vue.axios.post('sales', payload).then(res => {
@@ -122,16 +104,9 @@ export default {
           console.log(res.data.body)
           commit('SET_SALES', res.data.body)
         }
-        return res.data
+        return res.data.body
       })
     },
-
-    // loadSalesByPage ({ commit }, payload) {
-    //   return sales(payload).then(res => {
-    //     commit('SET_SALES', res.data)
-    //     return res.data
-    //   })
-    // },
 
     loadRefundsByPage ({ commit }, payload) {
       return sales(payload).then(res => {
@@ -143,13 +118,9 @@ export default {
   },
   mutations: {
 
-    // SET_CART (state, { key, value }) {
-    //   state.cart[key] = value
-    //   const products = state.cart.products
-    //   if (key === 'products' && !products[products.length - 1] && products.length > 12) {
-    //     state.cart.products.splice(products.length - 1, 1)
-    //   }
-    // },
+    SET_REFUND_SALE_STATE (state, value) {
+      state.refundSales = value
+    },
 
     RESET_CART (state) {
       state.cart = {
@@ -170,16 +141,11 @@ export default {
         availableDiscount: null,
         customerDetails: null,
         discountTotal: 0,
-        taxTotal: 0,
-        // branch_id: 1
+        taxTotal: 0
       }
     }, 
 
     SET_CART (state, payload) {
-
-      console.log('payload')
-      console.log(payload)
-
       state.cart = {
         ...state.cart,
         ...payload,
@@ -203,6 +169,10 @@ export default {
 
     SET_SELECTED_SALE (state, data) {
       state.selectedSale = data
+    },
+
+    SET_SELECTED_SALE_DETAIL (state, data) {
+      state.selectedSaleDetail = data
     },
 
     CLEAR_SALES (state) {

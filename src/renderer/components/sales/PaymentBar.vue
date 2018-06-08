@@ -84,12 +84,6 @@
               :class="{'active': cart.payment_type === 'card'}"
               :icon="cart.payment_type === 'card' ? 'el-icon-success' : ''"
             ) Card
-          // button.button.is-dark(
-          //   :disabled="validation.$invalid || processing || paymentConditions"
-          //   :class="{'is-loading': processing}",
-          //   @click="proceedTransaction",
-          //   title="Process the transaction and print sales reciept",
-          // ) Save & Print
           button.button.is-dark(
             :disabled="processing || paymentConditions"
             :class="{'is-loading': processing}",
@@ -128,9 +122,6 @@ export default {
     items: {
       type: Array,
     },
-    // validation: {
-    //   type: Object,
-    // },
     proceedTransaction: {
       type: Function,
     },
@@ -162,6 +153,10 @@ export default {
     ...mapActions('sales', [
       'refundSale',
       'setCart'
+    ]),
+
+    ...mapMutations('sales', [
+      'SET_REFUND_SALE_STATE'
     ]),
 
     discountLabel(d) {
@@ -197,33 +192,7 @@ export default {
 
 
     refund() {
-      // const MESSAGE = "Do you want to return items and refund ?"
-      // this.warnUser(MESSAGE)
-      // .then((res) => {
-      //   if (res.value) {
-      //     this.refunding = true
-      //     this.refundSale(
-      //       ObjectToFormData({
-      //         refundsales: 'refundsales',
-      //         salesid: this.salesid,
-      //       }),
-      //     ).then(res => {
-      //       if (res.status === 'Success') {
-      //         this.$snackbar.open(`Success !! - ${res.message}`)
-      //         this.cancelSale()
-      //       } else if (res.status === 'Failure') {
-      //         this.$snackbar.open({
-      //           message: `Failure!! - ${res.message}`,
-      //           type: 'is-danger',
-      //         })
-      //       }
-      //       this.refunding = false
-      //     })
-      //     .catch(() => {
-      //       this.refunding = false
-      //     })
-      //   }
-      // })
+      this.SET_REFUND_SALE_STATE(true)
     },
 
     updateCart (value) {

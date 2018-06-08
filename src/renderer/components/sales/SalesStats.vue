@@ -55,7 +55,7 @@ export default {
 <style lang="sass">
   .sale-stat 
     font-weight: 900;
-    width: 350px;
+    width: 450px;
     flex-basis: 350px
     .field-body
       flex-grow: 1 !important
@@ -64,6 +64,7 @@ export default {
       margin-bottom: 0px !important   
     .field-label
       flex-grow: 2 !important  
+      min-width: 235px !important
     .field.is-horizontal 
       // border-bottom: 1px dashed #e6e6e6 !important
 </style>
