@@ -260,7 +260,7 @@ export default {
           this.printReceipt = true
           // this.$refs.receipt.generateReceiptPdf();
         }
-      } else if (!this.shouldProceedWithTransaction) {
+      } else if (this.shouldProceedWithTransaction) {
         const message = 'Amount paid is insufficient'
         this.warnUser(message)
           .then((res) => {
@@ -427,7 +427,8 @@ export default {
     },
 
     shouldProceedWithTransaction () {
-      return this.cart.cashChange > 0
+      return this.cart.amountPaid < this.cart.total
+      // return this.cart.cashChange > 0
     },
 
     getCartItemsNumber () {

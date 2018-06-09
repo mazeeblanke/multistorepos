@@ -97,8 +97,8 @@ div
 /* eslint-disable */
 import { mapState, mapActions } from 'vuex';
 import { validationMixin } from 'vuelidate';
-import { required } from 'vuelidate/lib/validators';
-import { ObjectToFormData, multiplyCash } from '@/utils/helper';
+import { required, minValue } from 'vuelidate/lib/validators';
+import { multiplyCash } from '@/utils/helper';
 import EmptyState from '@/components/EmptyState';
 import CheckProduct from '@/components/sales/CheckProduct';
 import _ from 'lodash';
@@ -133,8 +133,11 @@ export default {
   },
   validations: {
     saleForm: {
-      product3: { required },
-      quantity: { required },
+      // product3: { required },
+      quantityInStock: { 
+        required,
+        minValue: minValue(1)
+      },
     },
   },
   mounted() {

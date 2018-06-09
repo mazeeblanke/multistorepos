@@ -166,19 +166,21 @@ export default {
       currentTab: 'details',
       isLoadingSales: false,
       filter: {
-        aggregate: 0
+        aggregate: 0,
+        with_user: 1,
+        with_customer: 1
       },
       json_fields : {
-        Customer: 'customer',
+        'Sales ID': 'sales_id',
+        'Sold by': 'user.full_name',
         Product: 'product.name',
-        Total: 'total',
-        Discount: 'discount',
-        profit:  'profit',
-        Tax: 'tax',
-        'Sales ID': 'salesid',
-        'Sold by': 'user',
-        'Payment method': 'payment',
-        'Sold at': 'salestime',
+        // Customer: 'customerOrder.customer.full_name',
+        Total: 'sub_total',
+        Quantity: 'quantity',
+        // profit:  'profit',
+        // Tax: 'tax',
+        'Payment method': 'payment_type',
+        'Sold at': 'created_at',
       },
     }
   },

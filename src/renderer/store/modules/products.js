@@ -73,7 +73,9 @@ export default {
 
         products = { ...products, data }
 
-        if (payload.persist) {
+        if (payload.persist & payload.isReorderProducts) {
+          commit('SET_REORDER_PRODUCTS', products)
+        } else if (payload.persist) {
           commit('SET_PRODUCTS', products)
         }
 

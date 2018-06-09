@@ -2,13 +2,13 @@ import Vue from 'vue'
 import VueProgressBar from 'vue-progressbar'
 
 const options = {
-  color: '#67c23a',
+  color: '#bffaf3',
   failedColor: '#874b4b',
-  thickness: '3px',
+  thickness: '4px',
   transition: {
-    speed: '1.2s',
-    opacity: '0.2s',
-    termination: 200
+    speed: '0.2s',
+    opacity: '0.6s',
+    termination: 400
   },
   autoRevert: true
 }

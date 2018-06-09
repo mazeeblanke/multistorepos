@@ -1,128 +1,157 @@
 <template lang="pug">
   .ProductTransfer(v-loading="processing", element-loading-text="Transfering Items...")
-    .columns
-      .column.is-9.border-right.transfer--cart
-        button.button.transfer-arrow-btn(:disabled="!canTransferProducts" @click="transferItemsToBranch")
-          el-tooltip(class="item" effect="dark", content="Transfer to Branch" placement="top-start")
-            i.material-icons navigate_next
-        .level.toolbar
-          .level-left
-            .level-item
-              h5.title.is-6.has-text-weight-normal Transfer Products ({{ getCartItemsNumber }})
-          .level-right.group
-            .level-item
-              el-select.productSelect(
-                :value="formatedValue"
-                :filterable="true"
-                :remote="true"
-                placeholder="Enter product name"
-                :remote-method="getProductSuggestions"
-                :fetchingProduct="fetchingProduct"
-                @change="selectProduct"
-                :value-key="transferItem.selectedItem.id"
-                clearable,
-                size="small"
-              )
-                el-option(
-                  v-for="(item, index) in suggestions"
-                  :key="index"
-                  :label="item.name"
-                  :value="item"
-                )
-                  el-tooltip(class="item" effect="dark", :open-delay="1000", :content="item.name" placement="top-start")
-                    <span class="sale-item" style="float: left">{{ item.name }}</span>
-                  <span style="float: right; color: #8492a6; font-size: 13px">
-                    <strong>{{ item.quantity }} QTY LEFT</strong>
-                  </span>
-            .level-item
-              el-input(type="number", v-model="transferItem.quantity", :min="1", size="small", placeholder="Qty" :max="10")
-            .level-item
-              button.button.is-primary(@click="add_to_cart", :disabled="addingToCart || !transferItem.product3", :class="{ 'is-loading': addingToCart }")
-                span.icon
-                  i.material-icons add
-                span Add Product
-        el-table.transfer--table(
-          ref="items-table",
-          :data="filteredItemsData",
-          :max-height="500",
-          :height="430",
-          :border="false"
-          :default-sort="{prop: 'created_at', order: 'descending'}",
-          :highlight-current-row="true",
-          @selection-change="handleSelectionChange",
-          :stripe="true"
-        )
-          el-table-column(type="selection" fixed="left")
-          el-table-column(label="No", type="index", :index="1" width="50" fixed="left")
-            template(slot-scope="props" v-if="props.row")
-              span {{ props.$index + 1 }}
-          el-table-column(prop="selectedItem.name", show-overflow-tooltip, label="Name", :min-width="200" align="left")
-            template(slot-scope="scope" v-if="scope.row")
-              span.font-size-12 {{ scope.row.selectedItem.name }}
-          el-table-column(prop="quantity" label="Qty", align="left", width="200" show-overflow-tooltip)
-            template(slot-scope="props" v-if="props.row")
-              el-input-number(
-                v-model="props.row.quantity",
-                placeholder="Enter Quantity",
-                controls-position="right",
-                size="mini",
-                @change="props.row.updated = true",
-                :min="1"
-                :max="parseInt(props.row.quantityInStock)",
-              )
-          el-table-column(prop="selectedItem.unitprice", show-overflow-tooltip, :label="unitPriceLabel", width="200" align="left")
-            template(slot-scope="scope" v-if="scope.row")
-              span.font-size-12 {{ scope.row.selectedItem.unitprice }}
-          el-table-column(align="left", width="150")
-            template(slot-scope="props", v-if="props.row")
-              button.button.is-primary.is-small(@click="updateQty(props.row)", :disabled="!props.row.updated")
-                i.material-icons.updateCartBtn.mr-5 done_all
-                span Update Qty
-          el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
-            template(slot-scope="props", v-if="props.row")
-              button.button(:class="$style.trash" @click="removeItemFromCart(props.row)")
-                i.material-icons delete
-      .column.is-3
-        .level.toolbar
-          .level-left
-          .level-item
-            div
-              el-select(
-                v-model="transaction.selectedBranch",
-                filterable,
-                clearable,
-                placeholder="select branch",
-                remote,
-                :remote-method="_loadBranches",
-                :loading="loadingBranches",
-                no-data-text="No results!",
-                value-key="id",
-                size="small",
-              )
-                el-option(
-                  v-for="branch in branchSuggestions",
-                  :value="branch",
-                  :label="branch.name",
-                  :key="branch.id"
-                )
-          .level-right
-        EmptyState.emptyState(empty-text="Select a branch to transfer the products!" v-if="!transaction.selectedBranch")
-        div(v-else)
-          p.has-text-centered.mt-25
-            span.tag.is-6.title.is-dark {{ transaction.selectedBranch.name }}
-          div.mt-35
-            .field.is-horizontal
-              .field-label.is-normal
-                label.label
-                  strong Transfer ID:
-              .field-label.is-normal
-                label.label.is-pulled-left.has-text-weight-normal.tag {{ transferid }}
-            .field.is-horizontal
-              .field-label.is-normal
-                label.label
-                  strong Total:
-              .field-label.is-normal
-                label.label.is-pulled-left.has-text-weight-normal.tag  {{ money(calculateTotal) }}
+    el-tabs(v-model="currentTab", value='summary', type="card")
+      el-tab-pane.p-0(name="branch_to_branch", label='Branch To Branch') 
+        .columns
+          .column.is-9.border-right.transfer--cart
+            button.button.transfer-arrow-btn(:disabled="!canTransferProducts" @click="transferItemsToBranch")
+              el-tooltip(class="item" effect="dark", content="Transfer to Branch" placement="top-start")
+                i.material-icons navigate_next
+            .level.toolbar
+              .level-left.group
+                .level-item
+                  el-select.productSelect(
+                    :value="formatedValue"
+                    :filterable="true"
+                    :remote="true"
+                    placeholder="Enter product name"
+                    :remote-method="getProductSuggestions"
+                    :fetchingProduct="fetchingProduct"
+                    @change="selectProduct"
+                    :value-key="transferItem.selectedItem.id"
+                    clearable,
+                    size="small"
+                  )
+                    el-option(
+                      v-for="(item, index) in suggestions"
+                      :key="index"
+                      :label="item.name"
+                      :value="item"
+                    )
+                      el-tooltip(class="item" effect="dark", :open-delay="1000", :content="item.name" placement="top-start")
+                        <span class="sale-item" style="float: left">{{ item.name }}</span>
+                      <span style="float: right; color: #8492a6; font-size: 13px">
+                        <strong>{{ item.quantity }} QTY LEFT</strong>
+                      </span>
+                .level-item
+                    el-input(type="number", v-model="transferItem.quantity", :min="1", size="small", placeholder="Qty" :max="10")
+                .level-item
+                  button.button.is-primary(@click="add_to_cart", :disabled="addingToCart || !transferItem.product3", :class="{ 'is-loading': addingToCart }")
+                    span.icon
+                      i.material-icons add
+                    span Add Product      
+              .level-right.group
+                .level-item
+                  .field.is-horizontal
+                    .field-label.has-text-right.is-v-centered
+                      label.label From:
+                    .field-body
+                      .field 
+                        el-select(
+                          v-model="transaction.selectedBranch",
+                          filterable,
+                          clearable,
+                          placeholder="select branch",
+                          remote,
+                          :remote-method="_loadBranches",
+                          :loading="loadingBranches",
+                          no-data-text="No results!",
+                          value-key="id",
+                          size="small",
+                        )
+                          el-option(
+                            v-for="branch in branchSuggestions",
+                            :value="branch",
+                            :label="branch.name",
+                            :key="branch.id"
+                          )             
+            el-table.transfer--table(
+              ref="items-table",
+              :data="filteredItemsData",
+              :max-height="500",
+              :height="430",
+              :border="false"
+              :default-sort="{prop: 'created_at', order: 'descending'}",
+              :highlight-current-row="true",
+              @selection-change="handleSelectionChange",
+              :stripe="true"
+            )
+              el-table-column(type="selection" fixed="left")
+              el-table-column(label="No", type="index", :index="1" width="50" fixed="left")
+                template(slot-scope="props" v-if="props.row")
+                  span {{ props.$index + 1 }}
+              el-table-column(prop="selectedItem.name", show-overflow-tooltip, label="Name", :min-width="200" align="left")
+                template(slot-scope="scope" v-if="scope.row")
+                  span.font-size-12 {{ scope.row.selectedItem.name }}
+              el-table-column(prop="quantity" label="Qty", align="left", width="200" show-overflow-tooltip)
+                template(slot-scope="props" v-if="props.row")
+                  el-input-number(
+                    v-model="props.row.quantity",
+                    placeholder="Enter Quantity",
+                    controls-position="right",
+                    size="mini",
+                    @change="props.row.updated = true",
+                    :min="1"
+                    :max="parseInt(props.row.quantityInStock)",
+                  )
+              el-table-column(prop="selectedItem.unitprice", show-overflow-tooltip, :label="unitPriceLabel", width="200" align="left")
+                template(slot-scope="scope" v-if="scope.row")
+                  span.font-size-12 {{ scope.row.selectedItem.unitprice }}
+              el-table-column(align="left", width="150")
+                template(slot-scope="props", v-if="props.row")
+                  button.button.is-primary.is-small(@click="updateQty(props.row)", :disabled="!props.row.updated")
+                    i.material-icons.updateCartBtn.mr-5 done_all
+                    span Update Qty
+              el-table-column(label="Actions", :render-header="renderDelete", width="70", fixed="right")
+                template(slot-scope="props", v-if="props.row")
+                  button.button(:class="$style.trash" @click="removeItemFromCart(props.row)")
+                    i.material-icons delete
+          .column.is-3
+            .level.toolbar
+              .level-left
+                .level-item
+                  .field.is-horizontal
+                      .field-label.has-text-right.is-v-centered
+                        label.label To:
+                      .field-body
+                        .field 
+                          el-select(
+                            v-model="transaction.selectedBranch",
+                            filterable,
+                            clearable,
+                            placeholder="select branch",
+                            remote,
+                            :remote-method="_loadBranches",
+                            :loading="loadingBranches",
+                            no-data-text="No results!",
+                            value-key="id",
+                            size="small",
+                          )
+                            el-option(
+                              v-for="branch in branchSuggestions",
+                              :value="branch",
+                              :label="branch.name",
+                              :key="branch.id"
+                            )
+              .level-right
+            EmptyState.emptyState(empty-text="Select a branch to transfer the products!" v-if="!transaction.selectedBranch")
+            div(v-else)
+              p.has-text-centered.mt-25
+                span.tag.is-6.title.is-dark {{ transaction.selectedBranch.name }}
+              div.mt-35
+                .field.is-horizontal
+                  .field-label.is-normal
+                    label.label
+                      strong Transfer ID:
+                  .field-label.is-normal
+                    label.label.is-pulled-left.has-text-weight-normal.tag {{ transferid }}
+                .field.is-horizontal
+                  .field-label.is-normal
+                    label.label
+                      strong Total:
+                  .field-label.is-normal
+                    label.label.is-pulled-left.has-text-weight-normal.tag  {{ money(calculateTotal) }}
+      el-tab-pane.p-0(name="warehouse_to_branch", label='Warehouse To Branch')              
 </template>
 
 <script>
@@ -140,6 +169,7 @@ import _ from 'lodash'
 export default {
   data() {
     return {
+      currentTab: 'branch_to_branch',
       transferItem: {
         selectedItem: {
           name: '',
@@ -383,9 +413,11 @@ export default {
         }
       });
     },
+
     deleteItems() {},
+    
     _loadBranches(query) {
-      if (query !== '') {
+      if (query) {
         this.loadingBranches = true;
         this.loadBranches({
           name: query
@@ -513,13 +545,15 @@ export default {
 <style lang="sass">
 .ProductTransfer
   height: 500px
-  margin-top: 10px
+  margin-top: 1px
   border-bottom: 1px solid #ebeef5 !important
+  .el-tabs--card > .el-tabs__header .el-tabs__nav
+    border-top: 0px
   .transfer--table
     z-index: 5
   .productSelect
     width: 300px
-  .level-right.group
+  .level-left.group
     .el-select, input
       border-radius: 0px;
       border-left: none;
@@ -527,7 +561,7 @@ export default {
     .el-input__inner:focus
       outline: none;
       border-color: #dcdfe6;
-  .level-right.group .level-item:first-of-type
+  .level-left.group .level-item:first-of-type
     .el-input__inner
       border: 1px solid #dcdfe6
     .el-select, input, button
@@ -535,13 +569,13 @@ export default {
       border-bottom-right-radius: 0px;
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
-  .level-right.group .level-item:last-of-type
+  .level-left.group .level-item:last-of-type
     .el-input__inner
       border: 1px solid #dcdfe6
     .el-select, input, button
       border-top-left-radius: 0px;
       border-bottom-left-radius: 0px;
-  .level-right.group .level-item
+  .level-left.group .level-item, .level-left.group .level-item
     margin: 0px
     padding: 0px
   .transfer--cart

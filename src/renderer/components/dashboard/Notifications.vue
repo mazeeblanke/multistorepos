@@ -18,8 +18,8 @@
       //   ExpiredProductsList  
       // el-tab-pane.p-0(name="close_to_expired_products", label='Close to Expired Products ')  
       //   CloseToExpiredProductsList                  
-      // el-tab-pane.p-0(name="reorder_products", label='Reorder Products ')  
-      //   ReorderProductsList                  
+      el-tab-pane.p-0(name="reorder_products", label='Reorder Products ')  
+        ReorderProductsList                  
 </template>
 
 <script>
@@ -37,7 +37,7 @@ export default {
   },
   data () {
     return {
-      currentTab: 'enquirires_list'
+      currentTab: 'reorder_products'
     }
   },
   filters: {
