@@ -1,5 +1,5 @@
 import { PROGRESS } from '../utils/constants'
-const SalesManagement = () => import('@/components/Sales/SalesManagement')
+const SalesManagement = () => import('@/components/sales/SalesManagement')
 const SalesList = () => import('@/components/sales/SalesList')
 const SalesView = () => import('@/components/sales/SalesView')
 const SaleDetailsList = () => import('@/components/sales/SaleDetailsList')

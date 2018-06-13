@@ -78,7 +78,7 @@
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
 import Loading from '@/components/shared/Loading'
-import BankingcashForm from '@/components/accounts/BankingcashForm'
+import BankingcashForm from '@/components/accounts/BankingCashForm'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import InfiniteLoading from 'vue-infinite-loading'
 import deleteMixin from '@/mixins/DeleteMixin'
