@@ -407,5 +407,5 @@ export default {
   .columns
     margin-bottom: 0px !important
     padding: 2.5rem !important
-    height: 400px !important
+    height: 450px !important
 </style>

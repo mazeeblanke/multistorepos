@@ -17,7 +17,6 @@ div
       max-height="400",
       :border="false"
       :highlight-current-row="true",
-      :stripe="true",
        v-show="filteredItemsData.length",
     )
       el-table-column(label="No", type="index", :index="1" width="50")

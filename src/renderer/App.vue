@@ -231,6 +231,8 @@ export default {
     align-items: flex-start !important
   .h100
     height: 100%
+  .h400
+    height: 400px !important  
 
   .security
     display: flex
@@ -439,7 +441,7 @@ export default {
   .el-input-group__append
     background: white !important
   .BaseAppCard
-    min-height: 670px
+    min-height: 740px
 
   .filters-section
     padding: 1rem 1.5rem
@@ -510,6 +512,7 @@ export default {
 
   .sidebar
     height: 100% !important
+    // min-height: 670px !important
     background: #051021
     .columns
       margin: 0px !important

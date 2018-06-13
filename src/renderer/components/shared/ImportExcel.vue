@@ -214,7 +214,7 @@
                 return `<article class="message is-danger">
                     <div class="message-body">
                       <strong>${i + 1}) </strong>
-                      ${_e[2]} of ${_e[0]} at position/line ${+_e[1] + 1} must be a ${e.validation}
+                      ${_e[2]} of ${_e[0]} at position/line ${+_e[1] + 2} must be a ${e.validation}
                     </div>
                   </article>`
               })

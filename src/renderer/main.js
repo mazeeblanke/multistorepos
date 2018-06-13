@@ -1,6 +1,5 @@
 
 import Vue from 'vue'
-// import Ws from '@adonisjs/websocket-client'
 import VueScrollTo from 'vue-scrollto'
 import Buefy from 'buefy'
 import VueSweetalert2 from 'vue-sweetalert2'
@@ -14,7 +13,6 @@ import router from './router'
 import store from './store'
 
 /* eslint-disable */
-
 require('../renderer/service/registerElementUi')
 require('../renderer/service/registerNetworkInterceptors')
 require('../renderer/service/registerCloseDirective')

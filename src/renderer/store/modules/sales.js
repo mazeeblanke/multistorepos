@@ -12,6 +12,7 @@ export default {
     refundSales: false,
     sales: INIT_STATE,
     refundedSales: INIT_STATE,
+    transferHistory: INIT_STATE,
     filteredSales: [],
     selectedSale: null,
     selectedSaleDetail: null,
@@ -34,12 +35,22 @@ export default {
       customerDetails: null,
       discountTotal: 0,
       taxTotal: 0,
+    },
+    transferCart: {
+      products: Array(12).fill(null),
+      source: 'branch',
+      fromBranch: null,
+      toBranch: null
     }
   },
   actions: {
 
     setCart ({ commit }, data) {
       commit('SET_CART', data)
+    },
+
+    setTransferCart ({ commit }, data) {
+      commit('SET_TRANSFER_CART', data)
     },
 
     clearSalesId ({ commit }) {
@@ -74,6 +85,10 @@ export default {
       commit('CLEAR_REFUNDS')
     },
 
+    clearTransferHistory ({ commit }) {
+      commit('CLEAR_TRANSFER_HISTORY')
+    },
+
     removeSale ({ commit }, sale) {
       commit('REMOVE_SALE', sale)
     },
@@ -97,12 +112,28 @@ export default {
       })
     },
 
+    transferProductsToBranch ({ commit }, payload) {
+      return Vue.axios.post('producttransfer', payload).then(res => {
+        console.log(res)
+        return res.data
+      })
+    },
+
     loadSales ({ commit }, payload) {
       return Vue.axios.get('sales-history', { params: payload }).then(res => {
-        console.log(payload)
         if (payload.persist) {
           console.log(res.data.body)
           commit('SET_SALES', res.data.body)
+        }
+        return res.data.body
+      })
+    },
+
+    loadTransferHistory ({ commit }, payload) {
+      return Vue.axios.get('producttransfer', { params: payload }).then(res => {
+        if (payload.persist) {
+          console.log(res.data.data)
+          commit('SET_TRANSFER_HISTORY', res.data.data)
         }
         return res.data.body
       })
@@ -145,6 +176,15 @@ export default {
       }
     }, 
 
+    RESET_TRANSFER_CART (state) {
+      state.transferCart = {
+        ...state.transferCart,
+        products: Array(12).fill(null),
+        fromBranch: null,
+        toBranch: null
+      }
+    }, 
+
     SET_CART (state, payload) {
       state.cart = {
         ...state.cart,
@@ -156,7 +196,18 @@ export default {
       if (!products[products.length - 1] && products.length > 12) {
         state.cart.products.splice(products.length - 1, 1)
       }
+    },
 
+    SET_TRANSFER_CART (state, payload) {
+      state.transferCart = {
+        ...state.transferCart,
+        ...payload
+      }
+
+      const products = state.transferCart.products
+      if (!products[products.length - 1] && products.length > 12) {
+        state.transferCart.products.splice(products.length - 1, 1)
+      }
     },
 
     REMOVE_CART_ITEM (state, product) {
@@ -165,6 +216,30 @@ export default {
         return true
       })
       state.cart.products = products
+    },
+
+    REMOVE_TRANSFER_CART_ITEM (state, items) {
+      const products = state.transferCart.products.filter(p => {
+        if (p && items instanceof Array) {
+          const itemIDS = items.map(i => i && i.id)
+          return !itemIDS.includes(p.id)
+        } else if (p) {
+          return items.id !== p.id
+        }
+        return true
+      })
+
+      state.transferCart.products = products
+
+      if (products.length < 12) {
+        let rowsToAdd = 12 - products.length
+        rowsToAdd = Array(rowsToAdd).fill(null)
+        state.transferCart.products = [
+          ...state.transferCart.products,
+          ...rowsToAdd
+        ]
+      }
+
     },
 
     SET_SELECTED_SALE (state, data) {
@@ -183,12 +258,15 @@ export default {
       state.refundedSales = INIT_STATE
     },
 
+    CLEAR_TRANSFER_HISTORY (state) {
+      state.transferHistory = INIT_STATE
+    },
+
     CLEAR_SALES_ID (state) {
       state.salesid = null
     },
 
     GENERATE_SALES_ID (state) {
-      // state.salesid = Date.now()
       state.cart.sales_id = Date.now()
     },
 
@@ -213,9 +291,11 @@ export default {
     },
 
     SET_SALES (state, payload) {
-      // state.filteredSales = payload.message
-      console.log(payload)
       UPDATE_STATE(state, payload, 'sales')
+    },
+
+    SET_TRANSFER_HISTORY (state, payload) {
+      UPDATE_STATE(state, payload, 'transferHistory')
     },
 
     SET_REFUNDED_SALES (state, payload) {

@@ -89,10 +89,12 @@
         ) 
           span.material-icons.is-15.mr-5 settings
           span Setting
+      // .column.is-6
+      //   button.button.is-primary.has-full-width
 </template>
 
 <style lang="sass">
   .sidebar
     button.is-active
-      background: #223458 !important
+      background: #223458 !important 
 </style>

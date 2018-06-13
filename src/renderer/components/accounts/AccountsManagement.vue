@@ -74,7 +74,8 @@ export default {
 </style>
 <style lang="sass">
 .BaseAppCard
-  min-height: 670px
+  display: flow-root !important
+  min-height: 740px !important
   // .el-input
   //   width: 300px
 </style>

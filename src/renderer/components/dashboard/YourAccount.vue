@@ -6,9 +6,9 @@
           avatar(:fullname="settings.store.name", :size="120")
           div.has-text-centered
             h2.title.is-3.has-text-weight-bold.is-lowercase.m-0.text-header {{ settings.store.name }}
-            h5.title.is-5.has-text-weight-normal.is-lowercase.m-0.email {{ settings.store.email }}
-            h6.title.is-6.has-text-weight-normal.is-lowercase.m-0 {{ settings.store.address }}      
-            h6.title.is-6.has-text-weight-normal.is-lowercase.m-0 {{ settings.store.phone }}      
+            h5.title.has-text-weight-normal.is-lowercase.m-0.email.font-size-11 {{ settings.store.email }}
+            h6.title.has-text-weight-normal.is-lowercase.m-0.font-size-11 {{ settings.branch.address }}      
+            h6.title.has-text-weight-normal.is-lowercase.m-0.font-size-11 {{ settings.store.phone }}      
 </template>
 
 

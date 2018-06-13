@@ -38,15 +38,17 @@ export default {
 
     preloadItemsList () {
       this.loading = true
+      this.$Progress.start()
       return this.loadItems(this.filter)
         .then((res) => {
           this.loading = false
+          this.$Progress.finish()
           // this.setLoadedItems(res)
-          // console.log(res)
           return res
         })
         .catch(() => {
           this.loading = false
+          this.$Progress.fail()
         })
     },
 
@@ -55,16 +57,6 @@ export default {
         this.setItems(res)
       }
     },
-
-    // getSearchPayload (type) {
-    //   if (type instanceof Object) {
-    //     return type
-    //   }
-    //   return {
-    //     type,
-    //     search: this.searchQuery
-    //   }
-    // },
 
     search (key) {
       if (this.filter[key]) {
@@ -94,9 +86,7 @@ export default {
       const containerElement = containerElem || document.querySelector('.el-table__body-wrapper')
       containerElement.addEventListener('scroll', (e) => {
         const atBottom = e.target.clientHeight === e.target.scrollHeight - e.target.scrollTop
-        // console.log(atBottom)
         if (atBottom && !this.loading) {
-          // console.log('in here');
 
           if ((this.displaySearchFilters || this.searchQuery)) {
             if ((this.filteredItems.lastPage - +this.filteredItems.page) > 0) {

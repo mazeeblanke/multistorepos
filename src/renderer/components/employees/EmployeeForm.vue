@@ -75,17 +75,17 @@
                 )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Email
+              label.label Password Confirmation
             .field-body
               .field
                 el-input(
                   clearable,
                   size="small",
-                  v-model="employee.email",
-                  placeholder="Enter email",
-                  @input="() => $v.employee.email.$touch()"
-                  :class="{ 'is-error': $v.employee.email.$error }",
-                )
+                  v-model="employee.passwordConfirmation",
+                  placeholder="Enter password",
+                  @input="() => $v.employee.passwordConfirmation.$touch()"
+                  :class="{ 'is-error': $v.employee.passwordConfirmation.$error }",
+                )      
         .column.is-6
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
@@ -105,6 +105,19 @@
                   el-option(label="super admin", value="superadmin")
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
+              label.label Email
+            .field-body
+              .field
+                el-input(
+                  clearable,
+                  size="small",
+                  v-model="employee.email",
+                  placeholder="Enter email",
+                  @input="() => $v.employee.email.$touch()"
+                  :class="{ 'is-error': $v.employee.email.$error }",
+                )        
+          .field.is-horizontal
+            .field-label.has-text-right.is-v-centered
               label.label Status
             .field-body
               .field
@@ -118,19 +131,6 @@
                 )
                   el-option(label="Inactive", value="inactive")
                   el-option(label="Active", value="active")
-          .field.is-horizontal
-            .field-label.has-text-right.is-v-centered
-              label.label Password Confirmation
-            .field-body
-              .field
-                el-input(
-                  clearable,
-                  size="small",
-                  v-model="employee.passwordConfirmation",
-                  placeholder="Enter password",
-                  @input="() => $v.employee.passwordConfirmation.$touch()"
-                  :class="{ 'is-error': $v.employee.passwordConfirmation.$error }",
-                )
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
               label.label Branch

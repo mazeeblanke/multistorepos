@@ -343,7 +343,7 @@ export default {
           .map(b => ({
             id: b.product_branch_id,
             product_id: id,
-            quantity: b.quantity,
+            quantity: b.quantity || 0,
             branch_id: b.branch_id || this.settings.branch.id,
             store_id: b.store_id,
             reorder: b.reorder

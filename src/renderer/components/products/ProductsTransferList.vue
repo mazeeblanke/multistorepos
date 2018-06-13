@@ -1,86 +1,61 @@
 <template lang="pug">
   div
-    FullscreenDialog(@closed="closeDialog", scrollable, :active.sync="fullScreenActive")
-      span.material-icons.print.action(slot="action" @click="print") print
-      Reciept(
-        :items="salesItems",
-        :transaction="salesTransaction",
-      )
-    .SalesList(
-      v-loading="generatingReceipt || refunding"
-      element-loading-text="processing ..."
-    )
-      .level.toolbar.shadow-divider(:class="{ 'shadow-divider': formPanelOpen }")
+    .SalesList
+      .level.toolbar.shadow-divider
         .level-left
-          .level-item.page-title.subtitle.is-5 Listing Product Transfers ({{ filteredItemsData.length }})
+          .level-item.page-title.subtitle.is-5 
+            | Listing Product Transfers ({{ filteredItemsData.length }})
         .level-item
-          div.search
-            el-select(
-              v-model="searchQuery"
-              :filterable="true"
-              :remote="true"
-              :clearable="true"
-              @change="filteredItems.data = []"
-              placeholder="Search Transfers by user"
-              :remote-method="getSalesSuggestions"
-              popper-class="salesUserSelect"
-            )
-              el-option(
-                v-for="(item, index) in suggestions"
-                :key="index"
-                :label="item.username"
-                :value="item.username"
-              )
-              el-button(slot="append" icon="el-icon-search")
+          // div.search
+          //   el-select(
+          //     v-model="searchQuery"
+          //     :filterable="true"
+          //     :remote="true"
+          //     :clearable="true"
+          //     @change="filteredItems.data = []"
+          //     placeholder="Search Transfers by user"
+          //     :remote-method="getSalesSuggestions"
+          //     popper-class="salesUserSelect"
+          //   )
+          //     el-option(
+          //       v-for="(item, index) in suggestions"
+          //       :key="index"
+          //       :label="item.username"
+          //       :value="item.username"
+          //     )
+          //     el-button(slot="append" icon="el-icon-search")
         .level-right
-          .level-item(v-show="$can('admin|super-admin')")
+          .level-item(v-show="$can('admin|superadmin')")
             a.button(@click="toggleFilteringState")
               span Toggle search filters
               span.icon
                 i.material-icons keyboard_arrow_down
-      //- SalesListFilter(:filter-params.sync="filterParams", @change="filterItems", v-show="displaySearchFilters")
-      EmptyState(empty-message="No results" v-if="!filteredItemsData.length && !loading", :style="{height: '400px'}")
-      Loading(loading-text="Loading sales" v-if="loading && !filteredItemsData.length", :style="{ height: '400px' }")
+      EmptyState.h400(empty-message="No results" v-if="!filteredItemsData.length && !loading")
+      Loading.h400(loading-text="Loading sales" v-if="loading && !filteredItemsData.length")
       el-table(
         ref="items-table",
         :data="filteredItemsData",
-        max-height="400",
+        max-height="500",
         :border="false"
-        :highlight-current-row="true",
-        @cell-click="handleCellClick"
         v-show="filteredItemsData.length",
         @selection-change="handleSelectionChange",
-        :stripe="true",
       )
-        el-table-column(type="selection", fixed="left")
-        el-table-column(label="No", type="index", :index="1", width="50", fixed="left")
-        el-table-column(show-overflow-tooltip, align="left", label="Branch Name", :sortable="true", fixed="left")
+        el-table-column(type="selection")
+        el-table-column(label="No", type="index", :index="1", width="50")
+        el-table-column(prop="transfer_id", label="Transfer ID", show-overflow-tooltip, :sortable="true")
+        el-table-column(prop="source", label="Transfer Source", show-overflow-tooltip, :sortable="true")
+        el-table-column(prop="product.name", label="Product", show-overflow-tooltip, :sortable="true")
+        el-table-column(prop="quantity_transferred", label="Qty Transfered", show-overflow-tooltip, :sortable="true")
+        el-table-column(prop="source_branch.name", label="From", show-overflow-tooltip, :sortable="true")
+           template(slot-scope="scope")
+            span.is-capitalized {{ scope.row.source_branch && scope.row.source_branch.name || '-' }}
+        el-table-column(prop="destination_branch.name", label="To Branch", show-overflow-tooltip, :sortable="true")
+        el-table-column(label="Transfered At", show-overflow-tooltip, :sortable="true")
           template(slot-scope="scope")
-            span {{ scope.row.branch_details.length ? scope.row.branch_details[0].name : '-' }}
-        //- el-table-column(prop="customerid", label="Customer ID", align="left", show-overflow-tooltip, :sortable="true")
-        //-   template(slot-scope="scope")
-        //-     span {{ scope.row.customerid || '-' }}
-        //- el-table-column(prop="discount", label="Discount", show-overflow-tooltip, :sortable="true")
-        //- el-table-column(prop="paid", label="Paid", align="left", show-overflow-tooltip, :sortable="true")
-        //- el-table-column(prop="payment", label="Payment type", align="left", show-overflow-tooltip, :sortable="true")
-        el-table-column(prop="salesid", label="Sales ID", align="left", show-overflow-tooltip, :sortable="true")
-        el-table-column(prop="user", label="Transfered by", align="left", show-overflow-tooltip, :sortable="true")
-        el-table-column(prop="salestime", label="Sold at", align="left", show-overflow-tooltip, :sortable="true")
-          template(slot-scope="scope")
-            span {{ dateForHumans(scope.row.salestime) }}
-        el-table-column(label="Actions", width="180", fixed="right")
-          template(slot-scope="scope")
-            .actions
-              el-dropdown(split-button size="small" type="primary" @command="handleCommand" @click="generateReceipt(scope.row)") Generate receipt
-                el-dropdown-menu(slot="dropdown")
-                  el-dropdown-item(:command="() => generateReceipt(scope.row)") Generate reciept
-                  el-dropdown-item(:command="() => refund(scope.row)" :disabled="scope.row.salesid.startsWith('R') || !$can('super-admin|admin')") Refund
-                  el-dropdown-item Action 3
-                  el-dropdown-item Action 4
-                  el-dropdown-item Action 5
-        //- div(slot="append" v-show="showLoading")
-        //-   div(ref='loader' style="height: 45px;")
-        //-     infinite-loading(spinner="waveDots" v-if="loading")
+            span {{ formatDate(scope.row.created_at) }}
+        div(slot="append" v-show="showLoading")
+          div(ref='loader' style="height: 45px;")
+            infinite-loading(spinner="waveDots" v-if="loading")
 </template>
 
 <script>
@@ -88,26 +63,21 @@
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex';
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format';
 import Loading from '@/components/shared/Loading';
-// import RequisitionForm from '@/components/purchasing/RequisitionForm';
 import FullscreenDialog from '@/components/shared/FullscreenDialog';
 import InfiniteLoading from 'vue-infinite-loading';
 import deleteMixin from '@/mixins/DeleteMixin';
 import filterMixin from '@/mixins/FilterMixin';
 import Reciept from '@/components/shared/Reciept';
-// import SalesListFilter from '@/components/purchasing/SalesListFilter';
 import EmptyState from '@/components/EmptyState';
-import { ObjectToFormData } from '@/utils/helper';
+import { parseColData } from '@/utils/helper';
 
 const parseAmount = (amount) => parseFloat(amount.toPrecision(4));
 
 export default {
   mounted() {
-    this.clearSelectedSale();
-    this.clearSales();
+    this.clearTransferHistory();
     this.preloadItemsList();
     this.handleBottomScroll();
-    // this.branchSuggestions = [this.currentBranch];
-    // this.selected_branch = this.currentBranch;
   },
   mixins: [deleteMixin, filterMixin],
   data() {
@@ -121,25 +91,12 @@ export default {
       salesTransaction: {},
       filter: {
          // limit: 7,
-        page: 1,
-        salessearch: 'salessearch',
-        fromtime: '1970-01-01 00:00:01',
-        totime: '8000-00-00 00:00:00',
-        branchid: 0,
       },
       suggestions: [],
       displaySearchFilters: false,
       filteredRequisitions: [],
       generatingReceipt: false,
       refunding: false,
-      filterParams: {
-        status: null,
-        issuedBefore: null,
-        issuedAfter: null,
-        buyer: null,
-        requisitionType: null,
-        requisitionCode: null,
-      },
       selected_branch: null,
       loading: false,
       loadingBranches: false,
@@ -149,273 +106,70 @@ export default {
       branchSuggestions: [],
     };
   },
+
   watch: {
-    sales(newValue) {
+
+    transferHistory (newValue) {
       this.items = newValue;
-      this.filter.page = newValue.nextPage;
-    },
-    branches(newValue) {
-      this.branchSuggestions = newValue;
-    },
-    searchQuery(newValue) {
-      this.searchSales();
-    },
-    filteredItemsData(newValue) {
-      this.SET_FILTERED_ITEMS(newValue);
-    },
+    }
+
   },
+
   methods: {
+
     ...mapActions('sales', [
       'loadSales',
-      'clearSelectedSale',
-      'loadSalesByPage',
-      'clearSales',
-      'removeFromCart',
-      'refundSale',
-      'removeSale',
-      'getReceipt',
+      'clearTransferHistory',
+      'clearSelectedSale'
     ]),
+
     ...mapActions('branch', [
-      'loadBranches',
+      'loadBranches', 
     ]),
+
     handleCommand(command) {
       command();
     },
-    print() {
-      window.print();
-    },
-    // refreshSales(newBranch) {
-    //   this.clearSales();
-    //   this.filter = {
-    //     ...this.filter,
-    //     branchid: newBranch.id,
-    //     page: 1,
-    //   }
-    //   console.log(this.filter);
-    //   this.preloadItemsList();
-    // },
+
     ...mapActions('customers', [
       'loadCustomers',
     ]),
+
     ...mapActions('sales', {
-      loadItems: 'loadSalesByPage',
+      loadItems: 'loadTransferHistory',
     }),
-    ...mapMutations('sales', {
-      SET_FILTERED_ITEMS: 'SET_FILTERED_SALES',
-    }),
-    _loadBranches(query) {
-      if (query !== '') {
-        this.loadingBranches = true;
-        this.loadBranches(ObjectToFormData({
-          allbranches: 'allbranches',
-        }))
-        .then((res) => {
-          this.branchSuggestions = res;
-          this.loadingBranches = false;
-        })
-        .catch(() => {
-          this.loadingBranches = false;
-        });
-      }
-    },
-    // updateSearchQuery(q) {
-    //   console.log(q);
-    //   this.searchQuery = q;
-    // },
-    searchSales() {
-      this.loading = true;
-      this.loadSales(
-        ObjectToFormData({
-          salessearch: 'salessearch',
-          fromtime: '0000-00-01 00:00:00',
-          totime: '7018-02-07 00:00:00',
-          usersearch: this.searchQuery,
-        }),
-      ).then(res => {
-        this.filteredItems.data = res.message;
-        // console.log('weew');
-        // this.SET_FILTERED_ITEMS(res.message);
-        this.loading = false;
-      }).catch(() => {
-        this.loading = false;
-      });
-    },
-    warnUser() {
+
+    warnUser (msg) {
       return this.$swal({
         title: 'Are you sure?',
-        text: 'Do you want to refund and return?',
+        text: msg,
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes',
         cancelButtonText: 'No',
       });
     },
-    refund(sale) {
-      this.warnUser().then((res) => {
-        if (res.value) {
-          this.refunding = true;
-          this.refundSale(
-            ObjectToFormData({
-              refundsales: 'refundsales',
-              salesid: sale.salesid,
-            }),
-          ).then(res => {
-            if (res.status === 'Success') {
-              this.$snackbar.open(`Success !! - ${res.message}`);
-              this.removeSale(sale);
-            } else if (res.status === 'Failure') {
-              this.$snackbar.open({
-                message: `Failure!! - ${res.message}`,
-                type: 'is-danger',
-              });
-            }
-            this.refunding = false;
-          })
-          .catch(() => {
-            this.refunding = false;
-          });
-        }
-      });
-    },
+
     deleteItems() {},
-    handleCellClick(row, cell) {
-      if (cell.type !== 'selection') {
-        // this.showRequisition(row);
-      }
-    },
-    calculateTax() {
-       const tax = this.store.taxes || 0;
-       if (!!tax) {
-         return tax.reduce((agg, i) => agg + i.value, 0);
-       }
-       return tax;
-    },
-    getTotal(transaction) {
-      const subtotalTotal = transaction.total;
-      // const tax = this.calculateTax();
-      const discountTotal = parseAmount(Math.max(((transaction.discount / 100) * subtotalTotal), 0));
-      const taxTotal = parseAmount(Math.max(((transaction.tax / 100) * subtotalTotal), 0));
-      this.salesTransaction = {
-        ...transaction,
-        subtotalTotal,
-        discountTotal,
-        taxTotal,
-        tax: transaction.tax,
-        total: (subtotalTotal - discountTotal) + taxTotal,
-      };
-    },
-    generateReceipt(row) {
-      this.generatingReceipt = true;
-        this.getReceipt(ObjectToFormData({
-          getinventorytransferreceipt: 'getinventorytransferreceipt',
-          salesid: row.salesid,
-        })).then((res) => {
-          let { branch_details, message: transaction, cart, product_cart_details } = res;
-          transaction = { ...transaction[0], customerDetails: branch_details[0] };
-          const items = cart.reduce((agg, i) => {
-            const productDetail = product_cart_details.find((p) => p[0].id === i.productid);
-            agg.push({
-              selectedItem: { ...i, productDetail: productDetail[0] , name: productDetail[0].name },
-              quantity: i.quantity,
-            });
-            return agg;
-          }, []);
-          this.generatingReceipt = false;
-          this.salesItems = items;
-          // this.salesTransaction = transaction;
-          this.getTotal(transaction);
-          this.fullScreenActive = true;
-        })
-        .catch((err) => {
-          console.log(err);
-          this.generatingReceipt = false;
-        });
-    },
-    closeDialog() {
-      this.fullScreenActive = false;
-      this.salesItems = [];
-      this.salesTransaction = {};
-    },
-    getSalesSuggestions(query) {
-      if (query) {
-        this.loading = true;
-        let payload = {
-          search: query,
-          type: 'user',
-        };
-        this.loadCustomers(payload)
-          .then(suggestions => {
-            this.loading = false;
-            this.suggestions = suggestions;
-          })
-          .catch(() => {
-            this.loading = false;
-          });
-      } else {
-        this.suggestions = [];
-      }
-    },
-    createNewRequisition() {
-      // this.formPanelOpen = true;
-      // this.isCreatingRFP = true;
-      // this.$scrollTo(this.$refs['new-requisition-form'].$el, 1000, {
-      //   container: '#snap-screen',
-      //   easing: 'ease',
-      //   offset: 20,
-      // });
-    },
-    // createNewRFQ() {
-    //   this.formPanelOpen = true;
-    //   this.isCreatingRFQ = true;
-    // },
-    // closeNewRequisitionForm() {
-    //   this.formPanelOpen = false;
-    //   this.isCreatingRFP = false;
-    //   this.$emit('formPanelClose');
-    // },
-    // closeNewRFQForm() {
-    //   this.formPanelOpen = false;
-    //   this.isCreatingRFQ = false;
-    //   this.$emit('formPanelClose');
-    // },
-    // showRequisition(row) {
-    //   this.$router.push({ name: 'requisition_view', params: { id: row.id } });
-    // },
-    // refreshList() {
-    //   this.formPanelOpen = false;
-    //   this.loadRequisitions();
-    // },
-    ...{ formatDate, formatStatus, dateForHumans },
+
+    ...{ formatDate, formatStatus, dateForHumans, parseColData }
+
   },
+
   computed: {
-    ...mapState('sales', ['sales']),
-    ...mapState('store', ['store']),
-    // ...mapState('branch', [
-    //   'currentBranch',
-    // ]),
-    ...mapState('branch', ['currentBranch', 'branches']),
-    // ...mapGetters('requisitions', ['requisitions']),
-    // ...mapState('requisitions', { items: 'requisitions' }),
+    ...mapState('sales', ['transferHistory']),
   },
+
   components: {
     Loading,
-    Reciept,
-    // RequisitionForm,
     FullscreenDialog,
     InfiniteLoading,
-    // SalesListFilter,
     EmptyState,
-  },
+  }
 };
 </script>
 
 <style lang="sass">
-// .actions
-//   display: flex
-//   .el-button-group
-//     display: flex !important
-//   .el-button
-//     height: 33px !important
 .salesUserSelect
   .el-select-dropdown__item
     text-align: center;
@@ -426,13 +180,6 @@ export default {
   i
     margin-right: 5px
 </style>
-
-<style lang="sass" scoped>
-  // .search
-  //   .el-input
-  //     width: 300px !important
-</style>
-
 
 <style lang="sass" module>
 .columns

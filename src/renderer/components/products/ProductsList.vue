@@ -7,7 +7,7 @@
         @action-complete="closeNewProductsForm",
         v-show="isCreatingProduct"
       )
-    .level.toolbar(:class="{ 'shadow-divider': formPanelOpen }")
+    .level.toolbar.shadow-divider(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
         .level-item.page-title.subtitle.is-5 
           span.el-icon-news.mr-5.font-size-23

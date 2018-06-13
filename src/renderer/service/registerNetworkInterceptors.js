@@ -5,6 +5,7 @@ import VueAxios from 'vue-axios'
 Vue.use(VueAxios, axios)
 
 window.baseUrl = 'http://127.0.0.1:9238'
+// window.baseUrl = 'https://enigmatic-forest-11569.herokuapp.com'
 
 axios.interceptors.request.use(
   config => {
