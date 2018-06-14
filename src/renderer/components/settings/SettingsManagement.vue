@@ -20,6 +20,7 @@ import SideBar from '@/components/shared/SideBar'
 import { mapState } from 'vuex'
 
 const BASE_PATH = '/app/settings'
+
 const redirectIfBase = (to, next) => {
   if (to.path === BASE_PATH) {
     next({ name: 'SettingsView' })
@@ -29,32 +30,31 @@ const redirectIfBase = (to, next) => {
 }
 
 export default {
+
   data () {
     return {
       activeTab: 0
     }
   },
+
   computed: {
     ...mapState('settings', [
       'settings'
     ])
   },
+
   beforeRouteEnter (to, from, next) {
     redirectIfBase(to, next)
   },
+
   components: {
     SideBar
   },
+
   beforeRouteUpdate (to, from, next) {
     redirectIfBase(to, next)
   }
+
 }
 </script>
 
-<style lang="sass" scoped>
-  .section
-    // padding: 3rem 1rem !important
-  .BaseAppCard
-    // height: 300px !important
-    // min-height: 900px !important
-</style>

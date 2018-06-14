@@ -4,6 +4,7 @@ const SettingsView = () => import('@/components/settings/SettingsView')
 const General = () => import('@/components/settings/General')
 const About = () => import('@/components/settings/About')
 const Profile = () => import('@/components/settings/Profile')
+const Template = () => import('@/components/settings/Templates')
 
 export default {
   path: 'settings',
@@ -44,6 +45,16 @@ export default {
           path: 'profile',
           name: 'profile',
           component: Profile,
+          meta: {
+            permission: 'admin|superadmin|clerk',
+            fail: '/app/new-sale',
+            requiresAuth: true
+          }
+        },
+        {
+          path: 'templates',
+          name: 'templates',
+          component: Template,
           meta: {
             permission: 'admin|superadmin|clerk',
             fail: '/app/new-sale',

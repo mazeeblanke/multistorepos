@@ -173,6 +173,7 @@
         this.files = []
         this.$refs.uploadInput.value = []
         this.csvHeaders = []
+        this.processing = false
       },
 
       addItemsFromCSV () {

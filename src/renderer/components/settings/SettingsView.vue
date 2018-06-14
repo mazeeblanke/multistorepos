@@ -13,9 +13,9 @@
           el-menu-item(index="/app/settings/v/profile")
             b-icon.mr-5(icon="person")
             span Profile
-          el-menu-item(index="4")
+          el-menu-item(index="/app/settings/v/templates")
             b-icon.mr-5(icon="system_update_alt")
-            span Software Update
+            span Templates
           el-menu-item(index="5")
             b-icon.mr-5(icon="assignment")
             span Invoice Settings
@@ -56,10 +56,9 @@ export default {
 <style lang="sass" scoped>
 .shadow-divider
   box-shadow: none !important;
-  min-height: 560px !important;
-  height: 100%
+  height: 690px
 .columns
-  height: 80vh !important
+  height: 103% !important
 </style>
 
 <style lang="sass">

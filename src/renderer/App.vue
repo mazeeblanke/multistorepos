@@ -601,8 +601,8 @@ export default {
     color: #000000 !important
 
   .appView
-    height: 560px;
-    overflow-y: scroll;
+    height: 600px
+    overflow-y: scroll
     width: 100%;
     margin-bottom: 25px !important
     overflow-x: hidden !important

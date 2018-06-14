@@ -88,14 +88,14 @@ export default {
         const atBottom = e.target.clientHeight === e.target.scrollHeight - e.target.scrollTop
         if (atBottom && !this.loading) {
 
-          if ((this.displaySearchFilters || this.searchQuery)) {
+          if ((this.displaySearchFilters || this.isSearching)) {
             if ((this.filteredItems.lastPage - +this.filteredItems.page) > 0) {
               this.loadMore()
             }
             return
           }
 
-          if (!this.displaySearchFilters && !!(this.items.lastPage - +this.items.page)) {
+          if (!this.displaySearchFilters && (this.items.lastPage - +this.items.page) > 0) {
             this.loadMore()
             return
           }

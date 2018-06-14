@@ -1,15 +1,13 @@
 <template lang="pug">
 div
   .ExpiredProductList
-    EmptyState(
+    EmptyState.h400(
       empty-text="No products below reorder point !", 
-      v-if="!filteredItemsData.length && !loading", 
-      :style="{ height: '400px' }"
+      v-if="!filteredItemsData.length && !loading"
     )
-    Loading(
+    Loading.h400(
       loading-text="Loading products to reorder", 
-      v-if="(loading && !filteredItemsData.length)", 
-      :style="{ height: '400px' }"
+      v-if="(loading && !filteredItemsData.length)"
     )
     el-table.p-0.reorderproductlist(
       ref="items-table",
@@ -37,20 +35,20 @@ div
 </template>
 
 <script>
-/* eslint-disable */
-import { mapState, mapActions, mapGetters, mapMutations } from 'vuex';
-import { formatDate, formatStatus, dateForHumans } from '@/filters/format';
-import Loading from '@/components/shared/Loading';
-import InfiniteLoading from 'vue-infinite-loading';
-import deleteMixin from '@/mixins/DeleteMixin';
-import filterMixin from '@/mixins/FilterMixin';
-import MoneyMixin from '@/mixins/MoneyMixin';
-import EmptyState from '@/components/EmptyState';
-import { parseColData, money } from '@/utils/helper';
+
+import { mapState, mapActions } from 'vuex'
+import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
+import Loading from '@/components/shared/Loading'
+import InfiniteLoading from 'vue-infinite-loading'
+import deleteMixin from '@/mixins/DeleteMixin'
+import filterMixin from '@/mixins/FilterMixin'
+import MoneyMixin from '@/mixins/MoneyMixin'
+import EmptyState from '@/components/EmptyState'
+import { money } from '@/utils/helper'
 
 export default {
 
-  mounted() {
+  mounted () {
     this.loading = true
     this.clearReorderProducts()
     this.preloadItemsList()
@@ -61,7 +59,7 @@ export default {
 
   mixins: [deleteMixin, filterMixin, MoneyMixin],
 
-  data() {
+  data () {
     return {
       formPanelOpen: false,
       filter: {
@@ -76,51 +74,51 @@ export default {
       items: {
         data: []
       }
-    };
+    }
   },
-  
+
   watch: {
     reorderProducts (newValue) {
       this.items = newValue
-    },
+    }
   },
 
   methods: {
 
     ...{ money },
-    
+
     ...mapActions('products', [
       'loadProducts',
       'clearReorderProducts'
     ]),
 
     ...mapActions('products', {
-      searchItems: 'loadProducts',
+      searchItems: 'loadProducts'
     }),
 
     ...mapActions('products', {
-      loadItems: 'loadProducts',
+      loadItems: 'loadProducts'
     }),
 
-    deleteItems() {},
+    deleteItems () {},
 
-    ...{ formatDate, formatStatus, dateForHumans, parseColData }
+    ...{ formatDate, formatStatus, dateForHumans }
 
   },
 
   computed: {
 
-    ...mapState('products', ['reorderProducts']),
+    ...mapState('products', ['reorderProducts'])
 
   },
 
   components: {
     Loading,
     InfiniteLoading,
-    EmptyState,
+    EmptyState
   }
 
-};
+}
 </script>
 
 <style lang="sass" module>
