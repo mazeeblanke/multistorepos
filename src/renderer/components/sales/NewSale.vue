@@ -69,7 +69,7 @@ section.section(:style="{ width: '100%' }")
             el-table.sales-table(
               ref="items-table",
               :data="cart.products",
-              :max-height="formPanelOpen? 390 : 455",
+              :max-height="formPanelOpen? 450 : 455",
               :border="true"
               :default-sort="{prop: 'created_at', order: 'descending'}",
               v-show="cart.products.length",
@@ -489,9 +489,9 @@ export default {
   .sales-table
     .el-input-number, .el-input.qty
       width: 100% !important
-    padding-left: 4px;
+    // padding-left: 4px;
     box-shadow: 0px -3px 4px 0px rgba(0, 0, 0, 0.12) inset;
-    padding-right: 4px;  
+    // padding-right: 4px;  
 </style>
 
 <style lang="sass" module>

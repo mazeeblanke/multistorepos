@@ -18,9 +18,9 @@
             clearable,
             v-model="filter.full_name",
             @input="search('full_name')", 
-            class="input-with-select"
-          )
-            // el-button(slot="append", icon="el-icon-search")  
+            class="input-with-select",
+            v-if="!displaySearchFilters"
+          ) 
       .level-right
         .level-item
           a.button.is-primary(
@@ -30,20 +30,23 @@
             span.icon
               i.material-icons add
             span Create Customer
-    EmptyState(
+    ListFilter.shadow-divider(
+      v-if="displaySearchFilters",
+      :fields="searchFields",
+      @change="filterItems",
+      :filter-params.sync="filter"
+    )
+    EmptyState.h400(
       empty-text="No Result", 
       v-if="!filteredItemsData.length && !loading", 
-      :style="{ height: '400px' }"
+      @contextmenu.native="showContextMenu"
     )
-    Loading(
-      loading-text="Loading customers", 
-      v-if="(loading && !filteredItemsData.length)", 
-      :style="{ height: '400px' }"
-    )
+    Loading.h400(loading-text="Loading customers", v-if="(loading && !filteredItemsData.length)")
     el-table(
+      @contextmenu.native="showContextMenu",
       ref="items-table",
       :data="filteredItemsData",
-      :max-height="500",
+      :max-height="displaySearchFilters? 459 : 550",
       :default-sort="{prop: 'created_at', order: 'descending'}",
       :border="false",
       @cell-click="handleCellClick",
@@ -56,15 +59,9 @@
       el-table-column(show-overflow-tooltip, label="Fullname", sortable)
         template(slot-scope="scope") 
           span.is-capitalized {{ scope.row.full_name }}
-      el-table-column(label="Email", show-overflow-tooltip, sortable)
-        template(slot-scope="scope") 
-          span {{ parseColData(scope.row.email) }}
       el-table-column(label="Gender", show-overflow-tooltip, sortable )
         template(slot-scope="scope") 
           span.is-capitalized {{ parseColData(scope.row.gender) }}
-      el-table-column(label="Marital status", show-overflow-tooltip, sortable)
-        template(slot-scope="scope") 
-          span.is-capitalized {{ parseColData(scope.row.marital_status) }}
       el-table-column(label="Phone No.", show-overflow-tooltip, sortable)
         template(slot-scope="scope") 
           span.is-capitalized {{ parseColData(scope.row.phone) }}
@@ -81,55 +78,97 @@
 </template>
 
 <script>
-/* eslint-disable */
-import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+
+import { mapState, mapActions, mapMutations } from 'vuex'
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
 import Loading from '@/components/shared/Loading'
+import { parseColData } from '@/utils/helper'
 import CustomerForm from '@/components/customers/CustomerForm'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import InfiniteLoading from 'vue-infinite-loading'
 import deleteMixin from '@/mixins/DeleteMixin'
 import filterMixin from '@/mixins/FilterMixin'
 import EmptyState from '@/components/EmptyState'
+import ListFilter from '@/components/Shared/ListFilter'
+import { COUNTRIES_OPTIONS } from '@/utils/constants'
 
 export default {
-  mounted() {
+  mounted () {
     this.clearSelectedCustomer()
     this.clearCustomers()
-    this.loading = true
     this.preloadItemsList()
     this.handleBottomScroll()
+    this.$electron.ipcRenderer.on(
+      'advancedSearch',
+      () => this.handleAdvancedSearchToggle()
+    )
   },
+
   mixins: [deleteMixin, filterMixin],
-  // watch: {
-  //   customers(newValue) {
-  //     this.items.data = _.flatMap(newValue)
-  //   },
-  // },
-  data() {
+
+  data () {
     return {
       isCreatingCustomer: false,
       displaySearchFilters: false,
       filter: {
-        full_name: null,
-        email: null,
-        status: null
+        full_name: null
+      },
+      filterParams: {
+        full_name: null
       },
       loading: false,
       items: {
         data: []
-      }
+      },
+      searchFields: [
+        {
+          component: 'el-input',
+          placeholder: 'Fullname',
+          key: 'full_name',
+          displayKey: 'Fullname'
+        },
+        {
+          component: 'el-input',
+          placeholder: 'phone',
+          key: 'phone',
+          displayKey: 'Phone no.'
+        },
+        {
+          component: 'el-select',
+          placeholder: 'gender',
+          key: 'gender',
+          displayKey: 'Gender',
+          options: [
+            { value: 'male', key: 'male' },
+            { value: 'female', key: 'female' }
+          ]
+        },
+        {
+          component: 'el-select',
+          placeholder: 'Country',
+          key: 'country',
+          displayKey: 'Country',
+          options: COUNTRIES_OPTIONS
+        },
+        {
+          component: 'el-date-picker',
+          startPlaceholder: 'Start Date',
+          endPlaceholder: 'End Date',
+          defaultTime: "['12:00:00']",
+          valueFormat: 'yyyy-MM-dd HH:mm:ss',
+          displayKey: 'Created At'
+        }
+      ]
     }
   },
 
   watch: {
 
-    customers(newValue) {
+    customers (newValue) {
       this.items = newValue
-      // this.filter.page = newValue.nextPage
     },
 
-    filteredItemsData(newValue) {
+    filteredItemsData (newValue) {
       this.SET_FILTERED_ITEMS(newValue)
     }
 
@@ -147,78 +186,63 @@ export default {
     ...mapMutations('app', ['SET_FORM_STATE']),
 
     ...mapMutations('customers', {
-      SET_FILTERED_ITEMS: 'SET_FILTERED_CUSTOMERS',
+      SET_FILTERED_ITEMS: 'SET_FILTERED_CUSTOMERS'
     }),
-
-    parseColData(data) {
-      if (data === 'null') {
-        return '-'
-      }
-      return data
-    },
 
     ...mapActions('customers', {
-      searchItems: 'loadCustomers',
+      searchItems: 'loadCustomers'
     }),
-
-    // search(e) {
-    //   if (this.searchQuery) {
-    //     this.isSearching = true
-    //     this.loading = true
-    //     this.loadCustomers({
-    //       type: 'customer',
-    //       search: this.searchQuery,
-    //     }).then((res) => {
-    //       this.filteredItems.data = res instanceof Array ? res : []
-    //       this.loading = false
-    //       this.isSearching = false
-    //     })
-    //     .catch(() => {
-    //       this.isSearching = false
-    //       this.loading = false
-    //     })
-    //   } else {
-    //     this.isSearching = false
-    //   }
-    // },
 
     ...mapActions('customers', {
-      loadItems: 'loadCustomers',
+      loadItems: 'loadCustomers'
     }),
 
-    deleteItems() {},
+    deleteItems () {},
 
-    handleCellClick(row, cell) {
+    handleCellClick (row, cell) {
       if (cell.type !== 'selection') {
         this.showCustomer(row)
       }
     },
 
+    handleAdvancedSearchToggle () {
+      this.displaySearchFilters = !this.displaySearchFilters
+      this.filter = {
+        ...this.filter,
+        ...{
+          full_name: null
+        }
+      }
+    },
+
+    showContextMenu () {
+      this.$electron.ipcRenderer.send('contextmenu')
+    },
+
     createNewCustomer () {
       this.SET_FORM_STATE(true)
-      // this.formPanelOpen = true
-      // this.isCreatingCustomer = true
-      // this.$scrollTo(this.$refs['new-customer-form'].$el, 1000, {
-      //   container: '#snap-screen',
-      //   easing: 'ease',
-      //   offset: 20,
-      // })
-    },
-
-    closeNewCustomerForm() {
-      this.SET_FORM_STATE(false)
-      // this.formPanelOpen = false
-      this.isCreatingCustomer = false
-    },
-
-    showCustomer(row) {
-      this.$router.push({ 
-        name: 'customer_view', 
-        params: { id: row.id } 
+      this.formPanelOpen = true
+      this.isCreatingCustomer = true
+      this.$scrollTo(this.$refs['new-customer-form'].$el, 1000, {
+        container: '#snap-screen',
+        easing: 'ease',
+        offset: 20
       })
     },
 
-    ...{ formatDate, formatStatus, dateForHumans }
+    closeNewCustomerForm () {
+      this.SET_FORM_STATE(false)
+      this.isCreatingCustomer = false
+    },
+
+    showCustomer (row) {
+      this.$router.push({
+        name: 'customer_view',
+        params: { id: row.id }
+      })
+    },
+
+    ...{ formatDate, formatStatus, dateForHumans, parseColData }
 
   },
   computed: {
@@ -233,8 +257,9 @@ export default {
     CustomerForm,
     FullscreenDialog,
     InfiniteLoading,
-    EmptyState,
-  },
+    ListFilter,
+    EmptyState
+  }
 }
 </script>
 

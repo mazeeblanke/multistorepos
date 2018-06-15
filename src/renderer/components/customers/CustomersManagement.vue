@@ -47,8 +47,6 @@ export default {
         'Marital status': 'marital_status',
         Phone: 'phone',
         'Created at': 'created',
-        // 'Payment method': 'payment',
-        // 'Sold at': 'salestime',
       },
     };
   },
@@ -93,11 +91,8 @@ export default {
 </script>
 
 <style lang="sass">
-
-</style>
-<style lang="sass">
 .BaseAppCard
-  min-height: 670px
+  min-height: 698px
   // .el-input
   //   width: 300px
 </style>

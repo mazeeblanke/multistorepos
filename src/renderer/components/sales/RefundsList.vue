@@ -30,21 +30,13 @@
               span Toggle search filters
               span.icon
                 i.material-icons keyboard_arrow_down
-      EmptyState(
-        empty-message="No results", 
-        v-if="!filteredItemsData.length && !loading", 
-        :style="{height: '400px'}"
-      )
-      Loading(
-        loading-text="Loading sales", 
-        v-if="loading && !filteredItemsData.length", 
-        :style="{ height: '400px' }"
-      )
+      EmptyState(empty-message="No results", v-if="!filteredItemsData.length && !loading")
+      Loading(loading-text="Loading sales", v-if="loading && !filteredItemsData.length")
       el-table(
         ref="items-table",
         :data="filteredItemsData",
         :default-sort="{prop: 'created_at', order: 'descending'}",
-        max-height="500",
+        max-height="550",
         :border="false"
         v-show="filteredItemsData.length",
         @selection-change="handleSelectionChange",
@@ -70,33 +62,30 @@
 </template>
 
 <script>
-/* eslint-disable */
-import { mapState, mapActions, mapGetters, mapMutations } from 'vuex';
-import { formatDate, formatStatus, dateForHumans } from '@/filters/format';
-import Loading from '@/components/shared/Loading';
-import FullscreenDialog from '@/components/shared/FullscreenDialog';
-import InfiniteLoading from 'vue-infinite-loading';
-import deleteMixin from '@/mixins/DeleteMixin';
-import filterMixin from '@/mixins/FilterMixin';
-import moneyMixin from '@/mixins/MoneyMixin';
-import Reciept from '@/components/shared/Reciept';
-import EmptyState from '@/components/EmptyState';
-import { ObjectToFormData } from '@/utils/helper';
 
-const parseAmount = (amount) => parseFloat(amount.toPrecision(4));
+import { mapState, mapActions, mapMutations } from 'vuex'
+import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
+import Loading from '@/components/shared/Loading'
+import FullscreenDialog from '@/components/shared/FullscreenDialog'
+import InfiniteLoading from 'vue-infinite-loading'
+import deleteMixin from '@/mixins/DeleteMixin'
+import filterMixin from '@/mixins/FilterMixin'
+import moneyMixin from '@/mixins/MoneyMixin'
+import Reciept from '@/components/shared/Reciept'
+import EmptyState from '@/components/EmptyState'
 
 export default {
 
-  mounted() {
-    this.clearSelectedRefund();
-    this.clearRefunds();
-    this.preloadItemsList();
-    this.handleBottomScroll();
+  mounted () {
+    this.clearSelectedRefund()
+    this.clearRefunds()
+    this.preloadItemsList()
+    this.handleBottomScroll()
   },
 
   mixins: [deleteMixin, filterMixin, moneyMixin],
 
-  data() {
+  data () {
     return {
       formPanelOpen: false,
       selectedSale: null,
@@ -111,14 +100,14 @@ export default {
       refunding: false,
       loading: false,
       items: {
-        data: [],
+        data: []
       }
     }
   },
 
   watch: {
 
-    refundedSales(newValue) {
+    refundedSales (newValue) {
       this.items = newValue
     }
 
@@ -129,7 +118,7 @@ export default {
     ...mapActions('refunds', [
       'loadRefunds',
       'clearSelectedRefund',
-      'clearRefunds',
+      'clearRefunds'
     ]),
 
     ...mapActions('employees', [
@@ -137,20 +126,20 @@ export default {
     ]),
 
     ...mapActions('refunds', {
-      loadItems: 'loadRefunds',
+      loadItems: 'loadRefunds'
     }),
 
     ...mapActions('refunds', {
-      searchItems: 'loadRefunds',
+      searchItems: 'loadRefunds'
     }),
 
     ...mapMutations('sales', {
-      SET_FILTERED_ITEMS: 'SET_FILTERED_SALES',
+      SET_FILTERED_ITEMS: 'SET_FILTERED_SALES'
     }),
 
     getEmployeeSuggestions (query) {
       if (query) {
-        this.loadingEmployees = true;
+        this.loadingEmployees = true
         this.loadEmployees({
           username: query,
           store_id: this.settings.store.id,
@@ -162,7 +151,7 @@ export default {
           })
           .catch(() => {
             this.loadingEmployees = false
-          });
+          })
       } else {
         this.employeeSuggestions = []
       }
@@ -174,7 +163,7 @@ export default {
 
   computed: {
     ...mapState('refunds', ['refundedSales']),
-    ...mapState('settings', ['settings']),
+    ...mapState('settings', ['settings'])
   },
 
   components: {
@@ -185,7 +174,7 @@ export default {
     EmptyState
   }
 
-};
+}
 </script>
 
 <style lang="sass">

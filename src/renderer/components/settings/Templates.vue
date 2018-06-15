@@ -22,7 +22,7 @@ div.moduleTemplates
           type="csv",
           v-if="scope.row"
         )
-          el-button.downloadBtn(size="mini")
+          el-button.downloadBtn(size="mini", type="info")
             i.mr-5 Download
             i.material-icons.font-size-13 unfold_more
 </template>

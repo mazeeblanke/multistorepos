@@ -1,17 +1,14 @@
 'use strict'
 
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, MenuItem } from 'electron'
 import { CMD } from '../renderer/utils/helper'
 const exec = require('child_process').exec
 const notifier = require('node-notifier')
-
-// const path = require('path')
 
 const template = [
   {
     label: 'Edit',
     submenu: [
-      {role: 'undo'},
       {role: 'redo'},
       {type: 'separator'},
       {role: 'cut'},
@@ -41,15 +38,6 @@ const template = [
     submenu: [
       {role: 'minimize'},
       {role: 'close'}
-    ]
-  },
-  {
-    role: 'help',
-    submenu: [
-      {
-        label: 'Learn More',
-        click () { require('electron').shell.openExternal('https://electronjs.org') }
-      }
     ]
   }
 ]
@@ -115,6 +103,8 @@ function createWindow () {
 
   mainWindow.loadURL(winURL)
   const menu = Menu.buildFromTemplate(template)
+  // let contextMenuOptions
+  let contextMenu
   Menu.setApplicationMenu(menu)
 
   mainWindow.on('closed', () => {
@@ -122,7 +112,26 @@ function createWindow () {
   })
 
   ipcMain.on('print', (event, data) => {
-    mainWindow.webContents.print({ silent: false })
+    // send the name of the printer to use from localstorage
+    mainWindow.webContents.print({
+      silent: true,
+      deviceName: 'Send To OneNote 16'
+    })
+  })
+
+  ipcMain.on('contextmenu', (event, data) => {
+    let contextMenuOptions = [
+      {role: 'redo'},
+      {type: 'separator'},
+      {role: 'cut'},
+      {role: 'copy'},
+      {role: 'paste'},
+      {type: 'separator'},
+      {role: 'selectall'},
+      new MenuItem({label: 'Toggle Advanced search', click () { event.sender.send('advancedSearch') }})
+    ]
+    contextMenu = Menu.buildFromTemplate(contextMenuOptions)
+    contextMenu.popup()
   })
 
   mainWindow.webContents.session.on('will-download', (event, item, webContents) => {

@@ -7,10 +7,7 @@ export default {
     return {
       displaySearchFilters: false,
       filteredItems: {
-        data: [],
-        meta: {
-          nextPage: true
-        }
+        data: []
       },
       filter: {
         limit: 10,
@@ -68,7 +65,6 @@ export default {
         }
         this.searchItems(filter)
           .then(res => {
-            console.log(res)
             this.filteredItems = res
             this.loading = false;
             // this.isSearching = false;
@@ -86,10 +82,10 @@ export default {
       const containerElement = containerElem || document.querySelector('.el-table__body-wrapper')
       containerElement.addEventListener('scroll', (e) => {
         const atBottom = e.target.clientHeight === e.target.scrollHeight - e.target.scrollTop
-        if (atBottom && !this.loading) {
 
+        if (atBottom && !this.loading) {
           if ((this.displaySearchFilters || this.isSearching)) {
-            if ((this.filteredItems.lastPage - +this.filteredItems.page) > 0) {
+            if ((this.filteredItems.lastPage - +this.filteredItems.page) >= 0) {
               this.loadMore()
             }
             return
@@ -107,7 +103,6 @@ export default {
       let filter = this.filter
       this.loading = true
       if (this.displaySearchFilters || this.isSearching) {
-        this.filteredItems.page = +this.filteredItems.page + 1
         filter = { 
           ...this.filter, 
           page: this.filteredItems.page,
@@ -120,6 +115,7 @@ export default {
           page: +this.items.page + 1
         }
       }
+      console.log(filter)
       this.loadItems(filter)
         .then((res) => {
           this.loading = false
@@ -130,31 +126,17 @@ export default {
         })
     },
 
-    // searchMore () {
-    //   this.loading = true
-    //   this.loadItems({
-    //     filter: ObjectToFormData({
-    //       ...this.filterParams
-    //     }),
-    //     persist: false
-    //   })
-    //     .then((res) => {
-    //       this.loading = false
-    //       this.appendSearchResults(res)
-    //     })
-    //     .catch(() => {
-    //       this.loading = false
-    //     })
-    // },
-
     appendLoadedFilteredResults (res) {
       this.appendSearchResults(res)
     },
 
     appendSearchResults (res) {
-      // console.log(res)
       if (this.displaySearchFilters || this.isSearching) {
-        this.filteredItems.data = _.uniqBy(this.filteredItems.data.concat(res.data),'id')
+        this.filteredItems = {
+          ...res,
+          data: _.uniqBy(this.filteredItems.data.concat(res.data),'id'),
+          page: +this.filteredItems.page + 1
+        }
       } else {
         this.setLoadedItems(res)
       }
@@ -162,23 +144,22 @@ export default {
 
     filterItems () {
       this.displaySearchFilters = true
-      this.filterParams.page = 1
-      this.filteredItems.meta.nextPage = true
+      this.filteredItems.page = 1
       this.filteredItems.data = []
-      // this.searchMore()
+      this.loadMore()
     },
 
-    pipeThroughfilter (key) {
-      this.filteredItems.data = this.filteredItems.data.filter((r) => {
-        if (key in r) {
-          return String(r[key])
-            .toLowerCase()
-            .trim()
-            .includes(this.filterParams[key])
-        }
-        return true
-      })
-    },
+    // pipeThroughfilter (key) {
+    //   this.filteredItems.data = this.filteredItems.data.filter((r) => {
+    //     if (key in r) {
+    //       return String(r[key])
+    //         .toLowerCase()
+    //         .trim()
+    //         .includes(this.filterParams[key])
+    //     }
+    //     return true
+    //   })
+    // },
 
     toggleFilteringState () {
       this.displaySearchFilters = !this.displaySearchFilters
@@ -197,10 +178,6 @@ export default {
       if (this.displaySearchFilters || this.isSearching) {
         return this.filteredItems.data
       }
-      // if (this.searchQuery) {
-      //   return this.filteredItems.data
-      // }
-      // console.log('guce me stuff')
       return this.items.data || []
     },
 

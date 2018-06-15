@@ -16,6 +16,9 @@
           el-menu-item(index="/app/settings/v/templates")
             b-icon.mr-5(icon="system_update_alt")
             span Templates
+          el-menu-item(index="58")
+            span.material-icons.mr-5 print
+            span Printer Settings
           el-menu-item(index="5")
             b-icon.mr-5(icon="assignment")
             span Invoice Settings

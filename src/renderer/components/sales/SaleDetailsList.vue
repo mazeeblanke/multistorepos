@@ -56,21 +56,13 @@
               span Toggle search filters
               span.icon
                 i.material-icons keyboard_arrow_down
-      EmptyState(
-        empty-message="No results", 
-        v-if="!filteredItemsData.length && !loading", 
-        :style="{height: '400px'}"
-      )
-      Loading(
-        loading-text="Loading sales", 
-        v-if="loading && !filteredItemsData.length", 
-        :style="{ height: '400px' }"
-      )
+      EmptyState.h400(empty-message="No results", v-if="!filteredItemsData.length && !loading")
+      Loading.h400(loading-text="Loading sales", v-if="loading && !filteredItemsData.length")
       el-table(
         ref="items-table",
         :data="filteredItemsData",
         :default-sort="{prop: 'created_at', order: 'descending'}",
-        max-height="500",
+        max-height="550",
         :border="false", 
         v-show="filteredItemsData.length",
         @cell-click="handleCellClick"
@@ -117,16 +109,13 @@
                     :command="() => triggerRefund(scope.row)", 
                     :disabled="!$can('superadmin|admin')"
                   ) Refund
-                  el-dropdown-item Action 3
-                  el-dropdown-item Action 4
-                  el-dropdown-item Action 5
         div(slot="append" v-show="showLoading")
           div(ref='loader' style="height: 45px")
             infinite-loading(spinner="waveDots" v-if="loading")
 </template>
 
 <script>
- /* eslint-disable */
+/* eslint-disable */
 import { mapState, mapActions, mapMutations } from 'vuex'
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
 import Loading from '@/components/shared/Loading'
@@ -137,11 +126,8 @@ import filterMixin from '@/mixins/FilterMixin'
 import moneyMixin from '@/mixins/MoneyMixin'
 import Reciept from '@/components/shared/Reciept'
 import RefundSales from '@/components/shared/RefundSales'
-// import SalesListFilter from '@/components/purchasing/SalesListFilter';
 import EmptyState from '@/components/EmptyState'
-import { calculatePercentInCash, sumCash, calcSubTotal } from '@/utils/helper'
-
-const parseAmount = (amount) => parseFloat(amount.toPrecision(4))
+import { calculatePercentInCash, calcSubTotal } from '@/utils/helper'
 
 export default {
 
@@ -227,7 +213,7 @@ export default {
     }),
 
     ...mapActions('sales', {
-      searchItems: 'loadSales',
+      searchItems: 'loadSales'
     }),
 
     ...mapMutations('sales', {
@@ -240,16 +226,16 @@ export default {
       this.SET_REFUND_SALE_STATE(false)
     },
 
-    handleCellClick(row, cell) {
+    handleCellClick (row, cell) {
       if (cell.type !== 'selection') {
         this.showSales(row)
       }
     },
 
-    showSales(row) {
-      this.$router.push({ 
+    showSales (row) {
+      this.$router.push({
         name: 'sales_view',
-        params: { id: row.sale_details_id } 
+        params: { id: row.sale_details_id }
       })
     },
 
@@ -264,7 +250,7 @@ export default {
 
     getEmployeeSuggestions (query) {
       if (query) {
-        this.loadingEmployees = true;
+        this.loadingEmployees = true
         this.loadEmployees({
           username: query,
           store_id: this.settings.store.id,
@@ -276,7 +262,7 @@ export default {
           })
           .catch(() => {
             this.loadingEmployees = false
-          });
+          })
       } else {
         this.employeeSuggestions = []
       }
@@ -312,25 +298,25 @@ export default {
     triggerRefund (row) {
       this.generatingReceipt = true
       this.getReceipt({ id: row.sale_details_id })
-      .then((res) => {
-        const { sales } = res
-        this.salesTransaction.sales_id = row.sales_id
-        this.salesTransaction.items = sales.map(s => ({
-          ...s.product,
-          quantity: s.quantity,
-          id: s.product_id,
-        }))
-        this.SET_REFUND_SALE_STATE(true)
-        this.generatingReceipt = false
-      })
-      .catch(() => {
-        this.generatingReceipt = false
-        this.SET_REFUND_SALE_STATE(false)
-        this.$snackbar.open({
-          message: `Failure!! - ${res.message}`,
-          type: 'is-danger'
+        .then((res) => {
+          const { sales } = res
+          this.salesTransaction.sales_id = row.sales_id
+          this.salesTransaction.items = sales.map(s => ({
+            ...s.product,
+            quantity: s.quantity,
+            id: s.product_id
+          }))
+          this.SET_REFUND_SALE_STATE(true)
+          this.generatingReceipt = false
         })
-      })
+        .catch((err) => {
+          this.generatingReceipt = false
+          this.SET_REFUND_SALE_STATE(false)
+          this.$snackbar.open({
+            message: `Failure!! - ${err.message}`,
+            type: 'is-danger'
+          })
+        })
     },
 
     deleteItems () {},
@@ -339,8 +325,8 @@ export default {
       this.generatingReceipt = true
 
       this.getReceipt({ id: row.sale_details_id }).then((res) => {
-        const { 
-          amount_paid: amountPaid, 
+        const {
+          amount_paid: amountPaid,
           sales_id,
           customerOrder,
           payment_type,
@@ -368,12 +354,11 @@ export default {
           taxTotal,
           payment_type,
           discount,
-          total,
+          total
         }
 
         this.generatingReceipt = false
         this.fullScreenActive = true
-
       })
         .catch((err) => {
           console.log(err)
@@ -398,13 +383,13 @@ export default {
 
     ...mapState('branch', ['branches']),
 
-    unitPriceLabel() {
+    unitPriceLabel () {
       return `Unit Price (${this.currencySymbol})`
     },
 
-    totalLabel() {
+    totalLabel () {
       return `Total (${this.currencySymbol})`
-    },
+    }
 
   },
   components: {

@@ -1,4 +1,6 @@
 
+import countries from '@/data/countries.json'
+
 export const AUTOSAVE_INTERVAL = 2000
 
 export const NEW_SALE = 'sale_cart'
@@ -91,3 +93,10 @@ export const PROGRESS = {
     }
   ]
 }
+
+export const COUNTRIES_OPTIONS = [
+  ...countries.map(c => ({
+    value: c.name,
+    key: c.name
+  }))
+]

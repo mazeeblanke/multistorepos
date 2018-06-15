@@ -19,7 +19,8 @@
             clearable,
             v-model="filter.name",
             @input="search('name')",
-            class="input-with-select"
+            class="input-with-select",
+            v-if="!displaySearchFilters"
           )
       .level-right
         .level-item
@@ -27,22 +28,25 @@
             span.icon
               i.material-icons add
             span Create product
-    EmptyState(
+    ListFilter(
+      v-if="displaySearchFilters",
+      :fields="searchFields",
+      @change="filterItems",
+      :filter-params.sync="filter"
+    )        
+    EmptyState.h400(
       empty-message="Nothing here yet",
-      v-if="!filteredItemsData.length && !loading", 
-      :style="{ height: '400px' }"
+      v-if="!filteredItemsData.length && !loading",
+      @contextmenu.native.stop="showContextMenu"
     )
-    Loading(
-      loading-text="Loading Products", 
-      v-if="loading && !filteredItemsData.length", 
-      :style="{ height: '400px' }"
-    )
+    Loading.h400(loading-text="Loading Products", v-if="loading && !filteredItemsData.length")
     el-table(
+      @contextmenu.native.stop="showContextMenu",
       ref="items_table",
       :data="filteredItemsData",
-      :max-height="500",
+      :max-height="displaySearchFilters? 459 : 550",
       :default-sort="{prop: 'created_at', order: 'descending'}",
-      height="500"
+      height="550"
       :border="false"
       @cell-click="handleCellClick"
       v-show="filteredItemsData.length",
@@ -57,15 +61,15 @@
       el-table-column(label="Qty", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
           span.is-capitalized {{ scope.row.branch ? scope.row.branch.quantity || 0 : 0 }}
-      el-table-column(label="Qty (HQ)", show-overflow-tooltip, :sortable="true")
+      el-table-column(label="Qty (In Store)", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
           span.is-capitalized {{ scope.row.quantity }}
-      el-table-column(show-overflow-tooltip, :label="unitPriceLabel", :sortable="true")
-        template(slot-scope="scope")
-          span.is-capitalized {{ `${currencySymbol} ${scope.row.unitprice}` }}
-      el-table-column(show-overflow-tooltip, :label="costPriceLabel", :sortable="true")
-        template(slot-scope="scope")
-          span.is-capitalized {{ `${currencySymbol} ${scope.row.costprice}` }}
+      // el-table-column(show-overflow-tooltip, :label="unitPriceLabel", :sortable="true")
+      //   template(slot-scope="scope")
+      //     span.is-capitalized {{ `${currencySymbol} ${scope.row.unitprice}` }}
+      // el-table-column(show-overflow-tooltip, :label="costPriceLabel", :sortable="true")
+      //   template(slot-scope="scope")
+      //     span.is-capitalized {{ `${currencySymbol} ${scope.row.costprice}` }}
       el-table-column(show-overflow-tooltip, label="Created At", :sortable="true")
         template(slot-scope="scope")
           span.el-icon-time.mr-5
@@ -90,24 +94,27 @@ import InfiniteLoading from 'vue-infinite-loading'
 import deleteMixin from '@/mixins/DeleteMixin'
 import MoneyMixin from '@/mixins/MoneyMixin'
 import filterMixin from '@/mixins/FilterMixin'
+import ContextMenuMixin from '@/mixins/ContextMenuMixin'
 import EmptyState from '@/components/EmptyState'
-import { ObjectToFormData } from '@/utils/helper'
 
 export default {
 
   mounted() {
-    this.loading = true
     this.clearProducts()
     this.preloadItemsList()
     this.handleBottomScroll()
   },
 
-  mixins: [deleteMixin, filterMixin, MoneyMixin],
+  mixins: [
+    deleteMixin,
+    filterMixin,
+    MoneyMixin,
+    ContextMenuMixin
+  ],
 
   watch: {
     products(newValue) {
       this.items = newValue
-      this.filter.page = newValue.nextPage
     },
   },
 
@@ -117,13 +124,50 @@ export default {
       filter: {
         page: 1,
         strict: 0,
-        name: null
+        quantity: null,
+        costprice: null,
+        unitprice: null
       },
       displaySearchFilters: false,
       loading: false,
       items: {
         data: []
-      }
+      },
+      searchFields: [
+        {
+          component: 'el-input',
+          placeholder: 'Name',
+          key: 'name',
+          displayKey: 'Name'
+        },
+        {
+          component: 'el-input-number',
+          placeholder: 'Quantity',
+          key: 'quantity',
+          displayKey: 'Quantity'
+        },
+        {
+          component: 'el-input-number',
+          placeholder: 'Cost Price',
+          key: 'costprice',
+          displayKey: 'Cost Price'
+        },
+        {
+          component: 'el-input-number',
+          placeholder: 'Unit Price',
+          key: 'unitprice',
+          displayKey: 'Unit Price'
+        },
+        {
+          component: 'el-date-picker',
+          class: 'is-4',
+          startPlaceholder: 'Start Date',
+          endPlaceholder: 'End Date',
+          defaultTime: "['12:00:00']",
+          valueFormat: 'yyyy-MM-dd HH:mm:ss',
+          displayKey: 'Created At'
+        }
+      ]
     }
   },
 
@@ -158,20 +202,20 @@ export default {
       })
     },
 
-    deleteRow(row) {
-      this.warnUser().then((res) => {
-        if (res.value) {
-          this.deleteProduct(
-          {
-            formData: ObjectToFormData({ product2: row.id, deleteproduct: "deleteproduct" }),
-            product: row,
-          })
-          .then((res) => {
-            this.$snackbar.open('successfully deleted')
-          })
-        }
-      })
-    },
+    // deleteRow(row) {
+    //   this.warnUser().then((res) => {
+    //     if (res.value) {
+    //       this.deleteProduct(
+    //       {
+    //         formData: ObjectToFormData({ product2: row.id, deleteproduct: "deleteproduct" }),
+    //         product: row,
+    //       })
+    //       .then((res) => {
+    //         this.$snackbar.open('successfully deleted')
+    //       })
+    //     }
+    //   })
+    // },
 
     handleCellClick(row, cell) {
       if (cell.type !== 'selection') {

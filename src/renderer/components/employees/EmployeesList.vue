@@ -20,9 +20,9 @@
               clearable,
               v-model="filter.username", 
               @input="search('username')", 
-              class="input-with-select"
-            )
-              // el-button(slot="append" icon="el-icon-search")  
+              class="input-with-select",
+              v-if="!displaySearchFilters"
+            )  
       .level-right
         .level-item
           a.button.is-primary(
@@ -32,20 +32,23 @@
             span.icon
               i.material-icons add
             span Create Employee
-    EmptyState(
-      empty-text="No Result", 
-      v-if="!filteredItemsData.length && !loading", 
-      :style="{ height: '400px' }"
+    ListFilter.shadow-divider(
+      v-if="displaySearchFilters",
+      :fields="searchFields",
+      @change="filterItems",
+      :filter-params.sync="filter"
+    )        
+    EmptyState.h400(
+      empty-text="No Result",
+      v-if="!filteredItemsData.length && !loading",
+      @contextmenu.native.stop="showContextMenu"
     )
-    Loading(
-      loading-text="Loading employees", 
-      v-if="(loading && !filteredItemsData.length)", 
-      :style="{ height: '400px' }"
-    )
+    Loading.h400(loading-text="Loading employees", v-if="(loading && !filteredItemsData.length)")
     el-table(
+      @contextmenu.native.stop="showContextMenu",
       ref="items-table",
       :data="filteredItemsData",
-      :max-height="500",
+      :max-height="displaySearchFilters? 459 : 550",
       :border="false",
       :default-sort="{prop: 'created_at', order: 'descending'}",
       @cell-click="handleCellClick"
@@ -69,9 +72,6 @@
       el-table-column(label="Access Level", show-overflow-tooltip, sortable )
         template(slot-scope="scope") 
           span.is-capitalized {{ parseColData(scope.row.access_level) }}
-      el-table-column(label="Status", show-overflow-tooltip, sortable)
-        template(slot-scope="scope") 
-          span.is-capitalized {{ parseColData(scope.row.status) }}
       el-table-column(label="Created At", show-overflow-tooltip, sortable)
         template(slot-scope="scope") 
           span.el-icon-time.mr-5
@@ -86,8 +86,8 @@
 </template>
 
 <script>
-/* eslint-disable */
-import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+
+import { mapState, mapActions, mapMutations } from 'vuex'
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
 import Loading from '@/components/shared/Loading'
 import EmployeeForm from '@/components/employees/EmployeeForm'
@@ -95,24 +95,24 @@ import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import InfiniteLoading from 'vue-infinite-loading'
 import deleteMixin from '@/mixins/DeleteMixin'
 import filterMixin from '@/mixins/FilterMixin'
+import ContextMenuMixin from '@/mixins/ContextMenuMixin'
 import EmptyState from '@/components/EmptyState'
-import { DEBOUNCE_INTERVAL } from '@/utils/constants'
-import debounce from 'debounce'
-import { ObjectToFormData, parseColData } from '@/utils/helper'
+import { parseColData } from '@/utils/helper'
 
 export default {
 
-  mounted() {
+  mounted () {
     this.clearSelectedEmployee()
     this.clearEmployees()
     this.preloadItemsList()
     this.handleBottomScroll()
   },
 
-  mixins: [deleteMixin, filterMixin],
+  mixins: [deleteMixin, filterMixin, ContextMenuMixin],
 
-  data() {
+  data () {
     return {
+      defaultSearchKey: 'username',
       isCreatingEmployee: false,
       filter: {
         username: null,
@@ -125,12 +125,56 @@ export default {
       loading: false,
       items: {
         data: []
-      }
+      },
+      searchFields: [
+        {
+          component: 'el-input',
+          placeholder: 'Fullname',
+          key: 'full_name',
+          displayKey: 'Fullname'
+        },
+        {
+          component: 'el-input',
+          placeholder: 'Username',
+          key: 'username',
+          displayKey: 'Username'
+        },
+        {
+          component: 'el-select',
+          placeholder: 'status',
+          key: 'status',
+          displayKey: 'Status',
+          options: [
+            { value: 'active', key: 'active' },
+            { value: 'inactive', key: 'inactive' }
+          ]
+        },
+        {
+          component: 'el-select',
+          placeholder: 'Access Level',
+          key: 'access_level',
+          displayKey: 'Access Level',
+          options: [
+            { value: 'clerk', key: 'clerk' },
+            { value: 'admin', key: 'admin' },
+            { value: 'superadmin', key: 'superadmin' }
+          ]
+        },
+        {
+          component: 'el-date-picker',
+          class: 'is-4',
+          startPlaceholder: 'Start Date',
+          endPlaceholder: 'End Date',
+          defaultTime: "['12:00:00']",
+          valueFormat: 'yyyy-MM-dd HH:mm:ss',
+          displayKey: 'Created At'
+        }
+      ]
     }
   },
 
   watch: {
-    employees(newValue) {
+    employees (newValue) {
       this.items = newValue
     }
   },
@@ -141,7 +185,7 @@ export default {
       'loadEmployees',
       'clearSelectedEmployee',
       'clearEmployees',
-      'deleteEmployee',
+      'deleteEmployee'
     ]),
 
     ...mapMutations('app', [
@@ -149,63 +193,63 @@ export default {
     ]),
 
     ...mapActions('employees', {
-      searchItems: 'loadEmployees',
+      searchItems: 'loadEmployees'
     }),
 
     ...mapActions('employees', {
-      loadItems: 'loadEmployees',
+      loadItems: 'loadEmployees'
     }),
 
-    deleteItems() {},
+    deleteItems () {},
 
-    warnUser(warning) {
+    warnUser (warning) {
       return this.$swal({
         title: 'Are you sure?',
         text: warning || 'Do you want to delete this employee(s) ?',
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes',
-        cancelButtonText: 'No',
+        cancelButtonText: 'No'
       })
     },
 
-    removeRow(row) {
-      this.warnUser().then((res) => {
-        if (res.value) {
-          this.deleteEmployee(
-          {
-            formData: ObjectToFormData({ userid: row.id, userdel: "userdel" }),
-            employee: row,
-          })
-          .then((res) => {
-            this.$snackbar.open('successfully deleted')
-          })
-        }
-      })
-    },
+    // removeRow(row) {
+    //   this.warnUser().then((res) => {
+    //     if (res.value) {
+    //       this.deleteEmployee(
+    //       {
+    //         formData: ObjectToFormData({ userid: row.id, userdel: "userdel" }),
+    //         employee: row,
+    //       })
+    //       .then((res) => {
+    //         this.$snackbar.open('successfully deleted')
+    //       })
+    //     }
+    //   })
+    // },
 
-    handleCellClick(row, cell) {
+    handleCellClick (row, cell) {
       if (cell.type !== 'selection') {
         this.showEmployee(row)
       }
     },
 
-    createNewEmployee() {
+    createNewEmployee () {
       this.SET_FORM_STATE(true)
       this.isCreatingEmployee = true
       this.$scrollTo(this.$refs['new-employee-form'].$el, 1000, {
         container: '#snap-screen',
         easing: 'ease',
-        offset: 20,
+        offset: 20
       })
     },
 
-    closeNewEmployeeForm() {
+    closeNewEmployeeForm () {
       this.SET_FORM_STATE(false)
       this.isCreatingEmployee = false
     },
 
-    showEmployee(row) {
+    showEmployee (row) {
       this.$router.push({ name: 'employee_view', params: { id: row.id } })
     },
 
@@ -226,7 +270,7 @@ export default {
     EmployeeForm,
     FullscreenDialog,
     InfiniteLoading,
-    EmptyState,
+    EmptyState
   }
 
 }

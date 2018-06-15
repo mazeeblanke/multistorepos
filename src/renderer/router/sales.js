@@ -3,7 +3,6 @@ const SalesManagement = () => import('@/components/Sales/SalesManagement')
 const SalesList = () => import('@/components/sales/SalesList')
 const SalesView = () => import('@/components/sales/SalesView')
 const SaleDetailsList = () => import('@/components/sales/SaleDetailsList')
-const ReceiptsList = () => import('@/components/sales/ReceiptsList')
 const RefundsList = () => import('@/components/sales/RefundsList')
 const ProductEnquiriesList = () => import('@/components/products/enquiries/EnquiriesList')
 
@@ -37,17 +36,6 @@ export default {
       path: 'sale_history/:id',
       name: 'sales_view',
       component: SalesView,
-      meta: {
-        progress: PROGRESS,
-        permission: 'admin|superadmin',
-        fail: '/app/new-sale',
-        requiresAuth: true
-      }
-    },
-    {
-      path: 'receipts',
-      name: 'receipts_list',
-      component: ReceiptsList,
       meta: {
         progress: PROGRESS,
         permission: 'admin|superadmin',

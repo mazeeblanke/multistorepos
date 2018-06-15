@@ -19,9 +19,9 @@
               clearable, 
               v-model="filter.name", 
               @input="search('name')", 
-              class="input-with-select"
+              class="input-with-select",
+              v-if="!displaySearchFilters"
             )
-              // el-button(slot="append" icon="el-icon-search")
       .level-right
         .level-item
           button.button.is-primary(
@@ -31,20 +31,24 @@
             span.icon
               i.material-icons add
             span Create Branch
-    EmptyState(
+    ListFilter.shadow-divider(
+      v-if="displaySearchFilters",
+      :fields="searchFields",
+      @change="filterItems",
+      :filter-params.sync="filter",
+      @contextmenu.native.stop="showContextMenu"
+    )        
+    EmptyState.h400(
       empty-text="No Result", 
-      v-if="!filteredItemsData.length && !loading", 
-      :style="{ height: '400px' }"
+      v-if="!filteredItemsData.length && !loading",
+      @contextmenu.native.stop="showContextMenu"
     )
-    Loading(
-      loading-text="Loading branches", 
-      v-if="(loading && !filteredItemsData.length)", 
-      :style="{ height: '400px' }"
-    )
+    Loading.h400(loading-text="Loading branches", v-if="(loading && !filteredItemsData.length)")
     el-table(
+      @contextmenu.native.stop="showContextMenu",
       ref="items-table",
       :data="filteredItemsData",
-      :max-height="500",
+      :max-height="displaySearchFilters? 485 : 550",
       :border="false"
       @cell-click="handleCellClick"
       v-show="filteredItemsData.length",
@@ -76,7 +80,7 @@
 
 <script>
 /* eslint-disable */
-import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
 import Loading from '@/components/shared/Loading'
 import BranchForm from '@/components/branches/BranchForm'
@@ -84,9 +88,9 @@ import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import InfiniteLoading from 'vue-infinite-loading'
 import deleteMixin from '@/mixins/DeleteMixin'
 import filterMixin from '@/mixins/FilterMixin'
-// import RequisitionListFilter from '@/components/purchasing/RequisitionListFilter'
 import EmptyState from '@/components/EmptyState'
-import { ObjectToFormData, parseColData } from '@/utils/helper'
+import ListFilter from '@/components/Shared/ListFilter'
+import { parseColData } from '@/utils/helper'
 
 export default {
 
@@ -96,34 +100,52 @@ export default {
     this.loading = true
     this.preloadItemsList()
     this.handleBottomScroll()
+    this.$electron.ipcRenderer.on(
+      'advancedSearch',
+      () => this.handleAdvancedSearchToggle()
+    )
   },
 
   mixins: [deleteMixin, filterMixin],
-  // watch: {
-  //   branches(newValue) {
-  //     this.items.data = _.flatMap(newValue)
-  //   },
-  // }, 
+
   data() {
     return {
       filter: {
         name: null
       },
       displaySearchFilters: false,
-      // searchQuery: null,
-      // filteredRequisitions: [],
-      // filterParams: {
-      //   status: null,
-      //   issuedBefore: null,
-      //   issuedAfter: null,
-      //   buyer: null,
-      //   requisitionType: null,
-      //   requisitionCode: null,
-      // },
       loading: false,
       items: {
         data: []
-      }
+      },
+      searchFields: [
+        {
+          component: 'el-input',
+          placeholder: 'Name',
+          key: 'name',
+          displayKey: 'Name'
+        },
+        {
+          component: 'el-input',
+          placeholder: 'Address',
+          key: 'address',
+          displayKey: 'Address'
+        },
+        {
+          component: 'el-input',
+          placeholder: 'Email',
+          key: 'email',
+          displayKey: 'Email'
+        },
+        {
+          component: 'el-date-picker',
+          startPlaceholder: 'Start Date',
+          endPlaceholder: 'End Date',
+          defaultTime: "['12:00:00']",
+          valueFormat: 'yyyy-MM-dd HH:mm:ss',
+          displayKey: 'Created At'
+        }
+      ]
     }
   },
 
@@ -146,13 +168,6 @@ export default {
       'SET_FORM_STATE'
     ]),
 
-    // parseColData(data) {
-    //   if (data === 'null') {
-    //     return '-'
-    //   }
-    //   return data
-    // },
-
     ...mapActions('branch', {
       searchItems: 'loadBranches',
     }),
@@ -162,6 +177,20 @@ export default {
     }),
 
     deleteItems() {},
+
+    showContextMenu () {
+      this.$electron.ipcRenderer.send('contextmenu')
+    },
+
+    handleAdvancedSearchToggle () {
+      this.displaySearchFilters = !this.displaySearchFilters
+      this.filter = {
+        ...this.filter,
+        ...{
+          name: null
+        }
+      }
+    },
 
     warnUser(warning) {
       return this.$swal({
@@ -174,21 +203,21 @@ export default {
       })
     },
 
-    removeRow(row) {
-      const MSG = 'Do you want to delete this branch(s) ?'
-      this.warnUser(MSG).then((res) => {
-        if (res.value) {
-          this.deleteBranch(
-          {
-            formData: ObjectToFormData({ userid: row.id, userdel: "userdel" }),
-            employee: row,
-          })
-          .then((res) => {
-            this.$snackbar.open('successfully deleted')
-          })
-        }
-      })
-    },
+    // removeRow(row) {
+    //   const MSG = 'Do you want to delete this branch(s) ?'
+    //   this.warnUser(MSG).then((res) => {
+    //     if (res.value) {
+    //       this.deleteBranch(
+    //       {
+    //         formData: ObjectToFormData({ userid: row.id, userdel: "userdel" }),
+    //         employee: row,
+    //       })
+    //       .then((res) => {
+    //         this.$snackbar.open('successfully deleted')
+    //       })
+    //     }
+    //   })
+    // },
 
     handleCellClick(row, cell) {
       if (cell.type !== 'selection') {
@@ -233,9 +262,9 @@ export default {
     BranchForm,
     FullscreenDialog,
     InfiniteLoading,
-    // RequisitionListFilter,
-    EmptyState,
-  },
+    ListFilter,
+    EmptyState
+  }
 }
 </script>
 
