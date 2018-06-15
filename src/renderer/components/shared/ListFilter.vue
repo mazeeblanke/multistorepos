@@ -67,7 +67,8 @@
                 el-option(
                   v-for="option in field.options"
                   :label="option.label", 
-                  :value="option.value"
+                  :value="option.value",
+                  :key="option.label"
                 )
 </template>
 

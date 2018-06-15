@@ -54,7 +54,7 @@
     )
       el-table-column(type="selection")
       el-table-column(label="No", type="index", :index="1" width="50")
-      el-table-column(prop="id", show-overflow-tooltip, label="ID", :sortable="true")
+      el-table-column(prop="reference_number", show-overflow-tooltip, label="Ref No.", :sortable="true")
       el-table-column(prop="name", show-overflow-tooltip, label="Name", :sortable="true")
         template(slot-scope="scope")
           span.is-capitalized {{ scope.row.name }}

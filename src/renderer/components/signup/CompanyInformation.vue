@@ -2,7 +2,7 @@
 .CompanyInfo
   .container
     .columns
-      .column.is-half.is-offset-one-quarter
+      .column.is-half.is-offset-one-quarter.p-30
         .card
           header.card-header
             p.card-header-title
@@ -467,6 +467,7 @@ export default {
   background-image: url('../../../../static/img/patterns.png')
   animation: slow-slide 70s infinite
   animation-timing-function: linear
+  overflow-y: scroll !important
   .toolbar
     height: 100px !important
   .processingIndicator

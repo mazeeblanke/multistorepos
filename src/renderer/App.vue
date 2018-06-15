@@ -172,6 +172,8 @@ export default {
     margin-left: 25px
   .p-10
     padding: 10px
+  .p-30
+    padding: 30px
   .plr-25
     padding: 0px 25px
   .p-0
