@@ -1,5 +1,5 @@
 import { PROGRESS } from '../utils/constants'
-const ReportView = () => import('@/components/reports/ReportView')
+const ReportView = () => import('@/components/Reports/ReportView')
 
 export default {
   path: 'reports',

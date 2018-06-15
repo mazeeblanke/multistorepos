@@ -1,5 +1,5 @@
 import { PROGRESS } from '../utils/constants'
-const NewSale = () => import('@/components/Sales/NewSale')
+const NewSale = () => import('@/components/sales/NewSale')
 
 export default {
   path: 'new-sale',
