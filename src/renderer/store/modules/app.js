@@ -4,6 +4,7 @@ export default {
   state: {
     currentPageTitle: '',
     authModalOpen: false,
+    selectedPrinter: null,
     countries: null,
     formPanelOpen: false
   },
@@ -36,6 +37,14 @@ export default {
 
     OPEN_AUTH_MODAL (state) {
       state.authModalOpen = true
+    },
+
+    SET_SELECTED_PRINTER (state, data) {
+      state.selectedPrinter = data
+    },
+
+    CLEAR_SELECTED_PRINTER (state) {
+      state.selectedPrinter = null
     },
 
     SET_FORM_STATE (state, newState) {

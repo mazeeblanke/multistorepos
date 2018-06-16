@@ -1,4 +1,4 @@
-import ListFilter from '@/components/Shared/ListFilter'
+import ListFilter from '@/components/shared/ListFilter'
 
 export default {
 

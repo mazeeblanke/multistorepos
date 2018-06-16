@@ -213,7 +213,7 @@ export default {
 
     print () {
       if (this.settings && this.settings.branch.printout === 'receipt') {
-        this.$electron.ipcRenderer.send('print')
+        this.$electron.ipcRenderer.send('print', this.selectedPrinter && this.selectedPrinter.name)
       }
     },
 
@@ -389,6 +389,8 @@ export default {
     ...mapState('settings', ['settings']),
 
     ...mapState('users', ['currentUser']),
+
+    ...mapState('app', ['selectedPrinter']),
 
     ...mapState('branch', [
       'currentBranch'

@@ -1,97 +1,87 @@
 <template lang="pug">
   .sidebar.card
     .columns.is-multiline.is-mobile
-      .column.is-6(v-show="$can('admin|superadmin|clerk')")
+      .column.is-6(v-show="$can('admin|superadmin|clerk')", v-for="sideLink in sideLinks")
         router-link.button.is-primary.has-full-width(
-          :to="{ name: 'new_sale'}", 
+          :to="{ name: `${sideLink.route}`}", 
           active-class="is-active", 
           tag="button"
         ) 
-          span.material-icons.is-15.mr-5 new_releases
-          span New Sale
-      .column.is-6(v-show="$can('admin|superadmin|clerk')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'products_list'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 shopping_basket
-          span Inventory
-      .column.is-6(v-show="$can('admin|superadmin')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'customers_list'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 contacts
-          span Customers
-      .column.is-6(v-show="$can('superadmin')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'branches_list'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 account_balance
-          span Branches
-      .column.is-6(v-show="$can('admin|superadmin')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'suppliers_list'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 shopping_cart
-          span Suppliers
-      .column.is-6(v-show="$can('admin|superadmin')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'sale_details_list'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 attach_money
-          span Sales
-      .column.is-6(v-show="$can('admin|superadmin')")
-        router-link.button.is-primary.has-full-width(
-           :to="{ name: 'expenditures_list'}", 
-           active-class="is-active", 
-           tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 account_balance_wallet
-          span Accounts
-      .column.is-6(v-show="$can('admin|superadmin')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'employees_list'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 account_box
-          span Employees
-      .column.is-6(v-show="$can('admin|superadmin')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'reports'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 report
-          span Report
-      .column.is-6(v-show="$can('admin|superadmin')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'dashboard'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 dashboard
-          span Dashboard
-      .column.is-6(v-show="$can('admin|superadmin')")
-        router-link.button.is-primary.has-full-width(
-          :to="{ name: 'SettingsView'}", 
-          active-class="is-active", 
-          tag="button"
-        ) 
-          span.material-icons.is-15.mr-5 settings
-          span Setting
-      // .column.is-6
-      //   button.button.is-primary.has-full-width
+          span.material-icons.is-15.mr-5 {{ sideLink.icon }}
+          span {{ sideLink.name }}
 </template>
+
+<script>
+  export default {
+    data () {
+      return {
+        sideLinks: [
+          {
+            name: 'New Sale',
+            icon: 'new_releases',
+            route: 'new_sale'
+          },
+          {
+            name: 'Inventory',
+            icon: 'shopping_basket',
+            route: 'products_list'
+          },
+          {
+            name: 'Customers',
+            icon: 'contacts',
+            route: 'customers_list'
+          },
+          {
+            name: 'Branches',
+            icon: 'account_balance',
+            route: 'branches_list'
+          },
+          {
+            name: 'Suppliers',
+            icon: 'shopping_cart',
+            route: 'suppliers_list'
+          },
+          {
+            name: 'Sales',
+            icon: 'attach_money',
+            route: 'sale_details_list'
+          },
+          {
+            name: 'Accounts',
+            icon: 'account_balance_wallet',
+            route: 'expenditures_list'
+          },
+          {
+            name: 'Employees',
+            icon: 'account_box',
+            route: 'employees_list'
+          },
+          {
+            name: 'Report',
+            icon: 'report',
+            route: 'reports'
+          },
+          {
+            name: 'Dashboard',
+            icon: 'dashboard',
+            route: 'dashboard'
+          },
+          {
+            name: 'Online Orders',
+            icon: 'shopping_cart',
+            route: ''
+          },
+          {
+            name: 'Setting',
+            icon: 'settings',
+            route: 'SettingsView'
+          }
+        ]
+      }
+    }
+  }
+</script>
+
 
 <style lang="sass">
   .sidebar

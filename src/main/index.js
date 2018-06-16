@@ -4,6 +4,7 @@ import { app, BrowserWindow, ipcMain, Menu, MenuItem } from 'electron'
 import { CMD } from '../renderer/utils/helper'
 const exec = require('child_process').exec
 const notifier = require('node-notifier')
+const printer = require('printer')
 
 const template = [
   {
@@ -111,12 +112,21 @@ function createWindow () {
     mainWindow = null
   })
 
-  ipcMain.on('print', (event, data) => {
-    // send the name of the printer to use from localstorage
-    mainWindow.webContents.print({
-      silent: true,
-      deviceName: 'Send To OneNote 16'
-    })
+  ipcMain.on('print', (event, selectedPrinterName) => {
+    let options = { silent: true }
+
+    if (selectedPrinterName) {
+      options = {
+        ...options,
+        deviceName: selectedPrinterName
+      }
+    } 
+
+    mainWindow.webContents.print(options) 
+  })
+
+  ipcMain.on('fetchPrinters', (event, data) => {
+    event.sender.send('installedPrinters', printer.getPrinters())
   })
 
   ipcMain.on('contextmenu', (event, data) => {
@@ -138,13 +148,10 @@ function createWindow () {
     item.on('updated', (event, state) => {
       const RECEIVED_BYTES = item.getReceivedBytes()
       const FILE_SIZE = item.getTotalBytes()
-      if (state === 'interrupted') {
-        console.log('Download is interrupted but can be resumed')
-      } else if (state === 'progressing') {
+
+      if (state === 'progressing') {
         if (item.isPaused()) {
-          console.log('Download is paused')
         } else {
-          console.log(`Received bytes: ${RECEIVED_BYTES}`)
           mainWindow.setProgressBar(RECEIVED_BYTES / FILE_SIZE)
         }
       }

@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <router-view></router-view>
-   <vue-progress-bar></vue-progress-bar>
+    <vue-progress-bar></vue-progress-bar>
   </div>
 </template>
 
@@ -14,9 +14,6 @@ export default {
   name: 'multistore',
   mounted () {
     this.$Progress.finish()
-    this.$electron.ipcRenderer.on('stuff', (event, arg) => {
-      console.log(arg)
-    })
   },
   created () {
     this.$Progress.start()
