@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, BrowserWindow, ipcMain, Menu, MenuItem } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, MenuItem, globalShortcut } from 'electron'
 import { CMD } from '../renderer/utils/helper'
 const exec = require('child_process').exec
 const notifier = require('node-notifier')
@@ -90,6 +90,7 @@ if (process.env.NODE_ENV !== 'development') {
 }
 
 let mainWindow
+
 const winURL = process.env.NODE_ENV === 'development'
   ? `http://localhost:9080`
   : `file://${__dirname}/index.html`
@@ -104,13 +105,15 @@ function createWindow () {
 
   mainWindow.loadURL(winURL)
   const menu = Menu.buildFromTemplate(template)
-  // let contextMenuOptions
+
   let contextMenu
   Menu.setApplicationMenu(menu)
 
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  require('./registerGlobalShortcuts')(mainWindow, globalShortcut)
 
   ipcMain.on('print', (event, selectedPrinterName) => {
     let options = { silent: true }
@@ -120,9 +123,8 @@ function createWindow () {
         ...options,
         deviceName: selectedPrinterName
       }
-    } 
-
-    mainWindow.webContents.print(options) 
+    }
+    mainWindow.webContents.print(options)
   })
 
   ipcMain.on('fetchPrinters', (event, data) => {
@@ -131,14 +133,36 @@ function createWindow () {
 
   ipcMain.on('contextmenu', (event, data) => {
     let contextMenuOptions = [
-      {role: 'redo'},
-      {type: 'separator'},
-      {role: 'cut'},
-      {role: 'copy'},
-      {role: 'paste'},
+      new MenuItem({
+        label: 'Navigate Forward',
+        accelerator: 'CommandOrControl+o',
+        click () {
+          event.sender.send('navigateForward')
+        }
+      }),
+      new MenuItem({
+        label: 'Navigate Back',
+        accelerator: 'CommandOrControl+p',
+        click () {
+          event.sender.send('navigateBackwards')
+        }
+      }),
       {type: 'separator'},
       {role: 'selectall'},
-      new MenuItem({label: 'Toggle Advanced search', click () { event.sender.send('advancedSearch') }})
+      new MenuItem({
+        label: 'Toggle Advanced search',
+        accelerator: 'CommandOrControl+f',
+        click () {
+          event.sender.send('advancedSearch')
+        }
+      }),
+      new MenuItem({
+        label: 'Export list to csv',
+        accelerator: 'CommandOrControl+e',
+        click () {
+          event.sender.send('exportListToCsv')
+        }
+      })
     ]
     contextMenu = Menu.buildFromTemplate(contextMenuOptions)
     contextMenu.popup()
@@ -201,23 +225,3 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
-/**
- * Auto Updater
- *
- * Uncomment the following code below and install `electron-updater` to
- * support auto updating. Code Signing with a valid certificate is required.
- * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-electron-builder.html#auto-updating
- */
-
-/*
-import { autoUpdater } from 'electron-updater'
-
-autoUpdater.on('update-downloaded', () => {
-  autoUpdater.quitAndInstall()
-})
-
-app.on('ready', () => {
-  if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
-})
- */

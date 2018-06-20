@@ -13,16 +13,26 @@
         .level-item.page-title.subtitle.is-5 
           span.el-icon-news.mr-5.font-size-23
           span Listing Employees ({{ filteredItemsData.length }})
+        .level-item 
+          JsonExcel(
+            ref="export"
+            class="btn btn-default",
+            :data="filteredItemsData",
+            :fields="exportableFields",
+            type="xlsx",
+            v-if="filteredItemsData.length",
+            v-show="false"
+          ) 
       .level-item
-          div.search
-            el-input(
-              placeholder="Search employees by username...", 
-              clearable,
-              v-model="filter.username", 
-              @input="search('username')", 
-              class="input-with-select",
-              v-if="!displaySearchFilters"
-            )  
+        div.search
+          el-input(
+            placeholder="Search employees by username...", 
+            clearable,
+            v-model="filter.username", 
+            @input="search('username')", 
+            class="input-with-select",
+            v-if="!displaySearchFilters"
+          )  
       .level-right
         .level-item
           a.button.is-primary(
@@ -89,6 +99,7 @@
 
 import { mapState, mapActions, mapMutations } from 'vuex'
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
+import { parseColData } from '@/utils/helper'
 import Loading from '@/components/shared/Loading'
 import EmployeeForm from '@/components/employees/EmployeeForm'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
@@ -97,7 +108,7 @@ import deleteMixin from '@/mixins/DeleteMixin'
 import filterMixin from '@/mixins/FilterMixin'
 import ContextMenuMixin from '@/mixins/ContextMenuMixin'
 import EmptyState from '@/components/EmptyState'
-import { parseColData } from '@/utils/helper'
+import JsonExcel from 'vue-json-excel'
 
 export default {
 
@@ -125,6 +136,14 @@ export default {
       loading: false,
       items: {
         data: []
+      },
+      exportableFields: {
+        ID: 'id',
+        Username: 'username',
+        Fullname: 'full_name',
+        Branch: 'branch.name',
+        'Access Level': 'access_level',
+        'Created At': 'created_at'
       },
       searchFields: [
         {
@@ -270,7 +289,8 @@ export default {
     EmployeeForm,
     FullscreenDialog,
     InfiniteLoading,
-    EmptyState
+    EmptyState,
+    JsonExcel
   }
 
 }

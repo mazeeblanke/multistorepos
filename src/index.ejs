@@ -3,7 +3,9 @@
   <head>
     <meta charset="utf-8">
     <title>multistore-electron</title>
-    <!-- <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"> -->
+    <!-- <link href="/static/css/offline-theme-chrome.css" rel="stylesheet"> -->
+    <link href="/static/css/offline-language-en.css" rel="stylesheet">
+    <link href="/static/css/offline-theme-dark-indicator.css" rel="stylesheet">
     <% if (htmlWebpackPlugin.options.nodeModules) { %>
 
       <%= htmlWebpackPlugin.options.serviceWorkerLoader %>
@@ -15,24 +17,19 @@
   </head>
   <body>
     <div id="app"></div>
+    <%= htmlWebpackPlugin.options.serviceWorkerLoader %>  
     <!-- Set `__static` path to static files in production -->
     <script>
       if (process.env.NODE_ENV !== 'development') window.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
     </script>
 
-    <!-- <script src="https://unpkg.com/@adonisjs/websocket-client"></script>
-    <script src="js/adonis-socket-client" type="text/javascript"></script> -->
+    <!-- <script src="/static/js/offline.min.js"></script> -->
 
-    <!-- <script>
-      var script = document.createElement('script');
-      script.onload = function (s) {
-          //do stuff with the script
-          console.log(s)
-      };
-      script.src = 'service-worker.js';
+    <script>
+      navigator.serviceWorker.register('service-worker.js', {
+        scope: './'
+      })
+    </script>
 
-      document.head.appendChild(script);
-    </script>  -->
-    <!-- webpack builds are automatically injected -->
   </body>
 </html>

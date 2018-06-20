@@ -68,6 +68,13 @@
                   | {{ fullname }} 
             .field.is-horizontal
               .field-label.is-normal
+                label.label.is-capitalized
+                  strong  Loyalty status: 
+              .field-label.is-normal.is-capitalized
+                label.label.is-pulled-left 
+                  | {{ Boolean(selectedCustomer.loyalty_status) }}
+            .field.is-horizontal
+              .field-label.is-normal
                 label.label
                   strong  Phone No.:
               .field-label.is-normal
@@ -90,11 +97,18 @@
                   | {{ parseColData(selectedCustomer.id) }} 
             .field.is-horizontal
               .field-label.is-normal
-                label.label
+                label.label.is-capitalized
                   strong Marital status:
               .field-label.is-normal
                 label.label.is-pulled-left.is-capitalized  
                   | {{ parseColData(selectedCustomer.marital_status) }}
+            .field.is-horizontal
+              .field-label.is-normal
+                label.label
+                  strong Loyalty points:
+              .field-label.is-normal          
+                label.label.is-pulled-left.is-capitalized 
+                  | {{ parseColData(selectedCustomer.loyalty_points) }}
             .field.is-horizontal
               .field-label.is-normal
                 label.label.is-capitalized

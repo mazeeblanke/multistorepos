@@ -16,6 +16,8 @@ const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
 // const HtmlCriticalPlugin = require('html-critical-webpack-plugin')
 let productionGzipExtensions = ['js', 'css']
 // let whiteListedModules = ["vue", "vue-good-table"]
+// var SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin')
+
 
 /**
  * List of node_modules to include in webpack bundle
@@ -169,6 +171,7 @@ let rendererConfig = {
  * Adjust rendererConfig for development settings
  */
 if (process.env.NODE_ENV !== 'production') {
+  const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin')
   const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
   rendererConfig.plugins.push(
     new webpack.DefinePlugin({
@@ -193,6 +196,22 @@ if (process.env.NODE_ENV !== 'production') {
       name: 'manifest',
       chunks: ['vendor']
     }),
+
+    new SWPrecacheWebpackPlugin({
+      cacheId: 'POS-multistore-app',
+      filename: 'service-worker.js',
+      staticFileGlobs: ['dist/**/*.{vue}'],
+      staticFileGlobsIgnorePatterns: [/\.(css|html)$/],
+      minify: true,
+      stripPrefix: 'dist/',
+      runtimeCaching: [
+        {
+          // urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
+          urlPattern: /^http:\/\/127\.0\.0\.1:9238/,
+          handler: 'cacheFirst'
+        }
+      ]
+    })
 
     // new BundleAnalyzerPlugin()
   )
@@ -243,13 +262,13 @@ if (process.env.NODE_ENV === 'production') {
     new SWPrecacheWebpackPlugin({
       cacheId: 'POS-multistore-app',
       filename: 'service-worker.js',
-      // staticFileGlobs: ['dist/**/*.{js,html,css}'],
-      // minify: true,
-      // stripPrefix: 'dist/',
+      staticFileGlobs: ['dist/**/*.{vue}'],
+      staticFileGlobsIgnorePatterns: [/\.(css|html)$/],
+      minify: true,
+      stripPrefix: 'dist/',
       runtimeCaching: [
         {
-          // urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
-          urlPattern: /^http:\/\/104\.237\.153\.63\/multistore/,
+          urlPattern: /^https:\/\/enigmatic\-forest\-11569\.herokuapp\.com/,
           handler: 'cacheFirst'
         }
       ]

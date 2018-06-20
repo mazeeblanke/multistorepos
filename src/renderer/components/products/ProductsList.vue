@@ -7,11 +7,20 @@
         @action-complete="closeNewProductsForm",
         v-show="isCreatingProduct"
       )
-    .level.toolbar.shadow-divider(:class="{ 'shadow-divider': formPanelOpen }")
+    .level.toolbar(:class="{ 'shadow-divider': formPanelOpen }")
       .level-left
         .level-item.page-title.subtitle.is-5 
           span.el-icon-news.mr-5.font-size-23
           span Listing Products ({{ filteredItemsData.length }})
+        JsonExcel(
+          ref="export"
+          class="btn btn-default",
+          :data="filteredItemsData",
+          :fields="exportableFields",
+          type="xlsx",
+          v-if="filteredItemsData.length",
+          v-show="false"
+        )  
       .level-item
         div.search
           el-input(
@@ -64,12 +73,6 @@
       el-table-column(label="Qty (In Store)", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
           span.is-capitalized {{ scope.row.quantity }}
-      // el-table-column(show-overflow-tooltip, :label="unitPriceLabel", :sortable="true")
-      //   template(slot-scope="scope")
-      //     span.is-capitalized {{ `${currencySymbol} ${scope.row.unitprice}` }}
-      // el-table-column(show-overflow-tooltip, :label="costPriceLabel", :sortable="true")
-      //   template(slot-scope="scope")
-      //     span.is-capitalized {{ `${currencySymbol} ${scope.row.costprice}` }}
       el-table-column(show-overflow-tooltip, label="Created At", :sortable="true")
         template(slot-scope="scope")
           span.el-icon-time.mr-5
@@ -79,7 +82,7 @@
           button.button(:class="$style.trash" @click.stop="deleteRow(scope.row)")
             span.el-icon-delete.font-size-23
       div(slot="append" v-show="showLoading")
-       div(ref='loader' style="height: 45px")
+       div(ref='loader' style="height: 40px")
          infinite-loading(spinner="waveDots" v-if="loading")
 </template>
 
@@ -96,6 +99,7 @@ import MoneyMixin from '@/mixins/MoneyMixin'
 import filterMixin from '@/mixins/FilterMixin'
 import ContextMenuMixin from '@/mixins/ContextMenuMixin'
 import EmptyState from '@/components/EmptyState'
+import JsonExcel from 'vue-json-excel'
 
 export default {
 
@@ -132,6 +136,23 @@ export default {
       loading: false,
       items: {
         data: []
+      },
+      exportableFields: {
+        ID: 'id',
+        'Reference No': 'reference_number',
+        Name: 'name',
+        Barcode: 'barcode',
+        Qty: {
+          field: 'branch.quantity',
+          callback: (qty) => qty || 0
+        },
+        'Qty (In Store)': 'quantity',
+        'Unit Price': 'unitprice',
+        'Cost Price': 'costprice',
+        'Reorder Point': 'reorder',
+        'Status': 'status',
+        'Updated At': 'updated_at',
+        'Created At': 'created_at'
       },
       searchFields: [
         {
@@ -268,6 +289,7 @@ export default {
     FullscreenDialog,
     InfiniteLoading,
     EmptyState,
+    JsonExcel
   },
 
 }

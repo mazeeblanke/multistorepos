@@ -12,16 +12,26 @@
         .level-item.page-title.subtitle.is-5 
           span.el-icon-news.mr-5.font-size-23
           span Listing Branches ({{ filteredItemsData.length }})
+        .level-item 
+          JsonExcel(
+            ref="export"
+            class="btn btn-default",
+            :data="filteredItemsData",
+            :fields="exportableFields",
+            type="xlsx",
+            v-if="filteredItemsData.length",
+            v-show="false"
+          )  
       .level-item
-          div.search
-            el-input(
-              placeholder="Search branches by name...", 
-              clearable, 
-              v-model="filter.name", 
-              @input="search('name')", 
-              class="input-with-select",
-              v-if="!displaySearchFilters"
-            )
+        div.search
+          el-input(
+            placeholder="Search branches by name...", 
+            clearable, 
+            v-model="filter.name", 
+            @input="search('name')", 
+            class="input-with-select",
+            v-if="!displaySearchFilters"
+          )
       .level-right
         .level-item
           button.button.is-primary(
@@ -82,15 +92,17 @@
 /* eslint-disable */
 import { mapState, mapActions, mapMutations } from 'vuex'
 import { formatDate, formatStatus, dateForHumans } from '@/filters/format'
+import { parseColData } from '@/utils/helper'
 import Loading from '@/components/shared/Loading'
 import BranchForm from '@/components/branches/BranchForm'
 import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import InfiniteLoading from 'vue-infinite-loading'
 import deleteMixin from '@/mixins/DeleteMixin'
 import filterMixin from '@/mixins/FilterMixin'
+import ContextMenuMixin from '@/mixins/ContextMenuMixin'
 import EmptyState from '@/components/EmptyState'
 import ListFilter from '@/components/Shared/ListFilter'
-import { parseColData } from '@/utils/helper'
+import JsonExcel from 'vue-json-excel'
 
 export default {
 
@@ -100,13 +112,9 @@ export default {
     this.loading = true
     this.preloadItemsList()
     this.handleBottomScroll()
-    this.$electron.ipcRenderer.on(
-      'advancedSearch',
-      () => this.handleAdvancedSearchToggle()
-    )
   },
 
-  mixins: [deleteMixin, filterMixin],
+  mixins: [deleteMixin, filterMixin, ContextMenuMixin],
 
   data() {
     return {
@@ -117,6 +125,12 @@ export default {
       loading: false,
       items: {
         data: []
+      },
+      exportableFields: {
+        ID: 'id',
+        Name: 'name',
+        Address: 'address',
+        'Created At': 'created_at'
       },
       searchFields: [
         {
@@ -263,7 +277,8 @@ export default {
     FullscreenDialog,
     InfiniteLoading,
     ListFilter,
-    EmptyState
+    EmptyState,
+    JsonExcel
   }
 }
 </script>

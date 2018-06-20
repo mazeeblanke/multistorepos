@@ -8,8 +8,6 @@ window.baseUrl = process.env.NODE_ENV === 'development'
   ? `http://127.0.0.1:${process.env.PORT}`
   : 'https://enigmatic-forest-11569.herokuapp.com'
 
-// window.baseUrl = 'https://enigmatic-forest-11569.herokuapp.com'
-
 axios.interceptors.request.use(
   config => {
     const baseUrl = window.baseUrl

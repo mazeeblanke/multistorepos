@@ -90,6 +90,7 @@
     "node-sass": "^4.8.3",
     "number-words": "^1.0.6",
     "numeral": "^2.0.6",
+    "offline-js": "^0.7.19",
     "papaparse": "^4.3.7",
     "pdfmake": "^0.1.36",
     "perfect-scrollbar": "^0.8.1",

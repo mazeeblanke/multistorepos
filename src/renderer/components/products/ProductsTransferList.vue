@@ -1,29 +1,10 @@
 <template lang="pug">
   div
     .SalesList
-      .level.toolbar.shadow-divider
+      .level.toolbar
         .level-left
           .level-item.page-title.subtitle.is-5 
-            | Listing Product Transfers ({{ filteredItemsData.length }})
-        .level-item
-          // div.search
-          //   el-select(
-          //     v-model="searchQuery"
-          //     :filterable="true"
-          //     :remote="true"
-          //     :clearable="true"
-          //     @change="filteredItems.data = []"
-          //     placeholder="Search Transfers by user"
-          //     :remote-method="getSalesSuggestions"
-          //     popper-class="salesUserSelect"
-          //   )
-          //     el-option(
-          //       v-for="(item, index) in suggestions"
-          //       :key="index"
-          //       :label="item.username"
-          //       :value="item.username"
-          //     )
-          //     el-button(slot="append" icon="el-icon-search")
+            | Listing Transfers ({{ filteredItemsData.length }})
         .level-right
           .level-item(v-show="$can('admin|superadmin')")
             a.button(@click="toggleFilteringState")
@@ -40,12 +21,11 @@
         v-show="filteredItemsData.length",
         @selection-change="handleSelectionChange",
       )
-        el-table-column(type="selection")
         el-table-column(label="No", type="index", :index="1", width="50")
-        el-table-column(prop="transfer_id", label="Transfer ID", show-overflow-tooltip, :sortable="true")
-        el-table-column(prop="source", label="Transfer Source", show-overflow-tooltip, :sortable="true")
+        el-table-column(prop="transfer_id", label="ID", show-overflow-tooltip, :sortable="true")
+        el-table-column(prop="source", label="Source", show-overflow-tooltip, :sortable="true")
         el-table-column(prop="product.name", label="Product", show-overflow-tooltip, :sortable="true")
-        el-table-column(prop="quantity_transferred", label="Qty Transfered", show-overflow-tooltip, :sortable="true")
+        el-table-column(prop="quantity_transferred", label="Qty", show-overflow-tooltip, :sortable="true")
         el-table-column(prop="source_branch.name", label="From", show-overflow-tooltip, :sortable="true")
            template(slot-scope="scope")
             span.is-capitalized {{ scope.row.source_branch && scope.row.source_branch.name || '-' }}

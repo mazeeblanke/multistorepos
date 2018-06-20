@@ -156,6 +156,30 @@
                 :value="settings.store.name",
                 disabled
               )
+        .field.is-horizontal
+          .field-label.has-text-left.is-v-centered
+            label.label Category
+          .field-body
+            .field
+              el-select.has-full-width(
+                size="small",
+                v-model="product.category",
+                :filterable="true",
+                placeholder="select category",
+                remote,
+                :remote-method="loadCategories",
+                :loading="loadingCategories",
+                no-data-text="No results!",
+                value-key="id",
+                clearable,
+                allow-create,
+              )
+                el-option(
+                  v-for="category in categorySuggestions",
+                  :value="category.name",
+                  :label="category.name",
+                  :key="category.id",
+                )        
     MaterialsForm(
       v-if="product.advanced", 
       :addBranch="addBranch", 
@@ -193,14 +217,17 @@ export default {
         name: null,
         advanced: 1,
         branches: [{}],
-        status: null
+        status: null,
+        category: null
       },
       parsingCSV: false,
       csvErrors: [],
       files: [],
       suggestions: [],
       loading: false,
+      loadingCategories: false,
       availableMaterials: [],
+      categorySuggestions: [],
       processing: false,
       fullScreenActive: false,
       csvHeaders: [],
@@ -267,7 +294,7 @@ export default {
 
   methods: {
 
-    ...mapActions('products', ['createProduct']),
+    ...mapActions('products', ['createProduct', 'loadProductCategories']),
 
     ...mapActions('products', ['updateProduct']),
 
@@ -309,6 +336,21 @@ export default {
       this.$emit('close-form')
     },
 
+    loadCategories (query) {
+      if (query) {
+        this.loadingCategories = true;
+        this.loadProductCategories({
+          name: query,
+          store_id: this.settings.store.id
+        }).then((res) => {
+          this.categorySuggestions = res.data;
+          this.loadingCategories = false;
+        }).catch(() => {
+          this.loadingCategories = false;
+        });
+      }
+    },
+
     resetproduct () {
       this.product = {
         quantity: null,
@@ -319,7 +361,8 @@ export default {
         exptime: null,
         name: null,
         branches: [{}, {}],
-        status: null
+        status: null,
+        category: null
       }
     },
 
@@ -335,7 +378,8 @@ export default {
         store_id,
         reorder,
         branches,
-        status
+        status,
+        category
       } = this.product
       if (branches) {
         productBranches = this.product.branches
@@ -358,6 +402,7 @@ export default {
         barcode,
         store_id,
         reorder,
+        category,
         status,
         branches: !this.initProduct 
           ? productBranches 

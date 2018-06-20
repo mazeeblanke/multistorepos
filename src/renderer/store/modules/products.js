@@ -136,6 +136,12 @@ export default {
       })
     },
 
+    loadProductCategories ({ commit }, payload) {
+      return Vue.axios.get('product-category', { params: payload }).then(res => {
+        return res.data.data
+      })
+    },
+
     createProduct ({ commit }, payload) {
       return Vue.axios.post('products', payload).then(res => {
         commit('SET_PRODUCTS', res.data)

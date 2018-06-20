@@ -11,7 +11,9 @@ div
       .level-left
         .level-item
           span.tag.is-medium(title="Sales id") 
-            | Sale ID {{ cart.sales_id }}
+            span.mr-5 
+              strong Sale ID 
+            span {{ cart.sales_id }}
       .level-center.columns
         .level-item.column.is-5
           .field.is-horizontal

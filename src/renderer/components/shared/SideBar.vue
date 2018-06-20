@@ -66,11 +66,11 @@
             icon: 'dashboard',
             route: 'dashboard'
           },
-          {
-            name: 'Online Orders',
-            icon: 'shopping_cart',
-            route: ''
-          },
+          // {
+          //   name: 'Online Orders',
+          //   icon: 'shopping_cart',
+          //   route: ''
+          // },
           {
             name: 'Setting',
             icon: 'settings',

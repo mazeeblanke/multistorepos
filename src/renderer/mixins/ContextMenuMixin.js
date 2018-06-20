@@ -17,11 +17,22 @@ export default {
       'advancedSearch',
       () => this.handleAdvancedSearchToggle()
     )
+
+    this.$electron.ipcRenderer.on(
+      'exportListToCsv',
+      () => this.exportListToCsv()
+    )
   },
 
   methods: {
     showContextMenu () {
       this.$electron.ipcRenderer.send('contextmenu')
+    },
+
+    exportListToCsv () {
+      if (this.$refs.export) {
+        this.$refs.export.$el.click()
+      }
     },
 
     handleAdvancedSearchToggle () {

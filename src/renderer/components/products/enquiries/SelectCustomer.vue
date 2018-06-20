@@ -18,31 +18,57 @@
       name="selectCustomerPopover",
       :style="{top: top, right: right}"
     )
-     .columns.is-multiline
-      .column.is-11.mt-25
-        .field.is-horizontal
-          .field-body
-            .field 
-              el-select.has-width-100(
-                v-model="customer"
-                :filterable="true"
-                :clearable="true"
-                :remote="true"
-                placeholder="Enter customer name"
-                @change="notify"
-                :remote-method="getCustomerSuggestions"
-                :loading="loading"
-                value-key="full_name"
-              )
-                el-option(
-                  v-for="(item, index) in suggestions"
-                  :key="index"
-                  :label="item.full_name"
-                  :value="item"
+      .columns.is-multiline
+        .column.is-11.mt-25
+          .field.is-horizontal
+            .field-body
+              .field 
+                el-select.has-width-100(
+                  v-model="customer"
+                  :filterable="true"
+                  :clearable="true"
+                  :remote="true"
+                  placeholder="Enter customer name"
+                  @change="notify"
+                  :remote-method="getCustomerSuggestions"
+                  :loading="loading"
+                  value-key="full_name"
                 )
-      .column.is-1.mt-25.is-h-centered
-        span.no-border(@click.stop="fullScreenActive = true")
-          span.material-icons add                 
+                  el-option(
+                    v-for="(item, index) in suggestions"
+                    :key="index"
+                    :label="item.full_name"
+                    :value="item"
+                  )
+        .column.is-1.mt-25.is-h-centered
+          span.no-border(@click.stop="fullScreenActive = true")
+            span.material-icons add 
+      .columns.is-multiline(v-if="customer.id")
+        .column.is-12
+          .field.is-horizontal
+            .field-label.has-text-left.is-v-centered
+              label.label Loyalty Status:
+            .field-body
+              .field 
+                el-input(
+                  disabled,
+                  size="small",
+                  :value="customer.loyalty_status ? 'Active' : 'In-Active'"
+                )
+        .column.is-12
+          .field.is-horizontal
+            .field-label.has-text-left.is-v-centered
+              label.label Loyalty Points:
+            .field-body
+              .field 
+                el-input-number(
+                  v-model.number="customer.loyalty_points",
+                  placeholder="Enter Quantity",
+                  size="small",
+                  min=0,
+                  controls-position="right",
+                  disabled
+                ) 
 </template>
 
 <script>
@@ -157,7 +183,7 @@ export default {
     // right: 20px !important
     left: auto !important
     // top: 170px !important
-    height: 100px !important
+    height: 190px !important
   .material-icons
     cursor: pointer !important  
 </style>

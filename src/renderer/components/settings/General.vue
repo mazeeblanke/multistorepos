@@ -310,8 +310,6 @@ import _ from 'lodash'
 
 const numeral = require('numeral')
 
-/* eslint-disable */
-
 export default {
 
   data () {

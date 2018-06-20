@@ -11,79 +11,142 @@
             div
               .column.is-12
                 .field.is-horizontal
-                  .field-label.has-text-left.is-h-centered
+                  .field-label.has-text-left.is-v-centered
                     label.label Amount
                   .field-body
                     .field 
-                      el-input(
+                      el-input-number(
                         :value="cart.amountPaid", 
                         placeholder="Enter Amount",
                         type="number"
                         :min=0,
+                        :max="cart.payment_type === 'loyalty' ? cart.customer && cart.customer.loyalty_points : Infinity"
                         @change="updateCart"
                         controls-position="right",
                       )
               .column.is-12
-                button.button.is-primary.is-pulled-right(
-                  @click="selectPaymentType('cash')"
-                  :disabled="cart.payment_type === 'cash'"
-                  title="Save payment type to cash",
-                ) Save            
-                button.button.is-primary.is-pulled-right.mr-15(
-                  @click="removePayment"
-                  :disabled="cart.payment_type !== 'cash'"
-                  title="Remove payment type (cash)",
-                ) Remove payment            
+                h4.title.is-6.mt-10.mb-2 Payment Method
+                el-radio(
+                  v-model="payment_type", 
+                  @change="selectPaymentType", 
+                  size="small", 
+                  label="card", 
+                  border
+                ) Card
+                el-radio(
+                  v-model="payment_type",
+                  @change="selectPaymentType",
+                  size="small",
+                  label="cash", 
+                  border
+                ) Cash   
+                el-radio(
+                  v-model="payment_type",
+                  @change="selectPaymentType",
+                  :disabled="!isLoyaltyEligible || !hasLoyaltyPoints",
+                  size="small",
+                  label="loyalty", 
+                  border
+                ) Loyalty 
+              .column.is-12 
+                div.is-v-centered
+                  label.label.mr-15 Use Current Discount/Loyalty points
+                  el-switch(
+                    :disabled="!isLoyaltyEligible"
+                    v-model="loyalty_charge", 
+                    @change="updateLoyaltyCharge", 
+                    :value="cart.loyalty_charge"
+                  )                           
             el-button(
               v-popover="popover1",
               size="mini",
               slot="reference", 
-              title="Select payment type as cash", 
               :disabled="hasPaid || processing", 
-              :icon="cart.payment_type === 'cash' ? 'el-icon-success' : ''"
-              :class="{'active': cart.payment_type === 'cash'}"
-            ) Cash  
-          el-popover(
-            ref="popover2"
-            placement="top-start"
-            width="500"
-            trigger="click"
-          )
-            div
-              .column.is-12
-                .field.is-horizontal
-                  .field-label.has-text-left.is-h-centered
-                    label.label Amount
-                  .field-body
-                    .field 
-                      el-input(
-                        :value="cart.amountPaid", 
-                        placeholder="Enter Amount",
-                        type="number",
-                        :min="0",
-                        @change="updateCart"
-                        controls-position="right",
-                      )
-              .column.is-12
-                button.button.is-primary.is-pulled-right(
-                  @click="selectPaymentType('card')"
-                  :disabled="cart.payment_type === 'card'"
-                  title="Save payment type to card",
-                ) Save
-                button.button.is-primary.is-pulled-right.mr-15(
-                  @click="removePayment"
-                  :disabled="cart.payment_type !== 'card'"
-                  title="Remove payment type (card)",
-                ) Remove payment  
-            el-button(
-              v-popover="popover2",
-              size="small",
-              slot="reference", 
-              title="Select payment type as card", 
-              :disabled="hasPaid || processing", 
-              :class="{'active': cart.payment_type === 'card'}"
-              :icon="cart.payment_type === 'card' ? 'el-icon-success' : ''"
-            ) Card
+              :icon="cart.payment_type ? 'el-icon-success' : ''"
+              :class="{'active': cart.payment_type}"
+            ) Pay  
+          // el-popover(
+          //   ref="popover1"
+          //   placement="top-start"
+          //   width="500"
+          //   trigger="click"
+          // )
+          //   div
+          //     .column.is-12
+          //       .field.is-horizontal
+          //         .field-label.has-text-left.is-h-centered
+          //           label.label Amount
+          //         .field-body
+          //           .field 
+          //             el-input(
+          //               :value="cart.amountPaid", 
+          //               placeholder="Enter Amount",
+          //               type="number"
+          //               :min=0,
+          //               @change="updateCart"
+          //               controls-position="right",
+          //             )
+          //     .column.is-12
+          //       button.button.is-primary.is-pulled-right(
+          //         @click="selectPaymentType('cash')"
+          //         :disabled="cart.payment_type === 'cash'"
+          //         title="Save payment type to cash",
+          //       ) Save            
+          //       button.button.is-primary.is-pulled-right.mr-15(
+          //         @click="removePayment"
+          //         :disabled="cart.payment_type !== 'cash'"
+          //         title="Remove payment type (cash)",
+          //       ) Remove payment            
+          //   el-button(
+          //     v-popover="popover1",
+          //     size="mini",
+          //     slot="reference", 
+          //     title="Select payment type as cash", 
+          //     :disabled="hasPaid || processing", 
+          //     :icon="cart.payment_type === 'cash' ? 'el-icon-success' : ''"
+          //     :class="{'active': cart.payment_type === 'cash'}"
+          //   ) Cash  
+          // el-popover(
+          //   ref="popover2"
+          //   placement="top-start"
+          //   width="500"
+          //   trigger="click"
+          // )
+          //   div
+          //     .column.is-12
+          //       .field.is-horizontal
+          //         .field-label.has-text-left.is-h-centered
+          //           label.label Amount
+          //         .field-body
+          //           .field 
+          //             el-input(
+          //               :value="cart.amountPaid", 
+          //               placeholder="Enter Amount",
+          //               type="number",
+          //               :min="0",
+          //               @change="updateCart"
+          //               controls-position="right",
+          //             )
+          //     .column.is-12
+          //       button.button.is-primary.is-pulled-right(
+          //         @click="selectPaymentType('card')"
+          //         :disabled="cart.payment_type === 'card'"
+          //         title="Save payment type to card",
+          //       ) Save
+          //       button.button.is-primary.is-pulled-right.mr-15(
+          //         @click="removePayment"
+          //         :disabled="cart.payment_type !== 'card'"
+          //         title="Remove payment type (card)",
+          //       ) Remove payment  
+          //   el-button(
+          //     v-popover="popover2",
+          //     size="small",
+          //     slot="reference", 
+          //     title="Select payment type as card", 
+          //     :disabled="hasPaid || processing", 
+          //     :class="{'active': cart.payment_type === 'card'}"
+          //     :icon="cart.payment_type === 'card' ? 'el-icon-success' : ''"
+          //   ) Card
           button.button.is-dark(
             :disabled="processing || paymentConditions"
             :class="{'is-loading': processing}",
@@ -144,8 +207,14 @@ export default {
     return {
       refunding: false,
       amountPaid: 0,
+      payment_type: null,
+      loyalty_charge: false
     }
   },
+
+  mounted () {
+    this.payment_type = this.cart.payment_type
+  }, 
 
 
   methods: {
@@ -163,6 +232,18 @@ export default {
       return  `${d}% discount`
     },
 
+    updateLoyaltyCharge (loyalty_charge) {
+      let totalWithoutTax = this.cart.subTotal;
+      if (loyalty_charge && !this.cart.loyalty_charge) {
+        totalWithoutTax = totalWithoutTax - this.cart.discountTotal
+      }
+      const total = Math.max(totalWithoutTax + this.cart.taxTotal, 0)
+      this.setCart({
+        ...this.cart,
+        loyalty_charge,
+        total
+      })
+    },
 
     refreshCart() {
       this.warnUser().then((res) => {
@@ -172,10 +253,19 @@ export default {
       })
     },
 
-    selectPaymentType (type) {
+    selectPaymentType (e) {
+
+      let amountPaid = this.cart.amountPaid
+
+      amountPaid = this.checkLoyaltyPointsValidity(
+        amountPaid,
+        e
+      )
+
       this.setCart({
         ...this.cart,
-        payment_type: type
+        payment_type: e,
+        amountPaid
       })
     },
 
@@ -195,10 +285,43 @@ export default {
       this.SET_REFUND_SALE_STATE(true)
     },
 
+    // setPaymentType (type) {
+    //   this.setCart({
+    //     ...this.cart,
+    //     payment_type: type.value
+    //   })
+    // },
+
+    checkLoyaltyPointsValidity (amountPaid, payment_type) {
+      const { customer } = this.cart
+
+      if (
+        payment_type === 'loyalty' && 
+        customer && 
+        customer.loyalty_points < amountPaid
+      ) {
+        amountPaid = customer.loyalty_points
+        this.$snackbar.open({
+          type: 'is-warning',
+          message: 'Loyalty Amount is greater than available customer\'s loyalty points'
+        })
+      }
+
+      return amountPaid
+    },
+
     updateCart (value) {
+
+      let amountPaid = value
+
+      amountPaid = this.checkLoyaltyPointsValidity(
+        amountPaid,
+        this.cart.payment_type
+      )
+
       this.setCart({
         ...this.cart,
-        amountPaid: parseInt(value),
+        amountPaid: parseFloat(amountPaid),
       })
     }
 
@@ -210,19 +333,45 @@ export default {
 
   },
 
+  watch: {
+
+    cartLoyaltyCharge (newVal) {
+      this.loyalty_charge = newVal
+    },
+
+    cartPaymentType (newVal) {
+      this.payment_type = newVal
+    }
+
+  },
+
   computed: {
 
     ...mapState('sales', ['cart']),
 
+    cartLoyaltyCharge () {
+      return this.cart.loyalty_charge
+    },
+
+    cartPaymentType () {
+      return this.cart.payment_type
+    },
+
+    isLoyaltyEligible () {
+      return this.cart.customer && this.cart.customer.loyalty_status
+    },
+
+    hasLoyaltyPoints () {
+      return this.cart.customer && this.cart.customer.loyalty_points > 0
+    },
+
     paymentConditions() {
 
-      if (!this.items.length) {
-        return true
-      }
+      if (!this.cartPaymentType) return true
 
-      if (this.hasPaid) {
-        return true
-      }
+      if (!this.items.length) return true
+
+      if (this.hasPaid) return true
 
       if (!this.hasPaid && (this.change === 0) && this.cart.total > 0) {
         return false

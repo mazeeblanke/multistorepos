@@ -166,13 +166,17 @@ export default {
   watch: {
 
     subTotal (newValue) {
+      let totalWithoutTax = newValue;
       const branch = this.settings.branch
-      const discount = calculateDiscount(newValue, branch.threshold, branch.discount)
-      const discountTotal = calculatePercentInCash(discount, newValue)
-      const taxTotal = calculatePercentInCash(this.tax, newValue)
-      const total = Math.max((newValue - discountTotal) + taxTotal, 0)
-      const tax = this.tax
+      const discount = branch.discount
       const threshold = branch.threshold
+      const discountTotal = calculatePercentInCash(discount, threshold)
+      const taxTotal = calculatePercentInCash(this.tax, newValue)
+      if (this.cart.loyalty_charge) {
+        totalWithoutTax = newValue - discountTotal
+      }
+      const total = Math.max(totalWithoutTax + taxTotal, 0)
+      const tax = this.tax
       const discount_per_threshold = branch.discount
       const subTotal = newValue
       this.setCart({
@@ -213,7 +217,10 @@ export default {
 
     print () {
       if (this.settings && this.settings.branch.printout === 'receipt') {
-        this.$electron.ipcRenderer.send('print', this.selectedPrinter && this.selectedPrinter.name)
+        this
+        .$electron
+        .ipcRenderer
+        .send('print', this.selectedPrinter && this.selectedPrinter.name)
       }
     },
 
@@ -239,10 +246,18 @@ export default {
     },
 
     useCreatedCustomer (data) {
-      this.setCart({
-        ...this.cart,
+      let payload = {
         customer: data,
         customer_id: data && data.id
+      }
+
+      if (!data && this.cart.payment_type === 'loyalty') {
+        payload.payment_type = 'cash'
+      }
+
+      this.setCart({
+        ...this.cart,
+        ...payload
       })
       this.closeDialog()
     },
@@ -288,12 +303,43 @@ export default {
       this.hasPaid = false
     },
 
+    getProcessedCart () {
+      return {
+        ...this.cart,
+        products: this
+        .cart
+        .products
+        .filter(p => p)
+        .map(p => {
+          console.log(p)
+          const {
+            id,
+            name,
+            unitprice,
+            costprice,
+            quantity,
+            subTotal
+          } = p
+          return {
+            id,
+            name,
+            unitprice,
+            costprice,
+            quantity,
+            subTotal
+          }
+        })
+      }
+    },
+
     sellItems () {
       this.processing = true
       this.completeTransaction({
-        ...this.cart,
+        ...this.getProcessedCart(),
         branch_id: this.settings.branch.id,
-        store_id: this.settings.store.id
+        store_id: this.settings.store.id,
+        loyalty_status: Boolean(this.cart.customer.loyalty_status),
+        loyalty_point: this.cart.discountTotal,
       })
       .then(res => {
         this.handleSale(res)

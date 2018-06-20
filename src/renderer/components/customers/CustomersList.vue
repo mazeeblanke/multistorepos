@@ -11,6 +11,16 @@
       .level-left
         .level-item.page-title.subtitle.is-5 
           | Listing Customers ({{ filteredItemsData.length }})
+        .level-item 
+          JsonExcel(
+            ref="export"
+            class="btn btn-default",
+            :data="filteredItemsData",
+            :fields="exportableFields",
+            type="xlsx",
+            v-if="filteredItemsData.length",
+            v-show="false"
+          )    
       .level-item
         div.search
           el-input(
@@ -88,9 +98,11 @@ import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import InfiniteLoading from 'vue-infinite-loading'
 import deleteMixin from '@/mixins/DeleteMixin'
 import filterMixin from '@/mixins/FilterMixin'
+import ContextMenuMixin from '@/mixins/ContextMenuMixin'
 import EmptyState from '@/components/EmptyState'
 import ListFilter from '@/components/Shared/ListFilter'
 import { COUNTRIES_OPTIONS } from '@/utils/constants'
+import JsonExcel from 'vue-json-excel'
 
 export default {
   mounted () {
@@ -98,13 +110,13 @@ export default {
     this.clearCustomers()
     this.preloadItemsList()
     this.handleBottomScroll()
-    this.$electron.ipcRenderer.on(
-      'advancedSearch',
-      () => this.handleAdvancedSearchToggle()
-    )
   },
 
-  mixins: [deleteMixin, filterMixin],
+  mixins: [
+    deleteMixin,
+    ContextMenuMixin,
+    filterMixin
+  ],
 
   data () {
     return {
@@ -119,6 +131,23 @@ export default {
       loading: false,
       items: {
         data: []
+      },
+      exportableFields: {
+        ID: 'id',
+        Fullname: 'full_name',
+        Gender: 'gender',
+        Country: 'country',
+        Email: 'email',
+        'Card Number': 'cardnumber',
+        'Loyalty Points': 'loyalty_points',
+        'Loyalty Status': 'loyalty_status',
+        'Marital Status': 'marital_status',
+        'Phone No': 'phone',
+        'Title': 'title',
+        'Town': 'town',
+        'Date Of Birth': 'date_of_birth',
+        'Created At': 'created_at',
+        'Updated At': 'updated_at'
       },
       searchFields: [
         {
@@ -258,7 +287,8 @@ export default {
     FullscreenDialog,
     InfiniteLoading,
     ListFilter,
-    EmptyState
+    EmptyState,
+    JsonExcel
   }
 }
 </script>

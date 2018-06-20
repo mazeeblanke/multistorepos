@@ -19,6 +19,7 @@ require('../renderer/service/registerCloseDirective')
 require('../renderer/service/registerProgressBar')
 require('../renderer/service/initPermissions')
 require('../renderer/service/registerWebSocket')
+require('../renderer/service/registerFileAsCSP')
 
 Vue.use(PopoverExt)
 Vue.use(Buefy)

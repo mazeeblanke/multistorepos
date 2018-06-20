@@ -21,6 +21,7 @@ export const subtractCash = (cash1, cash2) => {
 }
 
 export const calculatePercentInCash = (percent, total) => {
+  console.log(parseAmount(Math.max(percent / 100 * total, 0)))
   return parseAmount(Math.max(percent / 100 * total, 0))
 }
 

@@ -182,15 +182,10 @@
                   el-option(value="married", label="married") 
           .field.is-horizontal
             .field-label.has-text-right.is-v-centered
-              label.label Confirmation number
+              label.label Loyalty Status
             .field-body
               .field 
-                el-input(
-                  size="small",
-                  disabled
-                  v-model="customer.confirmation",
-                  placeholder="Enter confirmation number",
-                )                     
+                el-switch(v-model="customer.loyalty_status")               
 </template>
 
 <script>
@@ -238,6 +233,7 @@ export default {
         confirmation: chance.hash(),
         cardnumber: chance.fbid(),
         country: null,
+        loyalty_status: false
       },
       systemHeaders: [
         'email',
@@ -334,6 +330,7 @@ export default {
         confirmation: null,
         cardnumber: null,
         country: null,
+        loyalty_status: false
       };
     },
 
