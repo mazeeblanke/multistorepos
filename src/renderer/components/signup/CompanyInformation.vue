@@ -513,7 +513,7 @@ export default {
   display: flex
   flex-direction: column
   height: 100%
-  background-color: white
+  background-color: whitesmoke
   justify-content: center
   .label
     font-weight: 700

@@ -22,6 +22,8 @@
                   a Banking Cash
                 router-link(tag="li", :to="{name: 'profit_loss_report'}", active-class="is-active")
                   a Profit/Loss Report
+                router-link(tag="li", :to="{name: 'annual_report'}", active-class="is-active")
+                  a Annual Report
             .tab-content
               router-view(@formPanelClose='resetScroll')
 </template>

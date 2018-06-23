@@ -206,9 +206,8 @@ if (process.env.NODE_ENV !== 'production') {
       stripPrefix: 'dist/',
       runtimeCaching: [
         {
-          // urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
           urlPattern: /^http:\/\/127\.0\.0\.1:9238/,
-          handler: 'cacheFirst'
+          handler: 'networkFirst'
         }
       ]
     })
@@ -269,10 +268,10 @@ if (process.env.NODE_ENV === 'production') {
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/enigmatic\-forest\-11569\.herokuapp\.com/,
-          handler: 'cacheFirst'
+          handler: 'networkFirst'
         }
       ]
-    }),
+    })
   )
 }
 

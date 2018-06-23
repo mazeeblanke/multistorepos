@@ -4,6 +4,7 @@ const ExpendituresList = () => import('@/components/accounts/ExpendituresList')
 const OpeningCashList = () => import('@/components/accounts/OpeningCashList')
 const BankingCashList = () => import('@/components/accounts/BankingCashList')
 const Report = () => import('@/components/accounts/Report')
+const AnnualReport = () => import('@/components/accounts/AnnualReport')
 
 export default {
   path: 'accounts',
@@ -43,6 +44,16 @@ export default {
       path: 'profit-loss-report',
       name: 'profit_loss_report',
       component: Report,
+      meta: {
+        permission: 'admin|superadmin',
+        fail: '/app/new-sale',
+        requiresAuth: true
+      }
+    },
+    {
+      path: 'annual-report',
+      name: 'annual_report',
+      component: AnnualReport,
       meta: {
         permission: 'admin|superadmin',
         fail: '/app/new-sale',

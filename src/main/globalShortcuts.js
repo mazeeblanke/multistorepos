@@ -1,4 +1,8 @@
-module.exports = (mainWindow, globalShortcut) => {
+const {
+  globalShortcut
+} = require('electron')
+
+module.exports = (mainWindow) => {
   globalShortcut.register('CommandOrControl+f', () => {
     mainWindow.webContents.send('advancedSearch')
   })

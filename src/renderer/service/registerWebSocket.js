@@ -2,7 +2,16 @@
 import Vue from 'vue'
 import 'babel-polyfill'
 import Ws from '@adonisjs/websocket-client'
-const ws = Ws('ws://localhost:9238')
+let baseUrl = window.baseUrl
+let matched = baseUrl.match(/^(http|https):\/\//)
+
+if (matched) {
+  baseUrl = matched['input'].split(matched[0]).join('')
+}
+
+const ws = Ws(`ws://${baseUrl}`, {
+  reconnectionAttempts: 100000
+})
 
 require('offline-js')
 
@@ -10,7 +19,6 @@ window.Offline.options = {
   checkOnLoad: true,
   checks: { xhr: { url: window.baseUrl } },
   interceptRequests: false,
-  // requests: false,
   initialDelay: 3
 }
 
@@ -25,6 +33,12 @@ ws.on('close', () => {
   console.log('disconnected!')
   window.Offline.check()
 })
+
+setInterval(() => {
+  if (window.Offline.state === 'up') {
+    window.Offline.check()
+  }
+}, 5000)
 
 Vue.prototype.$ws = ws
 

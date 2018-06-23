@@ -22,6 +22,8 @@
         span
         span
       .nav-right.nav-menu(style="overflow: visible")
+        .nav-item
+          Wifi
         .nav-item.is-tab
           b-dropdown(position="is-bottom-left")
             a.button(slot="trigger")
@@ -33,8 +35,6 @@
             router-link.dropdown-item(:to="{name: 'settings'}") Settings
             b-dropdown-item
               a(@click="logoutUser") Log Out
-        // .nav-item.is-tab
-        //   i.material-icons.notifications notifications
         .nav-item.is-tab
           figure(class="image is-48x48")
             img(:src="currentUser.gravatar", class="is-rounded has-max-height")
@@ -42,13 +42,23 @@
 
 
 <script>
+/* eslint-disable */
 import _ from 'lodash'
 import { mapActions, mapState } from 'vuex'
 import { ucFirst } from '@/utils/helper'
+import Wifi from '@/components/shared/Wifi'
 
 export default {
+  // mounted () {
+  //   this.initWifiMonitoring()
+  //   this.$electron.ipcRenderer.on(
+  //     'wifiConnection',
+  //     (e, data) => this.updateWifiConnection(data)
+  //   )
+  // },
   data () {
     return {
+      // connection: null,
       menu: [
         {
           icon: 'new_releases',
@@ -63,19 +73,43 @@ export default {
       ]
     }
   },
+
+  components: {
+    Wifi
+  },
+
   methods: {
     ...{ ucFirst },
+
     ...mapActions('users', [
       'logout'
     ]),
+
     logoutUser () {
       this.logout().then(() => {
         this.$router.push({ name: 'home' })
       }).catch((e) => {
         console.log(e)
       })
-    }
+    },
+
+    // updateWifiConnection (connection) {
+    //   if (
+    //     connection && 
+    //     connection instanceof Array && 
+    //     connection.length
+    //   ) {
+    //     this.connection = connection[0]
+    //   } else {
+    //     this.connection = null
+    //   }
+    // },
+
+    // initWifiMonitoring () {
+    //   setInterval(() => this.$electron.ipcRenderer.send('getWifiConnection'), 5000)
+    // }
   },
+
   computed: {
     ...mapState('settings', [
       'settings'
@@ -131,6 +165,7 @@ export default {
       }
       return this.menu
     },
+
     selectedMenuItem () {
       return _.find(this.computedMenu, o => this.$route.path.includes(o.label.toLowerCase())) ||
       this.computedMenu[0]

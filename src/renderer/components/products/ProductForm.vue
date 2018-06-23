@@ -176,10 +176,10 @@
               )
                 el-option(
                   v-for="category in categorySuggestions",
-                  :value="category.name",
+                  :value="category",
                   :label="category.name",
                   :key="category.id",
-                )        
+                )
     MaterialsForm(
       v-if="product.advanced", 
       :addBranch="addBranch", 

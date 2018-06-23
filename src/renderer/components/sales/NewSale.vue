@@ -338,7 +338,9 @@ export default {
         ...this.getProcessedCart(),
         branch_id: this.settings.branch.id,
         store_id: this.settings.store.id,
-        loyalty_status: Boolean(this.cart.customer.loyalty_status),
+        loyalty_status: this.cart.customer 
+          ? Boolean(this.cart.customer.loyalty_status)
+          : false,
         loyalty_point: this.cart.discountTotal,
       })
       .then(res => {

@@ -20,6 +20,12 @@ export default {
       })
     },
 
+    loadAnnualReport ({ commit }, payload) {
+      return Vue.axios.get('report-annual', { params: payload }).then(res => {
+        return res.data.data
+      })
+    },
+
     loadProfitLossReport ({ commit }, payload) {
       return Vue.axios.get('profitloss', { params: payload }).then(res => {
         return res.data

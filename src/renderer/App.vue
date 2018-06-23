@@ -43,10 +43,7 @@ export default {
 
 
 <style lang="sass">
-  $material-icons-font-path: "~material-icons/iconfont/"
-  @import "~material-icons/iconfont/material-icons.scss"
   @import "~bulma/sass/utilities/_all"
-
   $primary: #0A44AE
   $secondary: #05296B
   $primary-invert: findColorInvert($primary)
@@ -618,7 +615,7 @@ export default {
 
 @keyframes slow-slide {
   0% {
-    background-position-x: -800px;
+    background-position-x: -2000px;
   }
 
   100% {

@@ -45,7 +45,7 @@
                   :key="index"
                 )
                   span.icon.mr-15
-                    span.el-icon-rank
+                    span.material-icons drag_indicator
                   span {{ header }} 
         .column.is-1
           nav.panel
@@ -65,7 +65,7 @@
                   :key="index"
                 )
                   span.icon.mr-15
-                    span.el-icon-rank
+                    span.material-icons drag_indicator
                   span {{ header }} 
     button.button.is-primary.mt-25.ml-64(
       @click="resetImport",
@@ -271,6 +271,12 @@
     }
   }
 </script>
+
+<style lang="sass" scoped>
+.xcel-import-content
+  .material-icons
+    color: black !important
+</style>
 
 <style lang="sass">
 .xcel-import
