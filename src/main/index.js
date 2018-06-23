@@ -22,7 +22,7 @@ const winURL = process.env.NODE_ENV === 'development'
 
 function createWindow () {
   mainWindow = new BrowserWindow({
-    icon: path.join(__dirname, '../../static/img/posico.png'),
+    // icon: path.join(__dirname, '../../static/img/posico.png'),
     height: 800,
     useContentSize: true,
     width: 1600,
@@ -42,7 +42,7 @@ function createWindow () {
   require('./globalShortcuts')(mainWindow)
   require('./download')(mainWindow)
   require('./IpcMainEvents')(mainWindow)
-  require('./tray')()
+  // require('./tray')()
 }
 
 app.on('ready', createWindow)
