@@ -16,7 +16,7 @@ section.section(:style="{ width: '100%' }")
             )
             FullscreenDialog(
               @closed="closeReceiptDialog",
-              v-show="settings.branch.printout === 'Reciept'"
+              v-show="settings.branch.printout === 'Receipt'"
               :scrollable="true", 
               :active.sync="printReceipt"
             )
@@ -28,7 +28,7 @@ section.section(:style="{ width: '100%' }")
                 :cart="cart",
                 v-show="printReceipt",
                 :print-receipt="printReceipt",
-                :is="(settings && settings.branch.printout) || 'Reciept'",
+                :is="(settings && settings.branch.printout) || 'Receipt'",
               ) 
             .level.toolbar
               .level-left
@@ -227,7 +227,9 @@ export default {
     ]),
 
     print () {
+      console.log('sdjhsdj  jshd jshdj print')
       if (this.settings && this.settings.branch.printout === 'receipt') {
+        console.log('print 3')
         this
         .$electron
         .ipcRenderer
@@ -280,7 +282,8 @@ export default {
 
     handleReceiptDisplay () {
       this.printReceipt = true
-      // if (this.settings.branch.printout !== 'reciept') {
+      this.print()
+      // if (this.settings.branch.printout !== 'Receipt') {
         // this.$refs.receipt.generateReceiptPdf().then((res) => {
         //   // console.log('here ejhf hfdhfhdjfhdf djfhdfj')
         //   // console.log(res)
@@ -517,7 +520,7 @@ export default {
 
     SelectCustomer,
 
-    Reciept: () => import('@/components/shared/Reciept'),
+    Receipt: () => import('@/components/shared/Reciept'),
 
     RefundSales,
 

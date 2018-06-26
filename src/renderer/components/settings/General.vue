@@ -175,7 +175,7 @@
                     @change="() => $v.storeSettings.branch.printout.$touch()",
                     :class="{ 'is-error': $v.storeSettings.branch.printout.$error }",
                   )
-                    el-option(label="Receipt (Small)", value="reciept")
+                    el-option(label="Receipt (Small)", value="receipt")
                     el-option(label="Invoice (Big)", value="invoice")                      
           .column.is-5
             .field.is-horizontal.mb-30
