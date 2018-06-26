@@ -70,9 +70,9 @@
       el-table-column(label="Qty", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
           span.is-capitalized {{ scope.row.branch ? scope.row.branch.quantity || 0 : 0 }}
-      el-table-column(label="Qty (In Store)", show-overflow-tooltip, :sortable="true")
+      el-table-column(label="Category", show-overflow-tooltip, :sortable="true")
         template(slot-scope="scope")
-          span.is-capitalized {{ scope.row.quantity }}
+          span.is-capitalized {{ scope.row.category ? scope.row.category.category_name : '_'  }}
       el-table-column(show-overflow-tooltip, label="Created At", :sortable="true")
         template(slot-scope="scope")
           span.el-icon-time.mr-5

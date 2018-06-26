@@ -17,7 +17,7 @@
         :striped="true",
         :paginated="false",
       )
-        template(scope="props")
+        template(slot-scope="props")
           b-table-column(label="Branch Name", width="300", sortable=true)
             el-select.has-full-width(
               ref="el-select_branch",

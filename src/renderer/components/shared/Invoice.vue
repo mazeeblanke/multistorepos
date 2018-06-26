@@ -3,12 +3,12 @@
     .header
       .columns
         .column.is-3
-          p {{ store.address }}
-          p Call: {{ store.phone }}
-          p {{ store.address }}
+          p {{ settings.branch.address }}
+          p Call: {{ settings.store.phone }}
+          // p {{ store.address }}
           p www.officelanding.com
         .column.is-6
-          h4.title.is-4.has-text-centered {{ store.store }}
+          h4.title.is-4.has-text-centered {{ settings.store.name }}
         .column.is-3
           .columns
             .column.is-6
@@ -22,7 +22,7 @@
             tbody
               tr
                 td.has-text-right {{ formatDate(new Date()) }}
-                td.has-text-left # {{ salesid || transaction.salesid  }}
+                td.has-text-left # {{ cart.sales_id  }}
     .billing
       .columns
         .column
@@ -50,33 +50,33 @@
             th AMOUNT
         tbody
           tr(v-for="item in items")
-            td {{ item.selectedItem.id }}
-            td(colspan="3") {{ item.selectedItem.name }}
+            td {{ item.id }}
+            td(colspan="3") {{ item.name }}
             td {{ item.quantity }}
-            td {{ money(item.selectedItem.unitprice) }}
-            td {{ money(item.selectedItem.unitprice * item.quantity) }}
+            td {{ money(item.unitprice) }}
+            td {{ money(item.unitprice * item.quantity) }}
           tr
             td(colspan="7") Comment ::
           tr
             td.has-text-right(colspan="6")
               strong TOTAL AMOUNT
-            td.has-text-right {{ money(transaction.subtotalTotal) }}
+            td.has-text-right {{ money(cart.subTotal) }}
           tr
             td.has-text-right(colspan="6")
               strong Sales Discount
-            td.has-text-right {{ money(transaction.discountTotal) }}
+            td.has-text-right {{ cart.loyalty_charge ? money(cart.discountTotal) : 0 }}
           tr
             td.has-text-right(colspan="6")
               strong Billing Amount
-            td.has-text-right {{ money(transaction.subtotalTotal) }}
+            td.has-text-right {{ money(cart.total) }}
           tr
             td.has-text-right(colspan="6")
               strong Paid Amount
-            td.has-text-right 39,200
+            td.has-text-right {{ money(cart.amountPaid) }}
           tr
             td.has-text-right(colspan="6")
               strong Balance Return Amount
-            td.has-text-right 0.00
+            td.has-text-right {{ money(cart.cashChange) }}
           tr
             td.has-text-right(colspan="4")
               strong Total Billing Amount in Word
@@ -90,7 +90,7 @@
           tr
             td.has-text-right(colspan="4")
             td.has-text-right
-              strong {{ money(transaction.subtotalTotal) }}
+              strong {{ money(cart.subTotal) }}
             td.has-text-right
               strong 0.00
             td.has-text-right
@@ -115,14 +115,18 @@ const base64Img = require('base64-img')
 const numberWords = require('number-words')
 
 export default {
-  props: ['items', 'total', 'salesid', 'transaction', 'printReceipt'],
+  props: ['items', 'total', 'salesid', 'cart', 'printReceipt'],
   data () {
     return {
       isGeneratingPDF: false
     }
   },
-  mounted () {
-    this.generateReceiptPdf()
+  watch: {
+    printReceipt (newVal) {
+      if (newVal) {
+        this.generateReceiptPdf()
+      }
+    }
   },
   methods: {
     ...{ formatDate },
@@ -196,11 +200,11 @@ export default {
                 ['ITEM', 'DESCRIPTION', 'QUANTITY', 'RATE', 'AMOUNT'],
                 ...this.items.map(i => {
                   return [
-                    i.selectedItem.id,
-                    i.selectedItem.name,
+                    i.id,
+                    i.name,
                     i.quantity,
-                    this.money(i.selectedItem.unitprice),
-                    this.money(i.selectedItem.unitprice * i.quantity)
+                    this.money(i.unitprice),
+                    this.money(i.unitprice * i.quantity)
                   ]
                 }),
                 [{ colSpan: 5, text: 'Comment::', marginLeft: 15 }],
@@ -209,43 +213,43 @@ export default {
                   '',
                   '',
                   '',
-                  this.money(this.transaction.total)
+                  this.money(this.cart.total)
                 ],
                 [
                   {
                     colSpan: 4,
-                    text: `Sales Discount(${this.transaction.discount}%)`,
+                    text: `Sales Discount(${this.cart.discount}%)`,
                     alignment: 'right'
                   },
                   '',
                   '',
                   '',
-                  this.money(this.transaction.discountTotal)
+                  this.cart.loyalty_charge ? this.money(this.cart.discountTotal) : 0
                 ],
                 [
                   {
                     colSpan: 4,
-                    text: `Tax(${this.transaction.tax}%)`,
+                    text: `Tax(${this.cart.tax}%)`,
                     alignment: 'right'
                   },
                   '',
                   '',
                   '',
-                  this.money(this.transaction.taxTotal)
+                  this.money(this.cart.taxTotal)
                 ],
                 [
                   { colSpan: 4, text: 'Subtotal', alignment: 'right' },
                   '',
                   '',
                   '',
-                  this.money(this.transaction.subtotalTotal)
+                  this.money(this.cart.subTotal)
                 ],
                 [
                   { colSpan: 4, text: 'Paid Amount', alignment: 'right' },
                   '',
                   '',
                   '',
-                  this.money(this.transaction.paid)
+                  this.money(this.cart.amountPaid)
                 ],
                 [
                   {
@@ -256,7 +260,7 @@ export default {
                   '',
                   '',
                   '',
-                  this.money(this.transaction.paid - this.transaction.total)
+                  this.money(this.cart.cashChange)
                 ],
                 [
                   {
@@ -268,7 +272,7 @@ export default {
                   '',
                   {
                     colSpan: 2,
-                    text: `***** ${(numberWords.convert(Math.round(this.transaction.total))).toUpperCase()} NAIRA ONLY`,
+                    text: `***** ${(numberWords.convert(Math.round(this.cart.total))).toUpperCase()} NAIRA ONLY`,
                     alignment: 'left',
                     fontSize: 12
                   }
@@ -293,7 +297,7 @@ export default {
                 [
                   {
                     colSpan: 3,
-                    text: this.money(this.transaction.total),
+                    text: this.money(this.cart.total),
                     alignment: 'right'
                   },
                   '',
@@ -328,26 +332,24 @@ export default {
           }
         }
       }
-      pdfMake
-        .createPdf(docDefinition)
-        .download(this.salesid || this.transaction.salesid)
+      return new Promise((resolve, reject) => {
+        resolve(pdfMake.createPdf(docDefinition))
+          // .getBlob((result) => {
+          //   resolve(result)
+          // })
+        pdfMake
+          .createPdf(docDefinition)
+          .download(this.cart.sales_id)  
+      }) 
     },
     getReceiptBg (currentPage) {
       if (currentPage === 1) {
         return [
           {
-            image: base64Img.base64Sync('./static/AXXIMUTH2.jpg'),
+            image: base64Img.base64Sync(path.join(__static, 'AXXIMUTH2.jpg')),
             width: 600
           }
         ]
-        // return [
-        //   {
-        //     image: base64Img.base64Sync(
-        //       path.resolve(__dirname, '../../../../static/AXXIMUTH2.jpg')
-        //     ),
-        //     width: 600
-        //   }
-        // ]
       }
     },
     getReceiptInfo () {
@@ -367,7 +369,7 @@ export default {
               ['Date', 'Receipt #'],
               [
                 formatDate(new Date()),
-                this.salesid || this.transaction.salesid
+                this.cart.sales_id
               ]
             ]
           },
@@ -395,9 +397,9 @@ export default {
     },
     getStoreInfo () {
       return [
-        { text: this.store.address, marginBottom: 5 },
-        { text: `Call: ${this.store.phone}`, marginBottom: 5 },
-        { text: this.store.address, marginBottom: 5 },
+        { text: this.settings.branch.address, marginBottom: 5 },
+        { text: `Call: ${this.settings.store.phone}`, marginBottom: 5 },
+        // { text: this.store.address, marginBottom: 5 },
         { text: 'www.officelanding.com', marginBottom: 5 }
       ]
     },
@@ -412,7 +414,7 @@ export default {
   },
   mixins: [MoneyMixin],
   computed: {
-    ...mapState('store', ['store']),
+    ...mapState('settings', ['settings']),
     avatarUrl () {
       return `${window.baseUrl}/assets/img/logo.jpg?time=${Date.now()}`
     }

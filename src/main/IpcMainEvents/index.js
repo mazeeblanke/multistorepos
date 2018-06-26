@@ -4,4 +4,5 @@ module.exports = (mainWindow) => {
   require('./contextMenu')()
   require('./print')(mainWindow)
   require('./network')()
+  require('./invoicePreview')(mainWindow)
 }

@@ -109,21 +109,27 @@
             .field.is-horizontal
               .field-label.is-normal
                 label.label
+                  strong Cost price:
+              .field-label.is-normal
+                label.label.is-pulled-left {{ selectedProduct.costprice }} 
+            .field.is-horizontal
+              .field-label.is-normal
+                label.label
+                  strong Category:
+              .field-label.is-normal
+                label.label.is-pulled-left  {{ selectedProduct.category ? selectedProduct.category.category_name : '_'  }}
+            .field.is-horizontal
+              .field-label.is-normal
+                label.label
                   strong Reorder:
               .field-label.is-normal
-                label.label.is-pulled-left  {{ selectedProduct.productBranch ? selectedProduct.productBranch.reorder : '' }}
+                label.label.is-pulled-left  {{ selectedProduct.productBranch ? selectedProduct.productBranch.reorder || 0 : 0 }}
             .field.is-horizontal
               .field-label.is-normal
                 label.label
                   strong  Qty left:
               .field-label.is-normal
-                label.label.is-pulled-left {{ selectedProduct.productBranch ? selectedProduct.productBranch.quantity : '' }}    
-            .field.is-horizontal
-              .field-label.is-normal
-                label.label
-                  strong Cost price:
-              .field-label.is-normal
-                label.label.is-pulled-left {{ selectedProduct.costprice }} 
+                label.label.is-pulled-left {{ selectedProduct.productBranch ? selectedProduct.productBranch.quantity : 0 }}    
         .mt-30
           h5.title.is-5.has-text-centered Product Purchase history
           el-table(

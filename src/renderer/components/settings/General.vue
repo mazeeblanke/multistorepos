@@ -169,7 +169,7 @@
                     clearable,
                     :disabled="!$can('superadmin|admin')"
                     size="small",
-                    :value="storeSettings.branch.printout",
+                    v-model="storeSettings.branch.printout",
                     :filterable="true",
                     placeholder="select invoice type",
                     @change="() => $v.storeSettings.branch.printout.$touch()",
@@ -501,24 +501,30 @@ export default {
           const branch = this._settings.branch
           const store = this._settings.store
           const subTotal = this.cart.subTotal
-          const discount = calculateDiscount(subTotal, branch.threshold, branch.discount)
-          const discountTotal = calculatePercentInCash(discount, subTotal)
-          const taxTotal = calculatePercentInCash(this.tax, subTotal)
-          const total = Math.max((subTotal - discountTotal) + taxTotal, 0)
-          const discount_per_threshold = branch.discount
-          const tax = this.tax
+          let totalWithoutTax = subTotal
+          let discountTotal = 0
+          const discount = branch.discount
           const threshold = branch.threshold
-          
+          const taxTotal = calculatePercentInCash(this.tax, subTotal)
+          if (totalWithoutTax >= threshold) {
+            discountTotal = calculatePercentInCash(discount, threshold)
+          }
+          if (this.cart.loyalty_charge) {
+            totalWithoutTax = subTotal - discountTotal
+          }
+          const total = Math.max(totalWithoutTax + taxTotal, 0)
+          const tax = this.tax
+          const discount_per_threshold = branch.discount
           this.SET_CART({
             ...this.cart,
-            subTotal,
-            discount,
             discountTotal,
             discount_per_threshold,
             taxTotal,
+            threshold,
             total,
+            discount,
             tax,
-            threshold
+            subTotal
           })
 
           this.processing = false

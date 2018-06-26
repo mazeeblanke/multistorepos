@@ -101,7 +101,7 @@ import deleteMixin from '@/mixins/DeleteMixin'
 import filterMixin from '@/mixins/FilterMixin'
 import ContextMenuMixin from '@/mixins/ContextMenuMixin'
 import EmptyState from '@/components/EmptyState'
-import ListFilter from '@/components/Shared/ListFilter'
+import ListFilter from '@/components/shared/ListFilter'
 import JsonExcel from 'vue-json-excel'
 
 export default {

@@ -177,7 +177,7 @@
                 el-option(
                   v-for="category in categorySuggestions",
                   :value="category",
-                  :label="category.name",
+                  :label="category.category_name",
                   :key="category.id",
                 )
     MaterialsForm(

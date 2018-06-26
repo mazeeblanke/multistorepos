@@ -15,7 +15,8 @@ section.section(:style="{ width: '100%' }")
               @refunded="updateCart"
             )
             FullscreenDialog(
-              @closed="closeReceiptDialog", 
+              @closed="closeReceiptDialog",
+              v-show="settings.branch.printout === 'Reciept'"
               :scrollable="true", 
               :active.sync="printReceipt"
             )
@@ -25,9 +26,9 @@ section.section(:style="{ width: '100%' }")
                 :items="filteredCartItems",
                 :total="subTotal",
                 :cart="cart",
-                v-if="printReceipt",
+                v-show="printReceipt",
                 :print-receipt="printReceipt",
-                :is="(settings && settings.printout) || 'Reciept'",
+                :is="(settings && settings.branch.printout) || 'Reciept'",
               ) 
             .level.toolbar
               .level-left
@@ -135,6 +136,7 @@ import FullscreenDialog from '@/components/shared/FullscreenDialog'
 import deleteMixin from '@/mixins/DeleteMixin'
 import MoneyMixin from '@/mixins/MoneyMixin'
 import PaymentBar from '@/components/sales/PaymentBar'
+import Invoice from '@/components/shared/Invoice'
 import {
   multiplyCash,
   sumCash,
@@ -144,6 +146,8 @@ import {
 } from '@/utils/helper'
 import RefundSales from '@/components/shared/RefundSales'
 import _ from 'lodash'
+
+const blobUtil = require('blob-util')
 
 export default {
 
@@ -166,12 +170,15 @@ export default {
   watch: {
 
     subTotal (newValue) {
-      let totalWithoutTax = newValue;
+      let totalWithoutTax = newValue
+      let discountTotal = 0
       const branch = this.settings.branch
       const discount = branch.discount
       const threshold = branch.threshold
-      const discountTotal = calculatePercentInCash(discount, threshold)
       const taxTotal = calculatePercentInCash(this.tax, newValue)
+      if (totalWithoutTax >= threshold) {
+        discountTotal = calculatePercentInCash(discount, threshold)
+      }
       if (this.cart.loyalty_charge) {
         totalWithoutTax = newValue - discountTotal
       }
@@ -193,6 +200,10 @@ export default {
     }
 
   },
+
+  // mounted () {
+  //   this.printReceipt = false
+  // },
 
   methods: {
 
@@ -267,14 +278,24 @@ export default {
       this.addingCustomer = true
     },
 
+    handleReceiptDisplay () {
+      this.printReceipt = true
+      // if (this.settings.branch.printout !== 'reciept') {
+        // this.$refs.receipt.generateReceiptPdf().then((res) => {
+        //   // console.log('here ejhf hfdhfhdjfhdf djfhdfj')
+        //   // console.log(res)
+        //   // console.log(blobUtil.createObjectURL(res))
+        //   // const url = blobUtil.createObjectURL(res)
+        //   // this.$electron.ipcRenderer.send('invoicePreview', res)
+        // }).catch((err) => {
+        //   console.log(err)
+        // }) 
+      // }
+    },
+
     proceedTransaction () {
       if (this.hasPaid) {
-        if (this.settings && this.settings.printout === 'reciept') {
-          this.printReceipt = true
-        } else {
-          this.printReceipt = true
-          // this.$refs.receipt.generateReceiptPdf();
-        }
+        this.handleReceiptDisplay()
       } else if (this.shouldProceedWithTransaction) {
         const message = 'Amount paid is insufficient'
         this.warnUser(message)
@@ -284,6 +305,7 @@ export default {
             }
           })
       } else {
+        console.log('6')
         this.sellItems()
       }
     },
@@ -360,13 +382,14 @@ export default {
       this.$snackbar.open('Transaction complete !!')
       this.hasPaid = true
       this.addingCustomer = false
-      if (this.settings && this.settings.branch.printout === 'receipt') {
-        this.printReceipt = true
-        this.print()
-      } else {
-        this.printReceipt = true
-        // this.$refs.receipt.generateReceiptPdf();
-      }
+      this.handleReceiptDisplay()
+      // if (this.settings && this.settings.branch.printout === 'receipt') {
+      //   this.printReceipt = true
+      //   this.print()
+      // } else {
+      //   this.printReceipt = true
+      //   // this.$refs.receipt.generateReceiptPdf();
+      // }
       this.processing = false
     },
 
@@ -478,7 +501,6 @@ export default {
 
     shouldProceedWithTransaction () {
       return this.cart.amountPaid < this.cart.total
-      // return this.cart.cashChange > 0
     },
 
     getCartItemsNumber () {
@@ -501,7 +523,7 @@ export default {
 
     PaymentBar,
 
-    Invoice: () => import('@/components/shared/Invoice')
+    Invoice
 
   },
 

@@ -83,7 +83,7 @@
           span.el-icon-time.mr-5
           span {{ formatDate(scope.row.created_at) }}
       el-table-column(label="Actions", :render-header="renderDelete", width="70")
-        template(slot-scope="scope", scope="props")
+        template(slot-scope="scope")
           button.button(:class="$style.trash")
             span.el-icon-delete.font-size-23    
       div(slot="append" v-show="showLoading")

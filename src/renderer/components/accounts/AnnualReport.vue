@@ -22,7 +22,7 @@ div
         el-table-column(prop="sales", show-overflow-tooltip, label="Sales")
           template(slot-scope="scope") 
             span.is-capitalized {{ money(scope.row.sales) }}
-        el-table-column(prop="total", show-overflow-tooltip, label="Profit")
+        el-table-column(prop="profit", show-overflow-tooltip, label="Profit")
           template(slot-scope="scope") 
             span.is-capitalized {{ money(scope.row.profit) }}
     .column.is-4 

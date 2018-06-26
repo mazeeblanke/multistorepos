@@ -1,7 +1,8 @@
 'use strict'
-// const path = require('path')
+const path = require('path')
 const {
   app,
+  nativeImage,
   BrowserWindow,
   Menu
 } = require('electron')
@@ -21,8 +22,9 @@ const winURL = process.env.NODE_ENV === 'development'
   : `file://${__dirname}/index.html`
 
 function createWindow () {
+  let image = nativeImage.createFromPath(path.resolve(__dirname, '../../build/icons/icon.ico'))
   mainWindow = new BrowserWindow({
-    // icon: path.join(__dirname, '../../static/img/posico.png'),
+    icon: image,
     height: 800,
     useContentSize: true,
     width: 1600,
@@ -42,7 +44,7 @@ function createWindow () {
   require('./globalShortcuts')(mainWindow)
   require('./download')(mainWindow)
   require('./IpcMainEvents')(mainWindow)
-  // require('./tray')()
+  require('./tray')()
 }
 
 app.on('ready', createWindow)

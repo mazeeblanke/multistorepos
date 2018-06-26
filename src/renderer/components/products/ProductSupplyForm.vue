@@ -119,7 +119,6 @@
 import { mapState, mapActions } from 'vuex';
 import { validationMixin } from 'vuelidate';
 import { required } from 'vuelidate/lib/validators';
-import { ObjectToFormData } from '@/utils/helper';
 import EmptyState from '@/components/EmptyState';
 import _ from 'lodash';
 
@@ -242,7 +241,7 @@ export default {
     submit() {
       if (!this.$v.$invalid) {
         this.processing = true;
-        this.addProductSupply(ObjectToFormData(this.product)).then(res => {
+        this.addProductSupply(this.product).then(res => {
           if (res.status === 'Success') {
             this.$snackbar.open(res.status + ' !' + res.message);
             this.$emit('action-complete', { ...this.product });
