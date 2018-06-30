@@ -49,16 +49,8 @@ import { ucFirst } from '@/utils/helper'
 import Wifi from '@/components/shared/Wifi'
 
 export default {
-  // mounted () {
-  //   this.initWifiMonitoring()
-  //   this.$electron.ipcRenderer.on(
-  //     'wifiConnection',
-  //     (e, data) => this.updateWifiConnection(data)
-  //   )
-  // },
   data () {
     return {
-      // connection: null,
       menu: [
         {
           icon: 'new_releases',
@@ -91,23 +83,7 @@ export default {
       }).catch((e) => {
         console.log(e)
       })
-    },
-
-    // updateWifiConnection (connection) {
-    //   if (
-    //     connection && 
-    //     connection instanceof Array && 
-    //     connection.length
-    //   ) {
-    //     this.connection = connection[0]
-    //   } else {
-    //     this.connection = null
-    //   }
-    // },
-
-    // initWifiMonitoring () {
-    //   setInterval(() => this.$electron.ipcRenderer.send('getWifiConnection'), 5000)
-    // }
+    }
   },
 
   computed: {
