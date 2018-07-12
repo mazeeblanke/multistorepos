@@ -50,10 +50,15 @@ npm run lint:fix
             ├── index.html      # Main Html file used in the built electron app. This file loads the renderer.js, service-worker.js, vendor.js, manifest.js, main.js and styles.css files
             ├── main.js         # This is our output bundle, it dynamically (lazy loading) calls the numbered javascript files based on the visited routes
             └── README.md                                 
-    ├── docs                    # Documentation files (alternatively `doc`)
+    ├── node_modules            # node dependencies
     ├── src                     # Source files (alternatively `lib` or `app`)
+        ├── main                # electron's main process
+        ├── renderer            # electron's renderer process, our vue app is here
+        ├── index.ejs           # ejs template used to generate the main html file of the app
+        
+    ├── static                  # contains assets used in the electron 
     ├── test                    # Automated tests (alternatively `spec` or `tests`)
-    ├── tools                   # Tools and utilities
+    ├── theme                   # contains generated color theme for element ui 
     ├── LICENSE
     └── README.md
 ---
